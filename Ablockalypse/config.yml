@@ -114,11 +114,11 @@ weaponGrenadeString: [GRENADE]
 # IT IS HIGHLY RECOMMENDED YOU DO NOT CHANGE THESE!
 # A max of 15 characters may be used per string.
 # NOTE: You can find a guide to specific signs here:
-# https://github.com/iKeirNez/ShinyCake/wiki/Signs //-----------------NEEDS UPDATING AT A LATER DATE!
+# https://github.com/JamesNorris/Ablockalypse/wiki/Signs
 
 #################################################### MAINTENANCE ####################################################
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.
 # If there is anything that concerns you, post this as an issue on:
-# http://dev.bukkit.org/server-mods/zombie-ablockalypse/tickets/// -------------- ALSO NEEDS UPDATING!
+# https://github.com/JamesNorris/Ablockalypse/issues

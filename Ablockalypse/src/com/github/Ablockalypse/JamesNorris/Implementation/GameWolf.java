@@ -1,11 +1,15 @@
 package com.github.Ablockalypse.JamesNorris.Implementation;
 
+import java.lang.reflect.Field;
+
+import net.minecraft.server.EntityWolf;
+
 import org.bukkit.Effect;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.entity.CraftWolf;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
-import org.bukkit.util.Vector;
 
 import com.github.Ablockalypse.JamesNorris.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.WolfInterface;
@@ -59,8 +63,16 @@ public class GameWolf implements WolfInterface {
 	 * Increases the speed of the wolf.
 	 */
 	@Override public void increaseSpeed() {
-		Vector v = wolf.getVelocity();
-		wolf.setVelocity(v.multiply(2));
+        EntityWolf ew = ((CraftWolf)wolf).getHandle();
+        Field field;
+        try {
+            field = net.minecraft.server.EntityWolf.class.getDeclaredField("bw");
+            field.setAccessible(true);
+            field.set(ew, 0.6);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**

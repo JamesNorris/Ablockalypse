@@ -1,10 +1,14 @@
 package com.github.Ablockalypse.JamesNorris.Implementation;
 
+import java.lang.reflect.Field;
+
+import net.minecraft.server.EntityZombie;
+
 import org.bukkit.World;
+import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.util.Vector;
 
 import com.github.Ablockalypse.JamesNorris.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZombieInterface;
@@ -55,8 +59,16 @@ public class GameZombie implements ZombieInterface {
 	 * Increases the speed of the zombie.
 	 */
 	@Override public void increaseSpeed() {
-		Vector v = zombie.getVelocity();
-		zombie.setVelocity(v.multiply(2));
+        EntityZombie ez = ((CraftZombie)zombie).getHandle();
+        Field field;
+        try {
+            field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
+            field.setAccessible(true);
+            field.set(ez, 0.6);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**

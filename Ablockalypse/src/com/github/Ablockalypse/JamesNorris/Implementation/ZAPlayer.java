@@ -13,6 +13,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -90,7 +91,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * NOTE: The 2 options for the bit byte are 0x00 (down) and 0x04 (up).
 	 */
 	private void generatePacket(Player player, byte bit) {
-		player.teleport(player.getLocation().add(0.5, 0.5, 0.5));
+		player.teleport(player.getLocation().add(0, 1, 0));
 		Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
 		for (Player p : Bukkit.getServer().getOnlinePlayers())
 			((CraftPlayer) p).getHandle().netServerHandler.sendPacket(packet);
@@ -280,6 +281,9 @@ public class ZAPlayer implements ZAPlayerInterface {
 	@Override public void toggleLastStand() {
 		if (!laststand) {
 			laststand = true;
+			Entity v = player.getVehicle();
+			if (v != null && !player.isSneaking())
+				v.remove();
 			player.setAllowFlight(true);
 			player.setFlying(true);
 			generatePacket(player, (byte) 0x00);
