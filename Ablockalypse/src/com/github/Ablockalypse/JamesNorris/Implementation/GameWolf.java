@@ -63,16 +63,15 @@ public class GameWolf implements WolfInterface {
 	 * Increases the speed of the wolf.
 	 */
 	@Override public void increaseSpeed() {
-        EntityWolf ew = ((CraftWolf)wolf).getHandle();
-        Field field;
-        try {
-            field = net.minecraft.server.EntityWolf.class.getDeclaredField("bw");
-            field.setAccessible(true);
-            field.set(ew, 0.6);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+		EntityWolf ew = ((CraftWolf) wolf).getHandle();
+		Field field;
+		try {
+			field = net.minecraft.server.EntityWolf.class.getDeclaredField("bw");
+			field.setAccessible(true);
+			field.set(ew, 0.6);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

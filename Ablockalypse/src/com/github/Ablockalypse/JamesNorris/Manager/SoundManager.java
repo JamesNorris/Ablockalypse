@@ -23,6 +23,9 @@ public class SoundManager {
 		this.player = player;
 	}
 
+	/**
+	 * Clears all data from this instance.
+	 */
 	@SuppressWarnings("unused") @Override public void finalize() {
 		for (Method m : this.getClass().getDeclaredMethods())
 			m = null;

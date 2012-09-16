@@ -3,14 +3,11 @@ package com.github.Ablockalypse.JamesNorris;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse.Ablockalypse;
 
@@ -20,28 +17,13 @@ public class ConfigurationData {
 	public int cost, enchDamageCost, enchRandomCost;
 	public boolean DEBUG;
 	public Enchantment enchant;
-	public String enchdamagestring, enchrandstring;
-	public HashMap<String, Enchantment> enchmap = new HashMap<String, Enchantment>();
-	public HashMap<String, Integer> enchsignline3 = new HashMap<String, Integer>();
-	public String enchstring;
-	public String first, joingame, areastring;
 	public int heallevel, speedlevel, damagelevel, regenlevel;
 	public int healPoints, speedPoints, damagePoints, regenPoints;
-	public String healstring, speedstring, damagestring, regenstring;
 	public String helmet, chestplate, leggings, boots;
 	public List<String> inventory;
-	public HashMap<String, Integer> levelmap = new HashMap<String, Integer>();
 	public boolean losePerksLastStand;
 	public int packapunchlevel;
-	public HashMap<String, PotionEffectType> perkmap = new HashMap<String, PotionEffectType>();
-	public HashMap<String, Integer> perksignline3 = new HashMap<String, Integer>();
-	public String perkstring;
-	private Ablockalypse plugin;
 	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, speedLevel;
-	public String weaponstring;
-	public String weaponwoodstring, weaponstonestring, weaponironstring, weapondiamondstring, weapongoldstring, weapongrenadestring;
-	public HashMap<String, Material> wepmap = new HashMap<String, Material>();
-	public HashMap<String, Integer> wepsignline3 = new HashMap<String, Integer>();
 	public int woodSwordCost, stoneSwordCost, ironSwordCost, diamondSwordCost, goldSwordCost, grenadeCost;
 
 	/**
@@ -49,28 +31,8 @@ public class ConfigurationData {
 	 * 
 	 * @param instance The instance of the plugin Ablockalypse
 	 */
-	public ConfigurationData(Ablockalypse instance) {
-		plugin = instance;
+	public ConfigurationData(Ablockalypse plugin) {
 		FileConfiguration cf = plugin.getConfig();
-		/* STRINGS */
-		first = cf.getString("baseString");
-		perkstring = cf.getString("perkString");
-		healstring = cf.getString("perkHealString");
-		speedstring = cf.getString("perkSpeedString");
-		damagestring = cf.getString("perkDamageString");
-		regenstring = cf.getString("perkRegenString");
-		enchstring = cf.getString("enchantmentString");
-		enchdamagestring = cf.getString("enchantmentDamageString");
-		enchrandstring = cf.getString("enchantmentRandomString");
-		weaponstring = cf.getString("weaponString");
-		weaponwoodstring = cf.getString("weaponWoodSwordString");
-		weaponstonestring = cf.getString("weaponStoneSwordString");
-		weaponironstring = cf.getString("weaponIronSwordString");
-		weapondiamondstring = cf.getString("weaponDiamondSwordString");
-		weapongoldstring = cf.getString("weaponGoldSwordString");
-		weapongrenadestring = cf.getString("weaponGrenadeString");
-		areastring = cf.getString("areaString");
-		joingame = cf.getString("joinString");
 		/* POINTS & LEVELS */
 		heallevel = cf.getInt("healLevel");
 		speedlevel = cf.getInt("speedLevel");
@@ -110,55 +72,6 @@ public class ConfigurationData {
 		speedLevel = cf.getInt("doubleSpeedLevel");
 		wolfLevels = cf.getIntegerList("wolfLevels");
 		DEBUG = cf.getBoolean("DEBUG");
-		initSignRequirements();
-	}
-
-	/**
-	 * Used to clean up the amount of code required to add all different perks/enchantments/weapons
-	 */
-	public void initSignRequirements() {
-		// levelmap
-		levelmap.put(healstring, heallevel);
-		levelmap.put(speedstring, speedlevel);
-		levelmap.put(damagestring, damagelevel);
-		levelmap.put(regenstring, regenlevel);
-		levelmap.put(enchdamagestring, packapunchlevel);
-		levelmap.put(enchrandstring, packapunchlevel);
-		levelmap.put(weaponwoodstring, woodSwordLevel);
-		levelmap.put(weaponstonestring, stoneSwordLevel);
-		levelmap.put(weaponironstring, ironSwordLevel);
-		levelmap.put(weapondiamondstring, diamondSwordLevel);
-		levelmap.put(weapongoldstring, goldSwordLevel);
-		levelmap.put(weapongrenadestring, grenadeLevel);
-		// perksignline3
-		perksignline3.put(healstring, healPoints);
-		perksignline3.put(speedstring, speedPoints);
-		perksignline3.put(damagestring, damagePoints);
-		perksignline3.put(regenstring, regenPoints);
-		// perkmap
-		perkmap.put(healstring, PotionEffectType.HEAL);
-		perkmap.put(speedstring, PotionEffectType.SPEED);
-		perkmap.put(damagestring, PotionEffectType.DAMAGE_RESISTANCE);
-		perkmap.put(regenstring, PotionEffectType.REGENERATION);
-		// enchsignline3
-		enchsignline3.put(enchdamagestring, enchDamageCost);
-		enchsignline3.put(enchrandstring, enchRandomCost);
-		// enchmap
-		enchmap.put(enchdamagestring, Enchantment.DAMAGE_ALL);
-		// wepsignline3
-		wepsignline3.put(weaponwoodstring, woodSwordCost);
-		wepsignline3.put(weaponstonestring, stoneSwordCost);
-		wepsignline3.put(weaponironstring, ironSwordCost);
-		wepsignline3.put(weapondiamondstring, diamondSwordCost);
-		wepsignline3.put(weapongoldstring, goldSwordCost);
-		wepsignline3.put(weapongrenadestring, grenadeCost);
-		// wepmap
-		wepmap.put(weaponwoodstring, Material.WOOD_SWORD);
-		wepmap.put(weaponstonestring, Material.STONE_SWORD);
-		wepmap.put(weaponironstring, Material.IRON_SWORD);
-		wepmap.put(weapondiamondstring, Material.DIAMOND_SWORD);
-		wepmap.put(weapongoldstring, Material.GOLD_SWORD);
-		wepmap.put(weapongrenadestring, Material.ENDER_PEARL);
 	}
 
 	// END OF VARIABLES
@@ -178,7 +91,7 @@ public class ConfigurationData {
 		}
 		return Enchantment.DURABILITY;
 	}
-	
+
 	/**
 	 * Clears all of the ConfigurationData.
 	 */

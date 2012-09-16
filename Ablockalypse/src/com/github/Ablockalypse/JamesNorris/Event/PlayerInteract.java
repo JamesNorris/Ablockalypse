@@ -13,10 +13,12 @@ import com.github.Ablockalypse.JamesNorris.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.MysteryChest;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZASign;
+import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 import com.github.Ablockalypse.JamesNorris.Threading.TeleportThread;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class PlayerInteract implements Listener {
+	private YamlManager ym;
 	private ConfigurationData cd;
 
 	/* 
@@ -26,15 +28,17 @@ public class PlayerInteract implements Listener {
 	 * *When a ZAPlayer clicks a sign, to check the lines for strings that trigger a response. 
 	 */
 	public void PIE(PlayerInteractEvent event) {
-		if (cd == null)
-			cd = External.cd;
+		if (ym == null || cd == null) {
+			ym = External.ym;
+			cd = ym.getConfigurationData();
+		}
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if (b instanceof Sign) {
 			Sign s = (Sign) b;
 			ZASign zas;
 			if (!(s instanceof ZASign)) {
-				zas = new ZASign(s, cd);
+				zas = new ZASign(s, ym);
 			} else {
 				zas = (ZASign) s;
 			}

@@ -56,7 +56,7 @@ public class MobSpawnThread {
 			}
 		}, 60, 60);
 	}
-	
+
 	/*
 	 * Cancels the thread.
 	 */

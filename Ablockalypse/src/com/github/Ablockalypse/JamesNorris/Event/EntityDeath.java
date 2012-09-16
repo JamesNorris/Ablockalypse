@@ -19,7 +19,7 @@ public class EntityDeath implements Listener {
 	 */
 	@EventHandler public void EDE(EntityDeathEvent event) {
 		if (cd == null)
-			cd = External.cd;
+			cd = External.ym.getConfigurationData();
 		Player p = event.getEntity().getKiller();
 		if (Data.players.containsKey(p)) {
 			ZAPlayer zap = Data.players.get(p);

@@ -12,9 +12,13 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse.JamesNorris.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Interface.ZASignInterface;
+import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 
 public class ZASign implements ZASignInterface {
+	private YamlManager ym;
+	private LocalizationData ld;
 	private ConfigurationData cd;
 	private String l1, l2, l3, l4;
 	private Sign sign;
@@ -27,9 +31,10 @@ public class ZASign implements ZASignInterface {
 	 * @param sign The sign to be made into this instance
 	 * @param cd The ConfigurationData instance to be used in this instance
 	 */
-	public ZASign(Sign sign, ConfigurationData cd) {
+	public ZASign(Sign sign, YamlManager ym) {
 		this.sign = sign;
-		this.cd = cd;
+		this.ld = ym.getLocalizationData();
+		this.cd = ym.getConfigurationData();
 		this.l1 = sign.getLine(1);
 		this.l2 = sign.getLine(2);
 		this.l3 = sign.getLine(3);
@@ -94,57 +99,57 @@ public class ZASign implements ZASignInterface {
 	 */
 	@Override public void runLines(Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
-		if (l1.equalsIgnoreCase(cd.first)) {
+		if (l1.equalsIgnoreCase(ld.first)) {
 			/* Attempts to add the player to a game if the second line has the join string */
-			if (l2.equalsIgnoreCase(cd.joingame)) {
+			if (l2.equalsIgnoreCase(ld.joingame)) {
 				ZAPlayer zap = Data.findZAPlayer(player, l3);
 				zap.loadPlayerToGame(l3);
 				/* Otherwise, checks for enough points, then attempts to purchase something for the player */
-			} else if (player.getLevel() >= cd.levelmap.get(l3) && Data.players.containsKey(player)) {
+			} else if (player.getLevel() >= ym.levelmap.get(l3) && Data.players.containsKey(player)) {
 				ZAPlayer zap = Data.players.get(player);
 				int n = zap.getPoints();
 				/* PERKS */
-				if (l2.equalsIgnoreCase(cd.perkstring)) {
-					if (cd.perksignline3.containsKey(l3) && n >= cd.perksignline3.get(l3)) {
-						if (cd.perkmap.get(l3) == PotionEffectType.HEAL) {
+				if (l2.equalsIgnoreCase(ld.perkstring)) {
+					if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
+						if (ym.perkmap.get(l3) == PotionEffectType.HEAL) {
 							player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 5, 5));
 						} else {
-							player.addPotionEffect(new PotionEffect(cd.perkmap.get(l3), cd.duration, 2));
+							player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
 						}
-						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cd.perksignline3.get(l3) + " points!");
+						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + ym.perksignline3.get(l3) + " points!");
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
 						return;
 					}
 					/* ENCHANTMENTS */
-				} else if (l2.equalsIgnoreCase(cd.enchstring)) {
-					if (cd.enchsignline3.containsKey(l3) && n >= cd.enchsignline3.get(l3)) {
-						if (l3.equalsIgnoreCase(cd.enchrandstring)) {
+				} else if (l2.equalsIgnoreCase(ld.enchstring)) {
+					if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
+						if (l3.equalsIgnoreCase(ld.enchrandstring)) {
 							player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
-							player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " enchantment for " + cd.enchsignline3.get(l3) + " points!");
+							player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " enchantment for " + ym.enchsignline3.get(l3) + " points!");
 							return;
 						} else {
-							player.getItemInHand().addEnchantment(cd.enchmap.get(l3), 3);
+							player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
 						}
-						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cd.enchsignline3.get(l3) + " points!");
+						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + ym.enchsignline3.get(l3) + " points!");
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
 						return;
 					}
 					/* WEAPONS */
-				} else if (l2.equalsIgnoreCase(cd.weaponstring)) {
-					if (cd.wepsignline3.containsKey(l3) && n >= cd.enchsignline3.get(l3)) {
-						player.getInventory().addItem(new ItemStack(cd.wepmap.get(l3), 1));
-						player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cd.enchsignline3.get(l3) + " points!");
+				} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
+					if (ym.wepsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
+						player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+						player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + ym.enchsignline3.get(l3) + " points!");
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
 						return;
 					}
 					/* AREAS */
-				} else if (l2.equalsIgnoreCase(cd.areastring)) {
+				} else if (l2.equalsIgnoreCase(ld.areastring)) {
 					Block b = sign.getBlock();
 					Area a;
 					if (!Data.areas.containsKey(b))

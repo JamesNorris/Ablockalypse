@@ -3,8 +3,8 @@ package com.github.Ablockalypse.iKeirNez.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class CommandUtil {
@@ -25,7 +25,7 @@ public class CommandUtil {
 	 * @param alias The string input for the command
 	 */
 	public static void showHelp(CommandSender s, String[] args, String alias) {
-		ConfigurationData cd = External.cd;
+		LocalizationData ld = External.ym.getLocalizationData();
 		String a = "/" + alias;
 		ChatColor r = ChatColor.RESET;
 		ChatColor g = ChatColor.GOLD;
@@ -34,12 +34,12 @@ public class CommandUtil {
 		ChatColor aq = ChatColor.AQUA;
 		if (args.length == 2 && args[1].equalsIgnoreCase("sign")) {
 			s.sendMessage(aq + "----- Sign Command Lines -----");
-			s.sendMessage(aq + cd.first + " " + y + "This must be at the top of any ZA command sign");
-			s.sendMessage(aq + cd.joingame + " " + y + "A sign with this line, when clicked adds a player to a ZA game");
-			s.sendMessage(aq + cd.areastring + " " + y + "A sign with this line, when clicked unlocks a ZA area");
-			s.sendMessage(aq + cd.perkstring + " " + y + "A sign with this line, when clicked gives a perk");
-			s.sendMessage(aq + cd.enchstring + " " + y + "A sign with this line, when clicked enchants an item in your hand");
-			s.sendMessage(aq + cd.weaponstring + " " + y + "A sign with this line, when clicked gives a weapon");
+			s.sendMessage(aq + ld.first + " " + y + "This must be at the top of any ZA command sign");
+			s.sendMessage(aq + ld.joingame + " " + y + "A sign with this line, when clicked adds a player to a ZA game");
+			s.sendMessage(aq + ld.areastring + " " + y + "A sign with this line, when clicked unlocks a ZA area");
+			s.sendMessage(aq + ld.perkstring + " " + y + "A sign with this line, when clicked gives a perk");
+			s.sendMessage(aq + ld.enchstring + " " + y + "A sign with this line, when clicked enchants an item in your hand");
+			s.sendMessage(aq + ld.weaponstring + " " + y + "A sign with this line, when clicked gives a weapon");
 			return;
 		}
 		s.sendMessage(g + a + b + " help sign - " + r + y + "Shows the line command lines for a sign");

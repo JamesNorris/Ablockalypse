@@ -47,9 +47,9 @@ public class Data {
 	 * Clears all data from the main data cache of the Ablockalypse plugin.
 	 */
 	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : External.cd.getClass().getDeclaredMethods())
+		for (Method m : this.getClass().getDeclaredMethods())
 			m = null;
-		for (Field f : External.cd.getClass().getDeclaredFields())
+		for (Field f : this.getClass().getDeclaredFields())
 			f = null;
 	}
 
@@ -65,7 +65,7 @@ public class Data {
 		if (Data.games.containsKey(name))
 			zag = Data.games.get(name);
 		else
-			zag = new ZAGame(name, External.cd, spawners);
+			zag = new ZAGame(name, External.ym.getConfigurationData(), spawners);
 		return zag;
 	}
 
@@ -98,7 +98,7 @@ public class Data {
 		else if (Data.games.containsKey(gamename))
 			zap = new ZAPlayer(player, Data.games.get(gamename));
 		else
-			zap = new ZAPlayer(player, new ZAGame(gamename, External.cd, true));
+			zap = new ZAPlayer(player, new ZAGame(gamename, External.ym.getConfigurationData(), true));
 		return zap;
 	}
 

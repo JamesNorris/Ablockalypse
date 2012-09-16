@@ -1,6 +1,6 @@
 #####################################################################################################################
 #                                     Zombie Ablockalypse - Configuration file                                      #
-#                                            Authors: Jnorr44, iKeirNez                                                    #
+#                                            Authors: Jnorr44, iKeirNez                                             #
 #####################################################################################################################
 
 ##################################################### DIFFICULTY #####################################################
@@ -79,42 +79,6 @@ perGrenade: 200
 grenadeLevel: 0
 
 # NOTE - Ender Pearls are grenades, and are changed to explode on impact.
-
-#################################################### SIGN STRINGS ###################################################
-
-### Tier 1:
-
-baseString: [ZA]
-
-### Tier 2:
-
-joinString: [JOIN]
-areaString: [AREA]
-perkString: [PERK]
-enchantmentString: [ENCHANT]
-weaponString: [WEAPON]
-
-### Tier 3:
-
-perkHealString: [HEAL]
-perkSpeedString: [SPEED]
-perkDamageString: [DAMAGE]
-perkRegenerationString: [REGEN]
-
-enchantmentDamageString: [DAMAGE]
-enchantmentRandomString: [RANDOM]
-
-weaponWoodSwordString: [WOOD_SWORD]
-weaponStoneSwordString: [STONE_SWORD]
-weaponIronSwordString: [IRON_SWORD]
-weaponDiamondSwordString: [DIAMOND_SWORD]
-weaponGoldSwordString: [GOLD_SWORD]
-weaponGrenadeString: [GRENADE]
-
-# IT IS HIGHLY RECOMMENDED YOU DO NOT CHANGE THESE!
-# A max of 15 characters may be used per string.
-# NOTE: You can find a guide to specific signs here:
-# https://github.com/JamesNorris/Ablockalypse/wiki/Signs
 
 #################################################### MAINTENANCE ####################################################
 

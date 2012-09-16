@@ -51,7 +51,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * @param game The game this player should be in
 	 */
 	public ZAPlayer(Player player, ZAGame game) {
-		this.cd = External.cd;
+		this.cd = External.ym.getConfigurationData();
 		this.player = player;
 		this.name = player.getName();
 		this.game = game;
@@ -202,13 +202,13 @@ public class ZAPlayer implements ZAPlayerInterface {
 		player.setExhaustion(0F);
 		player.setGameMode(GameMode.SURVIVAL);
 		try {
-			for (String s : External.cd.inventory) {
+			for (String s : cd.inventory) {
 				player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
 			}
-			player.getInventory().setHelmet(StartingItems.seperateStartingItemsData(External.cd.helmet));
-			player.getInventory().setChestplate(StartingItems.seperateStartingItemsData(External.cd.chestplate));
-			player.getInventory().setLeggings(StartingItems.seperateStartingItemsData(External.cd.leggings));
-			player.getInventory().setBoots(StartingItems.seperateStartingItemsData(External.cd.boots));
+			player.getInventory().setHelmet(StartingItems.seperateStartingItemsData(cd.helmet));
+			player.getInventory().setChestplate(StartingItems.seperateStartingItemsData(cd.chestplate));
+			player.getInventory().setLeggings(StartingItems.seperateStartingItemsData(cd.leggings));
+			player.getInventory().setBoots(StartingItems.seperateStartingItemsData(cd.boots));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

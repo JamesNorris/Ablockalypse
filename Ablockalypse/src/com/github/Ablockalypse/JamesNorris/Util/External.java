@@ -3,32 +3,90 @@ package com.github.Ablockalypse.JamesNorris.Util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.GameData;
+import com.github.Ablockalypse.JamesNorris.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Implementation.Area;
 import com.github.Ablockalypse.JamesNorris.Implementation.Barrier;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 
 public class External {
 	private static HashMap<SerializableLocation, Boolean> areaSavings;
 	private static ArrayList<SerializableLocation> barrierSavings;
-	public static ConfigurationData cd;
+	public static YamlManager ym;
 	public static Ablockalypse instance;
-	private static ArrayList<ZAGame> loadedGames;
-	public static String games = "games.yml", mainframes = "mainframes.bin", config = "config.yml", points = "points.bin", levels = "levels.bin", spawners = "spawners.bin", barriers = "barriers.bin", areas = "areas.bin";
+	private static List<String> loadedGames;
+	public static String local = "local.yml", games = "games.yml", mainframes = "mainframes.bin", config = "config.yml", points = "points.bin", levels = "levels.bin", spawners = "spawners.bin", barriers = "barriers.bin", areas = "areas.bin";
 	private static HashMap<String, SerializableLocation> mainframeSavings, spawnerSavings;
+	@SuppressWarnings("unused") private FileConfiguration localConfig = null;
+	@SuppressWarnings("unused") private File localf = null;
+	public static File l, g;
+
+	/**
+	 * Reloads the configuration specified.
+	 * 
+	 * @param f The File to reload
+	 * @param fc The FileConfiguration to use
+	 * @param path The path of the file
+	 */
+	public static void reloadConfig(File f, String path) {
+		FileConfiguration fc = YamlConfiguration.loadConfiguration(f);
+		InputStream defStream = instance.getResource(path);
+		if (defStream != null) {
+			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defStream);
+			fc.setDefaults(defConfig);
+		}
+	}
+
+	/**
+	 * Gets the configuration specified
+	 * 
+	 * @param f The File to get
+	 * @param fc The FileConfiguration to use
+	 * @param path The path of the file
+	 */
+	public static FileConfiguration getConfig(File f, String path) {
+		FileConfiguration fc = null;
+		reloadConfig(f, path);
+		return fc;
+	}
+
+	/**
+	 * Saves the configuration specified.
+	 * 
+	 * @param f The File to save
+	 * @param fc The FileConfiguration to use
+	 * @param path The path of the file
+	 */
+	public static void saveConfig(File f, FileConfiguration fc, String path) {
+		if (fc == null || f == null) {
+			return;
+		}
+		try {
+			getConfig(f, path).save(f);
+		} catch (IOException ex) {
+			System.err.println("Could not save " + path + "!");
+		}
+	}
 
 	/**
 	 * Load an object from a file
@@ -49,14 +107,17 @@ public class External {
 	 */
 	public static void loadBinaries() {
 		try {
+			loadedGames = ym.getGameData().getSavedGames();
 			// TODO load game names from a .yml - If they no longer exist, prevent data from being loaded for those games
 			/* mainframes.bin */
 			HashMap<String, SerializableLocation> save = External.load(mainframes);
 			for (String s : save.keySet()) {
 				SerializableLocation loc = save.get(s);
 				Location l = SerializableLocation.returnLocation(loc);
-				for (ZAGame zag : loadedGames)
+				for (String s2 : loadedGames) {
+					ZAGame zag = Data.findGame(s2, false);
 					zag.setSpawn(l);
+				}
 			}
 			/* spawners.bin */
 			HashMap<String, SerializableLocation> save2 = External.load(spawners);
@@ -65,8 +126,10 @@ public class External {
 				Location l = SerializableLocation.returnLocation(sl);
 				Data.spawners.put(s, l);
 			}
-			for (ZAGame zag : loadedGames)
+			for (String s2 : loadedGames) {
+				ZAGame zag = Data.findGame(s2, false);
 				zag.loadSpawners();
+			}
 			/* barriers.bin */
 			ArrayList<SerializableLocation> save3 = External.load(barriers);
 			for (SerializableLocation sl : save3) {
@@ -145,6 +208,18 @@ public class External {
 			File f = new File(instance.getDataFolder(), config);
 			if (!f.exists())
 				instance.saveDefaultConfig();
+			/* local.yml */
+			l = new File(instance.getDataFolder(), local);
+			if (!l.exists()) {
+				FileConfiguration l2 = getConfig(l, local);
+				saveConfig(l, l2, local);
+			}
+			/* games.yml */
+			g = new File(instance.getDataFolder(), games);
+			if (!g.exists()) {
+				FileConfiguration g2 = getConfig(g, games);
+				saveConfig(g, g2, games);
+			}
 			/* mainframes.bin */
 			loadResource(mainframes);
 			/* spawners.bin */
@@ -158,7 +233,10 @@ public class External {
 			/* levels.bin */
 			loadResource(levels);
 			/* GET THE VALUES FROM THE CONFIGURATION */
-			cd = new ConfigurationData(instance);
+			ConfigurationData cd = new ConfigurationData(instance);
+			LocalizationData ld = new LocalizationData();
+			GameData gd = new GameData();
+			ym = new YamlManager(cd, ld, gd);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

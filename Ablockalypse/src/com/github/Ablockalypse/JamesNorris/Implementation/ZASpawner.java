@@ -15,7 +15,7 @@ import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class ZASpawner implements ZASpawnerInterface {
 	private Block block;
-	private ConfigurationData cd = External.cd;
+	private ConfigurationData cd = External.ym.getConfigurationData();
 	private ZAGame game;
 	private World world;
 

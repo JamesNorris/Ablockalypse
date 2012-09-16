@@ -21,7 +21,7 @@ public class EntityDamage implements Listener {
 	 */
 	@EventHandler public void EDE(EntityDamageEvent event) {
 		if (cd == null)
-			cd = External.cd;
+			cd = External.ym.getConfigurationData();
 		Entity e = event.getEntity();
 		Player p = (Player) e;
 		if (Data.players.containsKey(p)) {

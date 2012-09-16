@@ -21,7 +21,7 @@ public class PlayerInteractEntity implements Listener {
 	 */
 	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
 		if (cd == null)
-			cd = External.cd;
+			cd = External.ym.getConfigurationData();
 		Player p = event.getPlayer();
 		Entity e = event.getRightClicked();
 		if (Data.players.containsKey(p) && Data.players.containsKey(e)) {

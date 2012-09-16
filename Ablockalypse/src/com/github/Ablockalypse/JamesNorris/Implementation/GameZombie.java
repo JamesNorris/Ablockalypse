@@ -59,16 +59,15 @@ public class GameZombie implements ZombieInterface {
 	 * Increases the speed of the zombie.
 	 */
 	@Override public void increaseSpeed() {
-        EntityZombie ez = ((CraftZombie)zombie).getHandle();
-        Field field;
-        try {
-            field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
-            field.setAccessible(true);
-            field.set(ez, 0.6);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+		EntityZombie ez = ((CraftZombie) zombie).getHandle();
+		Field field;
+		try {
+			field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
+			field.setAccessible(true);
+			field.set(ez, 0.6);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
