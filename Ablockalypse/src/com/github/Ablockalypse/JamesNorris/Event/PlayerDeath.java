@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Threading.RespawnThread;

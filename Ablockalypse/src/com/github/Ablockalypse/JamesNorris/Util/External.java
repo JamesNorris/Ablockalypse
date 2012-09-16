@@ -19,10 +19,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.github.Ablockalypse.Ablockalypse;
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Data;
-import com.github.Ablockalypse.JamesNorris.GameData;
-import com.github.Ablockalypse.JamesNorris.LocalizationData;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Data.GameData;
+import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Implementation.Area;
 import com.github.Ablockalypse.JamesNorris.Implementation.Barrier;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;

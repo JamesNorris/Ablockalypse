@@ -8,9 +8,9 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.GameData;
-import com.github.Ablockalypse.JamesNorris.LocalizationData;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.GameData;
+import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 
 public class YamlManager {
 	public HashMap<String, Material> wepmap = new HashMap<String, Material>();
@@ -84,7 +84,7 @@ public class YamlManager {
 		wepmap.put(ld.weapongoldstring, Material.GOLD_SWORD);
 		wepmap.put(ld.weapongrenadestring, Material.ENDER_PEARL);
 	}
-	
+
 	/**
 	 * Gets the GameData from this instance.
 	 * 

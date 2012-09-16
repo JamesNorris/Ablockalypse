@@ -3,8 +3,8 @@ package com.github.Ablockalypse.iKeirNez.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import com.github.Ablockalypse.JamesNorris.Data;
-import com.github.Ablockalypse.JamesNorris.LocalizationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class CommandUtil {

@@ -1,4 +1,4 @@
-package com.github.Ablockalypse.JamesNorris;
+package com.github.Ablockalypse.JamesNorris.Data;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

@@ -8,8 +8,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.github.Ablockalypse.JamesNorris.Data;
-import com.github.Ablockalypse.JamesNorris.LocalizationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class BlockPlace implements Listener {

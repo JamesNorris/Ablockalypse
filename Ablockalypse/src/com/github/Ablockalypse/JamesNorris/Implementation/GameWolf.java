@@ -11,7 +11,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.WolfInterface;
 
 public class GameWolf implements WolfInterface {

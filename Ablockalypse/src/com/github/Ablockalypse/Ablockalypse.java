@@ -4,8 +4,8 @@ import java.io.File;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.Ablockalypse.JamesNorris.Data;
 import com.github.Ablockalypse.JamesNorris.EventManager;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Threading.MainThreading;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 import com.github.Ablockalypse.JamesNorris.Util.Update;

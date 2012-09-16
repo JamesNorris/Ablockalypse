@@ -1,4 +1,4 @@
-package com.github.Ablockalypse.JamesNorris;
+package com.github.Ablockalypse.JamesNorris.Data;
 
 import java.util.ArrayList;
 

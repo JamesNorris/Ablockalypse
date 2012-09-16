@@ -18,9 +18,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
-import com.github.Ablockalypse.JamesNorris.ByteData;
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.ByteData;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayerInterface;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager.ZASound;

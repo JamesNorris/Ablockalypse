@@ -6,13 +6,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 import com.github.Ablockalypse.iKeirNez.Util.CommandUtil;
 import com.github.Ablockalypse.iKeirNez.Util.CommonMsg;
 import com.github.Ablockalypse.iKeirNez.Util.StringFunctions;
 
+// TODO can you use local.yml and LocalizationData.java to change all strings?
 public class BaseCommand extends CommandUtil implements CommandExecutor {
 	@Override public boolean onCommand(CommandSender sender, Command cmd, String inf, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("za")) {

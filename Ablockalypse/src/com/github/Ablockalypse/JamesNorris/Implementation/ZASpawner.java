@@ -7,8 +7,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Zombie;
 
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZASpawnerInterface;
 import com.github.Ablockalypse.JamesNorris.Threading.MobSpawnThread;
 import com.github.Ablockalypse.JamesNorris.Util.External;

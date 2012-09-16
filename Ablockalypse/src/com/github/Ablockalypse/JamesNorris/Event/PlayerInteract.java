@@ -8,8 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.MysteryChest;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZASign;

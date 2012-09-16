@@ -10,9 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.github.Ablockalypse.JamesNorris.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Data;
-import com.github.Ablockalypse.JamesNorris.LocalizationData;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Interface.ZASignInterface;
 import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 

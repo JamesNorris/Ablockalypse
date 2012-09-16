@@ -4,7 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 import com.github.Ablockalypse.Ablockalypse;
-import com.github.Ablockalypse.JamesNorris.Data;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.Barrier;
 import com.github.Ablockalypse.JamesNorris.Implementation.GameWolf;
 import com.github.Ablockalypse.JamesNorris.Implementation.GameZombie;

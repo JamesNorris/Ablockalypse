@@ -1,4 +1,4 @@
-package com.github.Ablockalypse.JamesNorris;
+package com.github.Ablockalypse.JamesNorris.Data;
 
 import java.util.List;
 
@@ -8,15 +8,15 @@ import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class GameData {
 	private List<String> games;
-	
+
 	/**
 	 * Creates a new instance of GameData, and loads all strings from games.yml.
 	 */
-	public GameData(){
+	public GameData() {
 		FileConfiguration g = External.getConfig(External.g, External.games);
 		games = g.getStringList("Current ZA Games");
 	}
-	
+
 	/**
 	 * Gets a list of games that were in the games.yml file on load.
 	 * 
