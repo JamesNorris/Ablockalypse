@@ -1,0 +1,41 @@
+#####################################################################################################################
+#                                     Zombie Ablockalypse - Localization file                                       #
+#                                            Authors: Jnorr44, iKeirNez                                             #
+#####################################################################################################################
+
+#################################################### SIGN STRINGS ###################################################
+#We highly recommend you do not change these, because it will mess up all of your current signs.
+#This will also prevent signs from loaded map packs from working.
+
+### Tier 1:
+
+baseString: [ZA]
+
+### Tier 2:
+
+joinString: [JOIN]
+areaString: [AREA]
+perkString: [PERK]
+enchantmentString: [ENCHANT]
+weaponString: [WEAPON]
+
+### Tier 3:
+
+perkHealString: [HEAL]
+perkSpeedString: [SPEED]
+perkDamageString: [DAMAGE]
+perkRegenerationString: [REGEN]
+
+enchantmentDamageString: [DAMAGE]
+enchantmentRandomString: [RANDOM]
+
+weaponWoodSwordString: [WOOD_SWORD]
+weaponStoneSwordString: [STONE_SWORD]
+weaponIronSwordString: [IRON_SWORD]
+weaponDiamondSwordString: [DIAMOND_SWORD]
+weaponGoldSwordString: [GOLD_SWORD]
+weaponGrenadeString: [GRENADE]
+
+# A max of 15 characters may be used per string.
+# NOTE: You can find a guide to specific signs here:
+# https://github.com/JamesNorris/Ablockalypse/wiki/Signs
