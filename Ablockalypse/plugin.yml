@@ -1,0 +1,22 @@
+name: Zombie_Ablockalypse
+author: [iKeirNez, JamesNorris]
+version: 0.01
+main: com.github.Ablockalypse.Ablockalypse
+description: Extreme Zombie Ablockalypse plugin for bukkit servers.
+softdepend: [WorldEdit]
+prefix: Ablockalypse
+commands:
+  za:
+    description: Base command for Zombie Ablockalypse
+    permission: za.base
+    usage: Incorrect Syntax, '/za' is correct usage.
+permissions:
+  za.base:
+    description: Allows players to use the base command.
+    default: op
+  za.sign:
+    description: Allows players to place ZA signs.
+    default: op
+  za.join:
+    description: Allows players to join games.
+    default: op
