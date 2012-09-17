@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import net.minecraft.server.Packet;
 import net.minecraft.server.Packet40EntityMetadata;
@@ -15,9 +16,12 @@ import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Zombie;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.ByteData;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
@@ -25,6 +29,9 @@ import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayerInterface;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager.ZASound;
 import com.github.Ablockalypse.JamesNorris.Util.External;
+import com.github.Ablockalypse.JamesNorris.Util.PowerupType;
+import com.github.Ablockalypse.JamesNorris.Util.Square;
+import com.github.Ablockalypse.JamesNorris.Util.Util;
 import com.github.Ablockalypse.iKeirNez.Util.StartingItems;
 
 public class ZAPlayer implements ZAPlayerInterface {
@@ -33,7 +40,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	private ZAGame game;
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
-	private boolean laststand, sleepingignored;
+	private boolean laststand, sleepingignored, broken;
 	private int level, health, food, fire, points;
 	private String name;
 	private Player player;
@@ -91,10 +98,17 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * NOTE: The 2 options for the bit byte are 0x00 (down) and 0x04 (up).
 	 */
 	private void generatePacket(Player player, byte bit) {
-		player.teleport(player.getLocation().add(0, 1, 0));
-		Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
-		for (Player p : Bukkit.getServer().getOnlinePlayers())
-			((CraftPlayer) p).getHandle().netServerHandler.sendPacket(packet);
+		try {
+			if (!broken) {
+				player.teleport(player.getLocation().add(0, 1, 0));
+				Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
+				for (Player p : Bukkit.getServer().getOnlinePlayers())
+					((CraftPlayer) p).getHandle().netServerHandler.sendPacket(packet);
+			}
+		} catch (Exception e) {
+			broken = true;
+			Ablockalypse.crash(e.getCause().toString(), false);
+		}
 	}
 
 	/**
@@ -131,6 +145,49 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 */
 	@Override public int getPoints() {
 		return points;
+	}
+
+	/**
+	 * Gives the player the specified powerup.
+	 */
+	@Override public void givePowerup(PowerupType type) {
+		Location loc = player.getLocation();
+		switch (type) {
+			case ATOM_BOMB:
+				Square s = new Square(loc, 15);// TODO make the radius configurable, so servers don't have to deal with lag
+				List<Location> locs = s.getLocations();
+				for (GameZombie gz : Data.zombies) {
+					Zombie z = gz.getZombie();
+					if (locs.contains(z.getLocation())) {
+						z.remove();
+						for (String s2 : game.getPlayers()) {
+							Player p = Bukkit.getPlayer(s2);
+							ZAPlayer zap = Data.findZAPlayer(p, game.getName());
+							zap.addPoints(cd.atompoints);
+						}
+					}
+				}
+			break;
+			case BARRIER_FIX:
+				Square s2 = new Square(loc, 15);
+				List<Location> locs2 = s2.getLocations();
+				for (Barrier b : Data.gamebarriers) {
+					if (locs2.contains(b.getCenter()))
+						b.replaceBarrier();
+				}
+			break;
+			case WEAPON_FIX:
+				for (String s3 : game.getPlayers()) {
+					Player p = Bukkit.getPlayer(s3);
+					Inventory i = p.getInventory();
+					for (ItemStack it : i.getContents()) {
+						if (Util.isWeapon(it)) {
+							it.setDurability((short) 0);
+						}
+					}
+				}
+			break;
+		}
 	}
 
 	/**

@@ -19,9 +19,10 @@ public class ConfigurationData {
 	public Enchantment enchant;
 	public int heallevel, speedlevel, damagelevel, regenlevel;
 	public int healPoints, speedPoints, damagePoints, regenPoints;
+	public int powerchance, atompoints;
 	public String helmet, chestplate, leggings, boots;
 	public List<String> inventory;
-	public boolean losePerksLastStand;
+	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
 	public int packapunchlevel;
 	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, speedLevel;
 	public int woodSwordCost, stoneSwordCost, ironSwordCost, diamondSwordCost, goldSwordCost, grenadeCost;
@@ -64,6 +65,14 @@ public class ConfigurationData {
 		chestplate = cf.getString("startingItems.armor.chestplate");
 		leggings = cf.getString("startingItems.armor.leggings");
 		boots = cf.getString("startingItems.armor.boots");
+		powerchance = cf.getInt("powerupChance");
+		atompoints = cf.getInt("pointsGivenOnAtomBomb");
+		/* XMPP */
+		xmppGameStart = cf.getBoolean("xmppAnnounceGameStart");
+		xmppGameEnd = cf.getBoolean("xmppAnnounceGameEnd");
+		xmppPlayerJoin = cf.getBoolean("xmppAnnouncePlayerJoinGame");
+		xmppPlayerLeave = cf.getBoolean("xmppAnnouncePlayerLeaveGame");
+		xmppLastStand = cf.getBoolean("xmppAnnounceLastStand");
 		/* OTHER */
 		lsthresh = cf.getInt("lastStandThreshold");
 		losePerksLastStand = cf.getBoolean("losePerksOnLastStand");

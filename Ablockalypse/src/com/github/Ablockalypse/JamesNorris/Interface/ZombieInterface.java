@@ -5,8 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
 public interface ZombieInterface {
-	public void addHealth(int amt);
-
 	public World getWorld();
 
 	public Zombie getZombie();
@@ -18,4 +16,6 @@ public interface ZombieInterface {
 	public void setTarget(Player player);
 
 	public void toggleFireImmunity();
+
+	public void setHealth(int amt);
 }

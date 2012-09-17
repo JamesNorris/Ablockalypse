@@ -15,6 +15,8 @@ import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZAGameInterface;
 import com.github.Ablockalypse.JamesNorris.Threading.MobSpawnThread;
 import com.github.Ablockalypse.JamesNorris.Threading.NextLevelThread;
+import com.github.Ablockalypse.iKeirNez.Util.XMPP;
+import com.github.Ablockalypse.iKeirNez.Util.XMPP.XMPPType;
 
 public class ZAGame implements ZAGameInterface {
 	private ConfigurationData cd;
@@ -39,6 +41,7 @@ public class ZAGame implements ZAGameInterface {
 		Data.games.put(name, this);
 		if (spawners)
 			loadSpawners();
+		XMPP.sendMessage("A new game of Zombie Ablockalypse has been started", XMPPType.ZA_GAME_START);
 	}
 
 	/**
@@ -109,6 +112,15 @@ public class ZAGame implements ZAGameInterface {
 	@Override public int getRemainingMobs() {
 		return mobs;
 	}
+	
+	/**
+	 * Sets the remaining custom mobs in the game.
+	 * 
+	 * @param i The amount to be set to
+	 */
+	@Override public void setRemainingMobs(int i) {
+		mobs = i;
+	}
 
 	/**
 	 * Gets the spawn location for this game.
@@ -155,10 +167,8 @@ public class ZAGame implements ZAGameInterface {
 		}
 		if (cd.wolfLevels.contains(level))
 			wolfRound = true;
-		NextLevelThread nlt = new NextLevelThread(this);
-		nlt.waitForNextLevel();
-		MobSpawnThread mst = new MobSpawnThread(this);
-		mst.mobSpawn();
+		new NextLevelThread(this, true);
+		new MobSpawnThread(this, true);
 	}
 
 	/**
@@ -170,6 +180,13 @@ public class ZAGame implements ZAGameInterface {
 	@Override public void removePlayer(Player player) {
 		players.remove(player.getName());
 		Data.players.remove(player);
+	}
+	
+	/**
+	 * Removes one from the mob count.
+	 */
+	@Override public void removeMob() {
+		--mobs;
 	}
 
 	/**
@@ -192,5 +209,15 @@ public class ZAGame implements ZAGameInterface {
 			spawn = location;
 			Data.mainframes.put(getName(), location);
 		}
+	}
+
+	@Override public int getRemainingPlayers() {
+		int i = 0;
+		for (String s : getPlayers()) {
+			Player p = Bukkit.getPlayer(s);
+			if (!p.isDead())
+				++i;
+		}
+		return i;
 	}
 }

@@ -1,5 +1,8 @@
 package com.github.Ablockalypse.JamesNorris.Threading;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
@@ -13,17 +16,25 @@ import com.github.Ablockalypse.JamesNorris.Util.Square;
 public class MainThreading {
 	private Ablockalypse instance;
 
-	/*
+	/**
 	 * The instance with all threads that should be run constantly while the plugin is running.
+	 * 
+	 * @param instance The Ablockalypse instance to run this thread for
+	 * @param wolf Whether or not to run the wolfFlames thread
+	 * @param barrier Whether or not to run the barrier thread
 	 */
-	public MainThreading(Ablockalypse instance) {
+	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier) {
 		this.instance = instance;
+		if (wolf)
+			wolfFlames();
+		if (barrier)
+			barrier();
 	}
 
 	/*
 	 * Checks for GameWolf instances and adds flames to them, making them hellhounds.
 	 */
-	public void wolfFlames() {
+	protected void wolfFlames() {
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				for (GameWolf f : Data.wolves) {
@@ -36,7 +47,7 @@ public class MainThreading {
 	/*
 	 * Checks for GameZombie instances, and checks if they are in a Barrier area. If they are, the Barrier is broken.
 	 */
-	public void barrier() {
+	protected void barrier() {
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				for (GameZombie gz : Data.zombies) {
@@ -51,5 +62,15 @@ public class MainThreading {
 				}
 			}
 		}, 40, 40);
+	}
+
+	/*
+	 * Removes all data associated with this class.
+	 */
+	@SuppressWarnings("unused") @Override public void finalize() {
+		for (Method m : this.getClass().getDeclaredMethods())
+			m = null;
+		for (Field f : this.getClass().getDeclaredFields())
+			f = null;
 	}
 }

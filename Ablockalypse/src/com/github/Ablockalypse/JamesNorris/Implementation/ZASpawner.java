@@ -10,7 +10,6 @@ import org.bukkit.entity.Zombie;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZASpawnerInterface;
-import com.github.Ablockalypse.JamesNorris.Threading.MobSpawnThread;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class ZASpawner implements ZASpawnerInterface {
@@ -32,11 +31,6 @@ public class ZASpawner implements ZASpawnerInterface {
 		Location l = block.getLocation();
 		if (!Data.spawners.containsValue(l))
 			Data.spawners.put(game.getName(), l);
-		if (!Data.spawners.containsKey(game.getName())) {
-			MobSpawnThread mst = new MobSpawnThread(game);
-			mst.mobSpawn();
-			Data.spawners.put(game.getName(), l);
-		}
 		if (!Data.loadedspawners.containsKey(l)) {
 			Data.loadedspawners.put(l, this);
 		}
@@ -84,6 +78,7 @@ public class ZASpawner implements ZASpawnerInterface {
 			GameZombie gz = new GameZombie(z);
 			gz.setTarget(game.getRandomPlayer());
 			gz.toggleFireImmunity();
+			gz.setHealth(game.getLevel() * 4);//TODO make sure this is correct
 			if (game.getLevel() >= cd.speedLevel)
 				gz.increaseSpeed();
 		}

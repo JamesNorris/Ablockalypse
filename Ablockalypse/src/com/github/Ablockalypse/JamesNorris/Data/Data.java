@@ -89,6 +89,30 @@ public class Data {
 	}
 
 	/**
+	 * Checks if the specified player exists.
+	 * 
+	 * @param player The player to check for
+	 * @return Whether or not the player exists
+	 */
+	public static boolean playerExists(Player player) {
+		if (Data.players.containsKey(player))
+			return true;
+		return false;
+	}
+
+	/**
+	 * Checks if the specified game exists.
+	 * 
+	 * @param gamename The game name to check for
+	 * @return Whether or not the game exists
+	 */
+	public static boolean gameExists(String gamename) {
+		if (Data.games.containsKey(gamename))
+			return true;
+		return false;
+	}
+
+	/**
 	 * Finds a ZAPlayer, with the specified Player instance.
 	 */
 	public static ZAPlayer findZAPlayer(Player player, String gamename) {

@@ -1,5 +1,8 @@
 package com.github.Ablockalypse.JamesNorris.Threading;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.bukkit.Bukkit;
 
 import com.github.Ablockalypse.Ablockalypse;
@@ -10,19 +13,25 @@ public class RespawnThread {
 	private ZAPlayer player;
 	private Ablockalypse instance;
 
-	/*
+	/**
 	 * The thread used for respawning the player.
+	 * 
+	 * @param player The player to wait for
+	 * @param level The level the game is currently on
+	 * @param waitrespawn Whether or not to automatically run this thread
 	 */
-	public RespawnThread(ZAPlayer player, int level) {
+	public RespawnThread(ZAPlayer player, int level, boolean waitrespawn) {
 		this.player = player;
 		this.level = level;
 		this.instance = Ablockalypse.instance;
+		if (waitrespawn)
+			waitToRespawn();
 	}
 
 	/*
 	 * Waits for the next level, then respawns the player.
 	 */
-	public void waitToRespawn() {
+	protected void waitToRespawn() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				if (player.getGame().getLevel() > level) {
@@ -36,7 +45,17 @@ public class RespawnThread {
 	/*
 	 * Cancels the thread.
 	 */
-	private void cancel() {
+	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
+	}
+
+	/*
+	 * Removes all data associated with this class.
+	 */
+	@SuppressWarnings("unused") @Override public void finalize() {
+		for (Method m : this.getClass().getDeclaredMethods())
+			m = null;
+		for (Field f : this.getClass().getDeclaredFields())
+			f = null;
 	}
 }

@@ -1,5 +1,8 @@
 package com.github.Ablockalypse.JamesNorris.Threading;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -13,20 +16,26 @@ public class TeleportThread {
 	private ZAPlayer zaplayer;
 	private Ablockalypse instance;
 
-	/*
+	/**
 	 * Creates an instance of the thread for teleporting a player.
+	 * 
+	 * @param zaplayer The player to countdown for, as a ZAPlayer instance
+	 * @param time The time before the countdown stops
+	 * @param countdown Whether or not to run the thread automatically
 	 */
-	public TeleportThread(ZAPlayer zaplayer, int time) {
+	public TeleportThread(ZAPlayer zaplayer, int time, boolean countdown) {
 		this.zaplayer = zaplayer;
 		this.time = time;
 		this.player = zaplayer.getPlayer();
 		this.instance = Ablockalypse.instance;
+		if (countdown)
+			countdown();
 	}
 
 	/*
 	 * Counts down to teleport the player.
 	 */
-	public void countdown() {
+	protected void countdown() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				if (time != 0)
@@ -44,7 +53,17 @@ public class TeleportThread {
 	/*
 	 * Cancels the thread.
 	 */
-	private void cancel() {
+	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
+	}
+
+	/*
+	 * Removes all data associated with this class.
+	 */
+	@SuppressWarnings("unused") @Override public void finalize() {
+		for (Method m : this.getClass().getDeclaredMethods())
+			m = null;
+		for (Field f : this.getClass().getDeclaredFields())
+			f = null;
 	}
 }

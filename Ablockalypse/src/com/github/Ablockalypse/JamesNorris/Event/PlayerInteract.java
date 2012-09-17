@@ -47,8 +47,7 @@ public class PlayerInteract implements Listener {
 		} else if (Data.players.containsKey(p)) {
 			ZAPlayer zap = Data.players.get(p);
 			if (b.getType() == Material.ENDER_PORTAL_FRAME) {
-				TeleportThread tt = new TeleportThread(zap, 5);
-				tt.countdown();
+				new TeleportThread(zap, 5, true);
 				return;
 			} else if (b instanceof Chest && zap.getPoints() >= cd.mccost) {
 				Chest c = (Chest) b;

@@ -4,40 +4,43 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.bukkit.Bukkit;
-
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Zombie;
 import com.github.Ablockalypse.Ablockalypse;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 
-public class NextLevelThread {
-	private ZAGame game;
-	private Ablockalypse instance;
+public class MobTargetThread {
 	private int id;
+	private Zombie zombie;
+	private LivingEntity player;
+	private Ablockalypse instance;
 
 	/**
-	 * The thread for checking for next level, depending on remaining mobs.
+	 * Creates a new instance of the thread.
 	 * 
-	 * @param game The game to run the thread for
-	 * @param nextlevel Whether or not to run the thread automatically
+	 * @param zombie The zombie to do the targetting
+	 * @param player The player to target
+	 * @param autorun Whether or not to autorun the target() method
 	 */
-	public NextLevelThread(ZAGame game, boolean nextlevel) {
-		this.game = game;
+	public MobTargetThread(Zombie zombie, LivingEntity player, boolean autorun) {
+		this.zombie = zombie;
+		this.player = player;
 		this.instance = Ablockalypse.instance;
-		if (nextlevel)
-			waitForNextLevel();
+		if (autorun)
+			target();
 	}
 
 	/*
-	 * Waits for the mobs to all be killed, then starts the next level.
+	 * Forces the zombie to target a player constantly.
 	 */
-	protected void waitForNextLevel() {
+	protected void target() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
-				if (game.getRemainingMobs() <= 0) {
-					game.nextLevel();
+				if (!zombie.isDead() && !player.isDead())
+					zombie.setTarget(player);
+				else
 					cancel();
-				}
 			}
-		}, 20, 20);
+		}, 40, 40);
 	}
 
 	/*
@@ -45,6 +48,7 @@ public class NextLevelThread {
 	 */
 	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
+		player = null;
 	}
 
 	/*

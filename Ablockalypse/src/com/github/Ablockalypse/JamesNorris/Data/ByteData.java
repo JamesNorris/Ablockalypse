@@ -17,13 +17,15 @@ public class ByteData extends DataWatcher {
 		this.metadata = metadata;
 	}
 
-	/*
+	/**
 	 * Hopefully this will not break anytime soon. This is an extension of DataWatcher from net.minecraft.server.
 	 * If this does break, this should simply have the method name changed.
 	 * This currently the only breakable extension of NMS is Ablockalypse.
 	 * 
 	 * (non-Javadoc)
+	 * 
 	 * @see net.minecraft.server.DataWatcher#b()
+	 * @category breakable This is subject to break!
 	 */
 	@Override public ArrayList<WatchableObject> b() {
 		ArrayList<WatchableObject> list = new ArrayList<WatchableObject>();

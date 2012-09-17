@@ -17,6 +17,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
@@ -30,6 +31,8 @@ import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 
 public class External {
+	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
+	public static boolean CommandsEXPresent = (CommandsEX == null && CommandsEX.isEnabled());
 	private static HashMap<SerializableLocation, Boolean> areaSavings;
 	private static ArrayList<SerializableLocation> barrierSavings;
 	public static YamlManager ym;

@@ -23,6 +23,8 @@ public interface ZAGameInterface {
 
 	public int getRemainingMobs();
 
+	public int getRemainingPlayers();
+
 	public Location getSpawn();
 
 	public boolean isWolfRound();
@@ -36,4 +38,8 @@ public interface ZAGameInterface {
 	public void setLevel(int i);
 
 	public void setSpawn(Location location);
+
+	public void setRemainingMobs(int i);
+
+	public void removeMob();
 }

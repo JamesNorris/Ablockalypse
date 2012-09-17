@@ -7,11 +7,11 @@
 #We highly recommend you do not change these, because it will mess up all of your current signs.
 #This will also prevent signs from loaded map packs from working.
 
-### Tier 1:
+### Line 1:
 
 baseString: [ZA]
 
-### Tier 2:
+### Line 2:
 
 joinString: [JOIN]
 areaString: [AREA]
@@ -19,7 +19,7 @@ perkString: [PERK]
 enchantmentString: [ENCHANT]
 weaponString: [WEAPON]
 
-### Tier 3:
+### Line 3:
 
 perkHealString: [HEAL]
 perkSpeedString: [SPEED]

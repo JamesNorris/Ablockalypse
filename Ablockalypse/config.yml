@@ -55,8 +55,15 @@ losePerksOnLastStand: true
 pointsGivenOnHelp: 200
 # Amount of points to give the player for saving another player.
 
+pointsGivenOnAtomBomb: 600
+# Amount of points to give all players when an atom bomb is found.
+
 lastStandThreshold: 3
 # The amount of health left before a player is put in last stand.
+
+powerupChance: 5
+
+# The chances for the 3 powerups. (atom bomb, barrier fix, weapon fix)
 
 ###################################################### WEAPONS ######################################################
 
@@ -79,6 +86,18 @@ perGrenade: 200
 grenadeLevel: 0
 
 # NOTE - Ender Pearls are grenades, and are changed to explode on impact.
+
+#################################################### PLUGIN INTEGRATION #########################################
+
+# CommandsEX by iKeirNez
+# NOTE - If CommandsEX is detected and XMPP is enabled, Zombie Ablockalypse will send
+# messages to the XMPP chatroom.
+
+xmppAnnounceGameStart: true
+xmppAnnounceGameEnd: true
+xmppAnnouncePlayerJoinGame: true
+xmppAnnouncePlayerLeaveGame: true
+xmppAnnounceLastStand: true
 
 #################################################### MAINTENANCE ####################################################
 

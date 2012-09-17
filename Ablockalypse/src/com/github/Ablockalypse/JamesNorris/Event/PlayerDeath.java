@@ -23,16 +23,15 @@ public class PlayerDeath implements Listener {
 		if (Data.players.containsKey(p)) {
 			ZAPlayer zap = Data.players.get(p);
 			ZAGame zag = zap.getGame();
-			if (zag.getPlayers().size() > 0) {// TODO make it so only live players count for this
-				int level = zap.getGame().getLevel();
-				RespawnThread rt = new RespawnThread(zap, level);
+			int level = zap.getGame().getLevel();
+			if (zag.getRemainingPlayers() > 0) {// TODO make it so only live players count for this
 				p.sendMessage(ChatColor.GRAY + "You will respawn at the start of the next level!");
-				rt.waitToRespawn();
+				new RespawnThread(zap, level, true);
 			} else {
 				for (String name : zag.getPlayers()) {
 					Player player = Bukkit.getServer().getPlayer(name);
 					zag.removePlayer(player);
-					player.sendMessage(ChatColor.GRAY + "The game has ended. You made it to level: " + zag.getLevel());
+					player.sendMessage(ChatColor.GRAY + "The game has ended. You made it to level: " + level);
 				}
 			}
 		}

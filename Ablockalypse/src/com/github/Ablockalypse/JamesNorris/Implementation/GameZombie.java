@@ -10,8 +10,10 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
+import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZombieInterface;
+import com.github.Ablockalypse.JamesNorris.Threading.MobTargetThread;
 
 public class GameZombie implements ZombieInterface {
 	private boolean fire;
@@ -29,14 +31,12 @@ public class GameZombie implements ZombieInterface {
 	}
 
 	/**
-	 * Gives the zombie health. Mostly used for increasing health through the levels.
+	 * Sets the zombie health. Mostly used for increasing health through the levels.
 	 * 
-	 * @param amt The amount of health to add to the zombie
+	 * @param amt The amount of health to give to the zombie
 	 */
-	@Override public void addHealth(int amt) {
-		int current = zombie.getHealth();
-		int next = current + amt;
-		zombie.setHealth(next);
+	@Override public void setHealth(int amt) {
+		zombie.setHealth(amt);
 	}
 
 	/**
@@ -57,8 +57,11 @@ public class GameZombie implements ZombieInterface {
 
 	/**
 	 * Increases the speed of the zombie.
+	 * 
+	 * @category breakable This is subject to break
 	 */
 	@Override public void increaseSpeed() {
+		/* BREAKABLE */
 		EntityZombie ez = ((CraftZombie) zombie).getHandle();
 		Field field;
 		try {
@@ -66,8 +69,9 @@ public class GameZombie implements ZombieInterface {
 			field.setAccessible(true);
 			field.set(ez, 0.6);
 		} catch (Exception e) {
-			e.printStackTrace();
+			Ablockalypse.crash(e.getCause().toString(), false);
 		}
+		/* BREAKABLE */
 	}
 
 	/**
@@ -86,7 +90,7 @@ public class GameZombie implements ZombieInterface {
 	 */
 	@Override public void setTarget(Player player) {
 		LivingEntity le = (LivingEntity) player;
-		zombie.setTarget(le);
+		new MobTargetThread(zombie, le, true);
 	}
 
 	/**
