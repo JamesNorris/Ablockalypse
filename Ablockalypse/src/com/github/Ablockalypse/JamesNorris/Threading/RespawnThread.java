@@ -9,9 +9,10 @@ import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
 
 public class RespawnThread {
-	private int level, id;
-	private ZAPlayer player;
-	private Ablockalypse instance;
+	private final int level;
+	private int id;
+	private final ZAPlayer player;
+	private final Ablockalypse instance;
 
 	/**
 	 * The thread used for respawning the player.
@@ -20,20 +21,20 @@ public class RespawnThread {
 	 * @param level The level the game is currently on
 	 * @param waitrespawn Whether or not to automatically run this thread
 	 */
-	public RespawnThread(ZAPlayer player, int level, boolean waitrespawn) {
+	public RespawnThread(final ZAPlayer player, final int level, final boolean waitrespawn) {
 		this.player = player;
 		this.level = level;
-		this.instance = Ablockalypse.instance;
+		instance = Ablockalypse.instance;
 		if (waitrespawn)
 			waitToRespawn();
 	}
 
-	/*
+	/**
 	 * Waits for the next level, then respawns the player.
 	 */
 	protected void waitToRespawn() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
+			@Override public void run() {
 				if (player.getGame().getLevel() > level) {
 					player.sendToMainframe();
 					cancel();
@@ -42,7 +43,7 @@ public class RespawnThread {
 		}, 20, 20);
 	}
 
-	/*
+	/**
 	 * Cancels the thread.
 	 */
 	protected void cancel() {

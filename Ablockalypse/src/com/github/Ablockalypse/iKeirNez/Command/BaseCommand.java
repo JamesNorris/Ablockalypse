@@ -18,11 +18,11 @@ import com.github.Ablockalypse.iKeirNez.Util.StringFunctions;
 public class BaseCommand extends CommandUtil implements CommandExecutor {
 	private LocalizationData ld;
 
-	@Override public boolean onCommand(CommandSender sender, Command cmd, String inf, String[] args) {
+	@Override public boolean onCommand(final CommandSender sender, final Command cmd, final String inf, final String[] args) {
 		if (cmd.getName().equalsIgnoreCase("za")) {
 			if (ld == null)
 				ld = External.ym.getLocalizationData();
-			String alias = cmd.getLabel();
+			final String alias = cmd.getLabel();
 			if (args.length == 0 || args[0].equalsIgnoreCase("help") || (args.length == 2 && args[1].equalsIgnoreCase("sign"))) {
 				showHelp(sender, args, alias);
 			} else if (args[0].equalsIgnoreCase("list")) {
@@ -30,13 +30,13 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 			} else if (args[0].equalsIgnoreCase("join")) {
 				if (args.length == 2 && sender.hasPermission("za.join")) {
 					if (sender instanceof Player) {
-						Player player = (Player) sender;
-						String gameName = args[1];
+						final Player player = (Player) sender;
+						final String gameName = args[1];
 						if (!Data.gameExists(gameName)) {
 							sender.sendMessage(ChatColor.RED + "That game was not found");
 							return true;
 						}
-						ZAPlayer zap = Data.findZAPlayer(player, gameName);
+						final ZAPlayer zap = Data.findZAPlayer(player, gameName);
 						zap.loadPlayerToGame(gameName);
 					} else {
 						sender.sendMessage(CommonMsg.notPlayer);
@@ -52,9 +52,9 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
-					Player player = (Player) sender;
+					final Player player = (Player) sender;
 					if (Data.players.containsKey(player)) {
-						ZAPlayer zap = Data.players.get(player);
+						final ZAPlayer zap = Data.players.get(player);
 						zap.finalize();
 						sender.sendMessage(ChatColor.AQUA + "Successfully quit the Zombie Ablockalypse game.");
 						return true;
@@ -67,6 +67,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			}
+			return true;
 		}
 		return true;
 	}

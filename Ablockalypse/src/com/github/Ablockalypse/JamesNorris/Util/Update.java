@@ -12,7 +12,7 @@ import java.net.URLConnection;
 import com.github.Ablockalypse.Ablockalypse;
 
 public class Update {
-	private Ablockalypse plugin;
+	private final Ablockalypse plugin;
 
 	/**
 	 * Creates a new instance of the Auto-Updater for Ablockalypse.
@@ -21,8 +21,8 @@ public class Update {
 	 * 
 	 * @param instance The instance of Ablockalypse to use for the Updater
 	 */
-	public Update(Ablockalypse instance) {
-		this.plugin = instance;
+	public Update(final Ablockalypse instance) {
+		plugin = instance;
 	}
 
 	/**
@@ -33,18 +33,18 @@ public class Update {
 	public boolean updateCheck() {
 		URLConnection connection = null;
 		try {
-			URL url = new URL(plugin.address);
+			final URL url = new URL(plugin.address);
 			connection = url.openConnection();
-			File localfile = new File(plugin.path);
-			long lastmodifiedurl = connection.getLastModified();
-			long lastmodifiedfile = localfile.lastModified();
+			final File localfile = new File(plugin.path);
+			final long lastmodifiedurl = connection.getLastModified();
+			final long lastmodifiedfile = localfile.lastModified();
 			if (lastmodifiedurl > lastmodifiedfile) {
 				System.out.println("[Ablockalypse] Update found! Updating...");
 				download();
 				return true;
 			} else
 				return false;
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 		plugin.getServer().notify();
@@ -59,18 +59,18 @@ public class Update {
 		URLConnection connection = null;
 		InputStream in = null;
 		try {
-			URL url = new URL(plugin.address);
+			final URL url = new URL(plugin.address);
 			out = new BufferedOutputStream(new FileOutputStream(plugin.path));
 			connection = url.openConnection();
 			in = connection.getInputStream();
-			byte[] buffer = new byte[1024];
+			final byte[] buffer = new byte[1024];
 			int numRead;
 			long numWritten = 0;
 			while ((numRead = in.read(buffer)) != -1) {
 				out.write(buffer, 0, numRead);
 				numWritten += numRead;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
@@ -81,7 +81,7 @@ public class Update {
 					out.close();
 				}
 				System.out.println("[Ablockalypse] Update completed, please restart the server!");
-			} catch (IOException ioe) {
+			} catch (final IOException ioe) {
 				ioe.printStackTrace();
 			}
 		}

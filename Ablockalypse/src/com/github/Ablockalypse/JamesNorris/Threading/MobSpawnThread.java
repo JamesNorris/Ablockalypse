@@ -15,11 +15,13 @@ import com.github.Ablockalypse.JamesNorris.Implementation.ZASpawner;
 import com.github.Ablockalypse.JamesNorris.Util.MathAssist;
 
 public class MobSpawnThread {
-	private ZAGame game;
-	private int level, id;
-	private Ablockalypse instance;
-	private double curvefitVariable;
+	private final ZAGame game;
+	private final int level;
+	private int id;
 	private int i;
+	private final int players;
+	private final Ablockalypse instance;
+	private final long curvefitVariable;
 
 	/**
 	 * An instance containing a thread for ZA mobs spawning.
@@ -27,33 +29,32 @@ public class MobSpawnThread {
 	 * @param game The game to run the thread for
 	 * @param mobspawn Whether or not to run the thread
 	 */
-	public MobSpawnThread(ZAGame game, boolean mobspawn) {
+	public MobSpawnThread(final ZAGame game, final boolean mobspawn) {
 		this.game = game;
-		this.level = game.getLevel();
-		this.instance = Ablockalypse.instance;
+		level = game.getLevel();
+		instance = Ablockalypse.instance;
+		players = game.getPlayers().size();
 		/* Equation for getting mob spawn amount */
-		double x = level + game.getPlayers().size();
-		double a = 5.150202692369555E-4;
-		double b = 0.009694737048487135;
-		double c = 2.0740001246685478;
-		double d = 1.5771190606123884;
-		this.curvefitVariable = MathAssist.curve(x, a, b, c, d);
+		final double a1 = .0000000001, b1 = .02, c1 = 1, d1 = 0;
+		final double n = MathAssist.curve(players, a1, b1, c1, d1), m = 1.53;
+		/* double a = .000005, b = .0001, c = 1, d = 4; CURVE for curvefitVariable*/
+		curvefitVariable = Math.round(MathAssist.line(level, m, n)); /* LINE for curverfitVariable */
 		/* End equation */
 		if (mobspawn)
 			mobSpawn();
 	}
 
-	/*
+	/**
 	 * Spawns zombies each round, and if the round is a wolf round, spawns wolves as well.
 	 */
 	protected void mobSpawn() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
+			@Override public void run() {
 				if (game.getLevel() == level) {
-					for (String s : Data.spawners.keySet()) {
-						Location l = Data.spawners.get(s);
-						ZASpawner zas = Data.loadedspawners.get(l);
-						if (i <= Math.round(curvefitVariable)) {
+					for (final String s : Data.spawners.keySet()) {
+						final Location l = Data.spawners.get(s);
+						final ZASpawner zas = Data.loadedspawners.get(l);
+						if (i <= curvefitVariable) {
 							game.addMob(zas, EntityType.ZOMBIE);
 							i++;
 						} else {
@@ -61,11 +62,12 @@ public class MobSpawnThread {
 						}
 					}
 					if (game.isWolfRound()) {
-						for (String s : game.getPlayers()) {
-							Player p = Bukkit.getPlayer(s);
-							if (i <= Math.round(curvefitVariable)) {
-								Location l = p.getLocation();
+						for (final String s : game.getPlayers()) {
+							final Player p = Bukkit.getPlayer(s);
+							if (i <= curvefitVariable) {
+								final Location l = p.getLocation();
 								p.getWorld().spawnEntity(l, EntityType.WOLF);// TODO wolves spawn farther from players, and be able to tp to the player if path is blocked
+								i++;
 							} else {
 								cancel();
 							}
@@ -78,7 +80,7 @@ public class MobSpawnThread {
 		}, 60, 60);
 	}
 
-	/*
+	/**
 	 * Cancels the thread.
 	 */
 	protected void cancel() {

@@ -18,12 +18,12 @@ import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
 
 public class ZASign implements ZASignInterface {
 	private YamlManager ym;
-	private LocalizationData ld;
-	private ConfigurationData cd;
-	private String l1, l2, l3, l4;
-	private Sign sign;
-	private World world;
-	private int x, y, z;
+	private final LocalizationData ld;
+	private final ConfigurationData cd;
+	private final String l1, l2, l3, l4;
+	private final Sign sign;
+	private final World world;
+	private final int x, y, z;
 
 	/**
 	 * Creates a new instance of a ZASign.
@@ -31,18 +31,18 @@ public class ZASign implements ZASignInterface {
 	 * @param sign The sign to be made into this instance
 	 * @param cd The ConfigurationData instance to be used in this instance
 	 */
-	public ZASign(Sign sign, YamlManager ym) {
+	public ZASign(final Sign sign, final YamlManager ym) {
 		this.sign = sign;
-		this.ld = ym.getLocalizationData();
-		this.cd = ym.getConfigurationData();
-		this.l1 = sign.getLine(1);
-		this.l2 = sign.getLine(2);
-		this.l3 = sign.getLine(3);
-		this.l4 = sign.getLine(4);
-		this.x = sign.getX();
-		this.y = sign.getY();
-		this.z = sign.getZ();
-		this.world = sign.getWorld();
+		ld = ym.getLocalizationData();
+		cd = ym.getConfigurationData();
+		l1 = sign.getLine(1);
+		l2 = sign.getLine(2);
+		l3 = sign.getLine(3);
+		l4 = sign.getLine(4);
+		x = sign.getX();
+		y = sign.getY();
+		z = sign.getZ();
+		world = sign.getWorld();
 	}
 
 	/**
@@ -51,7 +51,7 @@ public class ZASign implements ZASignInterface {
 	 * @param number The line number to get, 1-4
 	 * @return The string of the line specified
 	 */
-	@Override public String getLine(int number) {
+	@Override public String getLine(final int number) {
 		switch (number) {
 			case 1:
 				return l1;
@@ -97,17 +97,17 @@ public class ZASign implements ZASignInterface {
 	 * 
 	 * @param player The player to affect if the lines are run through
 	 */
-	@Override public void runLines(Player player) {
+	@Override public void runLines(final Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
 		if (l1.equalsIgnoreCase(ld.first)) {
 			/* Attempts to add the player to a game if the second line has the join string */
 			if (l2.equalsIgnoreCase(ld.joingame)) {
-				ZAPlayer zap = Data.findZAPlayer(player, l3);
+				final ZAPlayer zap = Data.findZAPlayer(player, l3);
 				zap.loadPlayerToGame(l3);
 				/* Otherwise, checks for enough points, then attempts to purchase something for the player */
 			} else if (player.getLevel() >= ym.levelmap.get(l3) && Data.players.containsKey(player)) {
-				ZAPlayer zap = Data.players.get(player);
-				int n = zap.getPoints();
+				final ZAPlayer zap = Data.players.get(player);
+				final int n = zap.getPoints();
 				/* PERKS */
 				if (l2.equalsIgnoreCase(ld.perkstring)) {
 					if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
@@ -127,8 +127,6 @@ public class ZASign implements ZASignInterface {
 					if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
 						if (l3.equalsIgnoreCase(ld.enchrandstring)) {
 							player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
-							player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " enchantment for " + ym.enchsignline3.get(l3) + " points!");
-							return;
 						} else {
 							player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
 						}
@@ -150,15 +148,17 @@ public class ZASign implements ZASignInterface {
 					}
 					/* AREAS */
 				} else if (l2.equalsIgnoreCase(ld.areastring)) {
-					Block b = sign.getBlock();
+					final Block b = sign.getBlock();
 					Area a;
 					if (!Data.areas.containsKey(b))
 						a = Data.areas.get(b);
 					else
 						a = new Area(b);
 					a.purchaseArea();
+					return;
 				} else {
 					System.err.println(ChatColor.RED + "The sign at: [" + world + " : " + x + "," + y + "," + "z" + "] is incorrectly formatted!");
+					return;
 				}
 			}
 		}

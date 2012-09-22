@@ -19,13 +19,13 @@ public class EntityDamage implements Listener {
 	 * 
 	 * Used for reviving a player in last stand.
 	 */
-	@EventHandler public void EDE(EntityDamageEvent event) {
+	@EventHandler public void EDE(final EntityDamageEvent event) {
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
-		Entity e = event.getEntity();
-		Player p = (Player) e;
+		final Entity e = event.getEntity();
+		final Player p = (Player) e;
 		if (Data.players.containsKey(p)) {
-			ZAPlayer zap = Data.players.get(p);
+			final ZAPlayer zap = Data.players.get(p);
 			if ((p.getHealth() / 20) * 100 >= cd.lsthresh && !zap.isInLastStand()) {
 				zap.toggleLastStand();
 			}

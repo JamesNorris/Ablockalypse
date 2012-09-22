@@ -14,8 +14,8 @@ import com.github.Ablockalypse.Ablockalypse;
 public class ConfigurationData {
 	public int buyLevel, woodSwordLevel, stoneSwordLevel, ironSwordLevel, diamondSwordLevel, goldSwordLevel, grenadeLevel;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
-	public int cost, enchDamageCost, enchRandomCost;
-	public boolean DEBUG;
+	public int cost, enchDamageCost, enchRandomCost, powerrad;
+	public boolean DEBUG, ENABLE_AUTO_UPDATE, effects;
 	public Enchantment enchant;
 	public int heallevel, speedlevel, damagelevel, regenlevel;
 	public int healPoints, speedPoints, damagePoints, regenPoints;
@@ -32,8 +32,8 @@ public class ConfigurationData {
 	 * 
 	 * @param instance The instance of the plugin Ablockalypse
 	 */
-	public ConfigurationData(Ablockalypse plugin) {
-		FileConfiguration cf = plugin.getConfig();
+	public ConfigurationData(final Ablockalypse plugin) {
+		final FileConfiguration cf = plugin.getConfig();
 		/* POINTS & LEVELS */
 		heallevel = cf.getInt("healLevel");
 		speedlevel = cf.getInt("speedLevel");
@@ -80,6 +80,9 @@ public class ConfigurationData {
 		helppoints = cf.getInt("pointsGivenOnHelp");
 		speedLevel = cf.getInt("doubleSpeedLevel");
 		wolfLevels = cf.getIntegerList("wolfLevels");
+		effects = cf.getBoolean("addedEffects");
+		powerrad = cf.getInt("powerupRadius");
+		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");
 	}
 
@@ -88,8 +91,8 @@ public class ConfigurationData {
 	 * Get a random enchantment
 	 */
 	public Enchantment randomEnchant() {
-		Random rand = new Random();
-		int type = rand.nextInt(3) + 1;
+		final Random rand = new Random();
+		final int type = rand.nextInt(3) + 1;
 		switch (type) {
 			case 1:
 				return Enchantment.DAMAGE_ALL;

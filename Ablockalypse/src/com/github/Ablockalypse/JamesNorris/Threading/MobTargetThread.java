@@ -6,13 +6,14 @@ import java.lang.reflect.Method;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Zombie;
+
 import com.github.Ablockalypse.Ablockalypse;
 
 public class MobTargetThread {
 	private int id;
-	private Zombie zombie;
+	private final Zombie zombie;
 	private LivingEntity player;
-	private Ablockalypse instance;
+	private final Ablockalypse instance;
 
 	/**
 	 * Creates a new instance of the thread.
@@ -21,29 +22,31 @@ public class MobTargetThread {
 	 * @param player The player to target
 	 * @param autorun Whether or not to autorun the target() method
 	 */
-	public MobTargetThread(Zombie zombie, LivingEntity player, boolean autorun) {
+	public MobTargetThread(final Zombie zombie, final LivingEntity player, final boolean autorun) {
 		this.zombie = zombie;
 		this.player = player;
-		this.instance = Ablockalypse.instance;
+		instance = Ablockalypse.instance;
 		if (autorun)
 			target();
 	}
 
-	/*
+	/**
 	 * Forces the zombie to target a player constantly.
 	 */
 	protected void target() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
-				if (!zombie.isDead() && !player.isDead())
-					zombie.setTarget(player);
-				else
-					cancel();
+			@Override public void run() {
+				if (zombie.getTarget() != player) {
+					if (!zombie.isDead() && !player.isDead())
+						zombie.setTarget(player);
+					else
+						cancel();
+				}
 			}
 		}, 40, 40);
 	}
 
-	/*
+	/**
 	 * Cancels the thread.
 	 */
 	protected void cancel() {

@@ -8,10 +8,10 @@ public class StringFunctions {
 	 * @param glueString The string to be separated
 	 * @return The finalized string, separated
 	 */
-	public static String implode(Object[] inputArray, String glueString, String finalGlueString) {
+	public static String implode(final Object[] inputArray, final String glueString, final String finalGlueString) {
 		String output = "";
 		if (inputArray.length > 0) {
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			sb.append(inputArray[0]);
 			for (int i = 1; i < inputArray.length; i++) {
 				if (i != inputArray.length - 1) {

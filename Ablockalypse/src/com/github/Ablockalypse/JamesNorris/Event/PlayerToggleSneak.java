@@ -15,12 +15,12 @@ public class PlayerToggleSneak implements Listener {
 	 * Called when a player changes from walking to sneaking.
 	 * Used mostly for repairing broken barriers.
 	 */
-	@EventHandler public void PTSE(PlayerToggleSneakEvent event) {
-		Player p = event.getPlayer();
+	@EventHandler public void PTSE(final PlayerToggleSneakEvent event) {
+		final Player p = event.getPlayer();
 		if (Data.players.containsKey(p)) {
-			for (Barrier b : Data.barrierpanels.keySet()) {
-				Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
-				for (Location l : s.getLocations()) {
+			for (final Barrier b : Data.barrierpanels.keySet()) {
+				final Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
+				for (final Location l : s.getLocations()) {
 					if (p.getLocation() == l)
 						b.replaceBarrier();
 				}

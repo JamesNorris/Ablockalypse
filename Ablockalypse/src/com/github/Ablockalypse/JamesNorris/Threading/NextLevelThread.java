@@ -9,8 +9,8 @@ import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 
 public class NextLevelThread {
-	private ZAGame game;
-	private Ablockalypse instance;
+	private final ZAGame game;
+	private final Ablockalypse instance;
 	private int id;
 
 	/**
@@ -19,19 +19,19 @@ public class NextLevelThread {
 	 * @param game The game to run the thread for
 	 * @param nextlevel Whether or not to run the thread automatically
 	 */
-	public NextLevelThread(ZAGame game, boolean nextlevel) {
+	public NextLevelThread(final ZAGame game, final boolean nextlevel) {
 		this.game = game;
-		this.instance = Ablockalypse.instance;
+		instance = Ablockalypse.instance;
 		if (nextlevel)
 			waitForNextLevel();
 	}
 
-	/*
+	/**
 	 * Waits for the mobs to all be killed, then starts the next level.
 	 */
 	protected void waitForNextLevel() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
+			@Override public void run() {
 				if (game.getRemainingMobs() <= 0) {
 					game.nextLevel();
 					cancel();
@@ -40,7 +40,7 @@ public class NextLevelThread {
 		}, 20, 20);
 	}
 
-	/*
+	/**
 	 * Cancels the thread.
 	 */
 	protected void cancel() {

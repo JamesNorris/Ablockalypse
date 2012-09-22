@@ -13,7 +13,7 @@ public class CommandUtil {
 	 * 
 	 * @param s CommandSender
 	 */
-	public static void list(CommandSender s) {
+	public static void list(final CommandSender s) {
 		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + StringFunctions.implode(Data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
 	}
 
@@ -24,14 +24,14 @@ public class CommandUtil {
 	 * @param s CommandSender
 	 * @param alias The string input for the command
 	 */
-	public static void showHelp(CommandSender s, String[] args, String alias) {
-		LocalizationData ld = External.ym.getLocalizationData();
-		String a = "/" + alias;
-		ChatColor r = ChatColor.RESET;
-		ChatColor g = ChatColor.GOLD;
-		ChatColor b = ChatColor.BOLD;
-		ChatColor y = ChatColor.YELLOW;
-		ChatColor aq = ChatColor.AQUA;
+	public static void showHelp(final CommandSender s, final String[] args, final String alias) {
+		final LocalizationData ld = External.ym.getLocalizationData();
+		final String a = "/" + alias;
+		final ChatColor r = ChatColor.RESET;
+		final ChatColor g = ChatColor.GOLD;
+		final ChatColor b = ChatColor.BOLD;
+		final ChatColor y = ChatColor.YELLOW;
+		final ChatColor aq = ChatColor.AQUA;
 		if (args.length == 2 && args[1].equalsIgnoreCase("sign")) {
 			s.sendMessage(aq + "----- Sign Command Lines -----");
 			s.sendMessage(aq + ld.first + " " + y + "This must be at the top of any ZA command sign");

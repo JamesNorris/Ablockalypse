@@ -1,5 +1,6 @@
 package com.github.Ablockalypse.JamesNorris.Implementation;
 
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -13,10 +14,10 @@ import com.github.Ablockalypse.JamesNorris.Interface.ZASpawnerInterface;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class ZASpawner implements ZASpawnerInterface {
-	private Block block;
-	private ConfigurationData cd = External.ym.getConfigurationData();
-	private ZAGame game;
-	private World world;
+	private final Block block;
+	private final ConfigurationData cd = External.ym.getConfigurationData();
+	private final ZAGame game;
+	private final World world;
 
 	/**
 	 * Creates a new instance of a ZASpawner, which should be used to spawn entities from a specified mobspawner.
@@ -24,11 +25,11 @@ public class ZASpawner implements ZASpawnerInterface {
 	 * @param block The block this ZASpawner is attached to
 	 * @param game The game this ZASpawner is involved in
 	 */
-	public ZASpawner(Block block, ZAGame game) {
+	public ZASpawner(final Block block, final ZAGame game) {
 		this.block = block;
-		this.world = block.getWorld();
+		world = block.getWorld();
 		this.game = game;
-		Location l = block.getLocation();
+		final Location l = block.getLocation();
 		if (!Data.spawners.containsValue(l))
 			Data.spawners.put(game.getName(), l);
 		if (!Data.loadedspawners.containsKey(l)) {
@@ -71,16 +72,18 @@ public class ZASpawner implements ZASpawnerInterface {
 	 * @param entity The EntityType to spawn
 	 * @param game The game to spawn the entity for
 	 */
-	@Override public void spawnEntity(EntityType entity, ZAGame game) {
-		Entity e = world.spawnEntity(block.getLocation().add(0, 1, 0), entity);
+	@Override public void spawnEntity(final EntityType entity, final ZAGame game) {
+		final Entity e = world.spawnEntity(block.getLocation().add(0, 1, 0), entity);
 		if (e instanceof Zombie) {
-			Zombie z = (Zombie) e;
-			GameZombie gz = new GameZombie(z);
+			final Zombie z = (Zombie) e;
+			final GameZombie gz = new GameZombie(z);
 			gz.setTarget(game.getRandomPlayer());
 			gz.toggleFireImmunity();
-			gz.setHealth(game.getLevel() * 4);//TODO make sure this is correct
+			gz.setHealth(game.getLevel() * 4);// TODO make sure this is correct
 			if (game.getLevel() >= cd.speedLevel)
 				gz.increaseSpeed();
+			if (cd.effects)
+				world.playEffect(block.getLocation(), Effect.EXTINGUISH, 1);
 		}
 	}
 }

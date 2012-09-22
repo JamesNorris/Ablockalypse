@@ -8,8 +8,11 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 public class Square {
-	private int x, y, z, radius, i, j, k;
-	private World world;
+	private final int x, y, z, radius;
+	private int i;
+	private int j;
+	private int k;
+	private final World world;
 	private Location loc;
 	private List<Location> locs;
 
@@ -20,12 +23,12 @@ public class Square {
 	 * @param centerLocation The center of the square
 	 * @param radius The radius of the square
 	 */
-	public Square(Location centerLocation, int radius) {
-		this.x = centerLocation.getBlockX();
-		this.y = centerLocation.getBlockY();
-		this.z = centerLocation.getBlockZ();
+	public Square(final Location centerLocation, final int radius) {
+		x = centerLocation.getBlockX();
+		y = centerLocation.getBlockY();
+		z = centerLocation.getBlockZ();
 		this.radius = radius;
-		this.world = centerLocation.getWorld();
+		world = centerLocation.getWorld();
 		for (i = -radius; i <= radius; i++) {
 			for (j = -radius; j <= radius; j++) {
 				for (k = -radius; k <= radius; k++) {
@@ -41,8 +44,8 @@ public class Square {
 	 * 
 	 * @param material The type to change the blocks to
 	 */
-	public void changeType(Material material) {
-		for (Location l : locs) {
+	public void changeType(final Material material) {
+		for (final Location l : locs) {
 			l.getBlock().setType(material);
 		}
 	}
@@ -54,9 +57,9 @@ public class Square {
 	 * @param fromMaterial The type to change from
 	 * @param toMaterial The type to change to
 	 */
-	public void changeFromToType(Material fromMaterial, Material toMaterial) {
-		for (Location l : locs) {
-			Block b = l.getBlock();
+	public void changeFromToType(final Material fromMaterial, final Material toMaterial) {
+		for (final Location l : locs) {
+			final Block b = l.getBlock();
 			if (b.getType() == fromMaterial) {
 				b.setType(toMaterial);
 			}
@@ -69,8 +72,8 @@ public class Square {
 	 * @param material The type to check for
 	 * @return Whether or not the material is in the square
 	 */
-	public boolean contains(Material material) {
-		for (Location l : locs) {
+	public boolean contains(final Material material) {
+		for (final Location l : locs) {
 			if (l.getBlock().getType() == material) {
 				return true;
 			}

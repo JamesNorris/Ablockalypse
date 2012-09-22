@@ -1,5 +1,6 @@
 package com.github.Ablockalypse.JamesNorris.Event;
 
+import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -21,21 +22,21 @@ public class PlayerInteract implements Listener {
 	private YamlManager ym;
 	private ConfigurationData cd;
 
-	/* 
+	/*
 	 * The event called when a player clicks a block.
 	 * 
 	 * USED:
-	 * *When a ZAPlayer clicks a sign, to check the lines for strings that trigger a response. 
+	 * *When a ZAPlayer clicks a sign, to check the lines for strings that trigger a response.
 	 */
-	public void PIE(PlayerInteractEvent event) {
+	public void PIE(final PlayerInteractEvent event) {
 		if (ym == null || cd == null) {
 			ym = External.ym;
 			cd = ym.getConfigurationData();
 		}
-		Block b = event.getClickedBlock();
-		Player p = event.getPlayer();
+		final Block b = event.getClickedBlock();
+		final Player p = event.getPlayer();
 		if (b instanceof Sign) {
-			Sign s = (Sign) b;
+			final Sign s = (Sign) b;
 			ZASign zas;
 			if (!(s instanceof ZASign)) {
 				zas = new ZASign(s, ym);
@@ -43,15 +44,17 @@ public class PlayerInteract implements Listener {
 				zas = (ZASign) s;
 			}
 			zas.runLines(p);
+			if (cd.effects)
+				s.getWorld().playEffect(s.getLocation(), Effect.POTION_BREAK, 1);
 			return;
 		} else if (Data.players.containsKey(p)) {
-			ZAPlayer zap = Data.players.get(p);
+			final ZAPlayer zap = Data.players.get(p);
 			if (b.getType() == Material.ENDER_PORTAL_FRAME) {
 				new TeleportThread(zap, 5, true);
 				return;
 			} else if (b instanceof Chest && zap.getPoints() >= cd.mccost) {
-				Chest c = (Chest) b;
-				MysteryChest mb = new MysteryChest(c);// TODO create a new file for MysteryChests
+				final Chest c = (Chest) b;
+				final MysteryChest mb = new MysteryChest(c);
 				mb.randomize();
 				zap.subtractPoints(cd.mccost);
 				return;

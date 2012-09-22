@@ -7,13 +7,13 @@ import org.bukkit.configuration.file.FileConfiguration;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class GameData {
-	private List<String> games;
+	private final List<String> games;
 
 	/**
 	 * Creates a new instance of GameData, and loads all strings from games.yml.
 	 */
 	public GameData() {
-		FileConfiguration g = External.getConfig(External.g, External.games);
+		final FileConfiguration g = External.getConfig(External.g, External.games);
 		games = g.getStringList("Current ZA Games");
 	}
 

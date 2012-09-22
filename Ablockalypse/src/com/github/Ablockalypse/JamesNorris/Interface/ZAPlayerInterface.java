@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
-import com.github.Ablockalypse.JamesNorris.Util.PowerupType;
+import com.github.Ablockalypse.JamesNorris.Util.Util.PowerupType;
 
 public interface ZAPlayerInterface {
 	public void addPoints(int i);

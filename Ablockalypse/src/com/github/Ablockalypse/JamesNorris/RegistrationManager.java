@@ -7,22 +7,25 @@ import com.github.Ablockalypse.JamesNorris.Event.BlockPlace;
 import com.github.Ablockalypse.JamesNorris.Event.EntityBreakDoor;
 import com.github.Ablockalypse.JamesNorris.Event.EntityDamage;
 import com.github.Ablockalypse.JamesNorris.Event.EntityDeath;
+import com.github.Ablockalypse.JamesNorris.Event.EntityExplode;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerDeath;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerInteract;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerInteractEntity;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerMove;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerPickupItem;
+import com.github.Ablockalypse.JamesNorris.Event.PlayerTeleport;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerToggleSneak;
 import com.github.Ablockalypse.JamesNorris.Event.ProjectileHit;
+import com.github.Ablockalypse.iKeirNez.Command.BaseCommand;
 
-public class EventManager {
+public class RegistrationManager {
 	/**
 	 * Loads all events to the plugin.
 	 * 
 	 * @param instance The instance of the Ablockalypse plugin
 	 */
-	public static void registerEvents(Ablockalypse instance) {
-		PluginManager pm = instance.getServer().getPluginManager();
+	public static void register(final Ablockalypse instance) {
+		final PluginManager pm = instance.getServer().getPluginManager();
 		/* EVENTS */
 		pm.registerEvents(new EntityDamage(), instance);
 		pm.registerEvents(new PlayerDeath(), instance);
@@ -35,5 +38,9 @@ public class EventManager {
 		pm.registerEvents(new PlayerMove(), instance);
 		pm.registerEvents(new PlayerToggleSneak(), instance);
 		pm.registerEvents(new EntityBreakDoor(), instance);
+		pm.registerEvents(new EntityExplode(), instance);
+		pm.registerEvents(new PlayerTeleport(), instance);
+		/* COMMANDS */
+		instance.getCommand("za").setExecutor(new BaseCommand());
 	}
 }

@@ -15,15 +15,14 @@ public class ProjectileHit implements Listener {
 	 * Called when a player throws an object.
 	 * Used for changing ender pearls to grenades for ZAPlayers.
 	 */
-	@EventHandler public void PHE(ProjectileHitEvent event) {
-		Entity e = event.getEntity();
+	@EventHandler public void PHE(final ProjectileHitEvent event) {
+		final Entity e = event.getEntity();
 		if (e instanceof EnderPearl) {
-			EnderPearl ep = (EnderPearl) e;
-			LivingEntity le = ep.getShooter();
-			Player p = (Player) le;
+			final EnderPearl ep = (EnderPearl) e;
+			final LivingEntity le = ep.getShooter();
+			final Player p = (Player) le;// TODO add a cooldown for each player, so less lag is created
 			if (Data.players.containsKey(p)) {
-				ep.setBounce(true);
-				ep.getWorld().createExplosion(ep.getLocation(), 3);
+				ep.getWorld().createExplosion(ep.getLocation(), (float) 2.5);
 				ep.remove();
 			}
 		}

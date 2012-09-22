@@ -18,18 +18,18 @@ public class PlayerDeath implements Listener {
 	 * 
 	 * Used for respawning the player after the current level.
 	 */
-	@EventHandler public void PDE(PlayerDeathEvent event) {
-		Player p = event.getEntity();
+	@EventHandler public void PDE(final PlayerDeathEvent event) {
+		final Player p = event.getEntity();
 		if (Data.players.containsKey(p)) {
-			ZAPlayer zap = Data.players.get(p);
-			ZAGame zag = zap.getGame();
-			int level = zap.getGame().getLevel();
-			if (zag.getRemainingPlayers() > 0) {// TODO make it so only live players count for this
+			final ZAPlayer zap = Data.players.get(p);
+			final ZAGame zag = zap.getGame();
+			final int level = zap.getGame().getLevel();
+			if (zag.getRemainingPlayers() > 0) {
 				p.sendMessage(ChatColor.GRAY + "You will respawn at the start of the next level!");
 				new RespawnThread(zap, level, true);
 			} else {
-				for (String name : zag.getPlayers()) {
-					Player player = Bukkit.getServer().getPlayer(name);
+				for (final String name : zag.getPlayers()) {
+					final Player player = Bukkit.getServer().getPlayer(name);
 					zag.removePlayer(player);
 					player.sendMessage(ChatColor.GRAY + "The game has ended. You made it to level: " + level);
 				}

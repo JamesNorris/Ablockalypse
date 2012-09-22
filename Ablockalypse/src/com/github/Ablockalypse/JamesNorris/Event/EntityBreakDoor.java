@@ -10,11 +10,11 @@ import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.GameZombie;
 
 public class EntityBreakDoor implements Listener {
-	@EventHandler public void EBDE(EntityBreakDoorEvent event) {
-		LivingEntity e = event.getEntity();
+	@EventHandler public void EBDE(final EntityBreakDoorEvent event) {
+		final LivingEntity e = event.getEntity();
 		if (e instanceof Zombie) {
-			Zombie z = (Zombie) e;
-			for (GameZombie gz : Data.zombies) {
+			final Zombie z = (Zombie) e;
+			for (final GameZombie gz : Data.zombies) {
 				if (gz.getZombie() == z)
 					event.setCancelled(true);
 			}

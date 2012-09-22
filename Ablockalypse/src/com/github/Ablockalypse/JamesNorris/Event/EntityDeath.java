@@ -21,14 +21,14 @@ public class EntityDeath implements Listener {
 	 * Called when an Entity is killed.
 	 * Used for adding points when a player kills an entity, while they are in-game.
 	 */
-	@EventHandler public void EDE(EntityDeathEvent event) {
+	@EventHandler public void EDE(final EntityDeathEvent event) {
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
 		if (rand == null)
 			rand = new Random();
-		Player p = event.getEntity().getKiller();
+		final Player p = event.getEntity().getKiller();
 		if (Data.players.containsKey(p)) {
-			ZAPlayer zap = Data.players.get(p);
+			final ZAPlayer zap = Data.players.get(p);
 			zap.addPoints(cd.pointincrease);
 			zap.getGame().removeMob();
 			Util.randomPowerup(zap);

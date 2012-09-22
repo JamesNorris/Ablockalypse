@@ -19,14 +19,14 @@ public class PlayerInteractEntity implements Listener {
 	 * 
 	 * Used for picking a player up out of last stand.
 	 */
-	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
+	@EventHandler public void PIEE(final PlayerInteractEntityEvent event) {
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
-		Player p = event.getPlayer();
-		Entity e = event.getRightClicked();
+		final Player p = event.getPlayer();
+		final Entity e = event.getRightClicked();
 		if (Data.players.containsKey(p) && Data.players.containsKey(e)) {
-			ZAPlayer zap = Data.players.get(e);
-			ZAPlayer zap2 = Data.players.get(p);
+			final ZAPlayer zap = Data.players.get(e);
+			final ZAPlayer zap2 = Data.players.get(p);
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints(cd.helppoints);

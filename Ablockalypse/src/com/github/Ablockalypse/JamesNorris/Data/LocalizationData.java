@@ -13,7 +13,7 @@ public class LocalizationData {
 	public String weapongoldstring, weapongrenadestring, areastring, joingame;
 
 	public LocalizationData() {
-		FileConfiguration c = External.getConfig(External.l, External.local);
+		final FileConfiguration c = External.getConfig(External.l, External.local);
 		first = c.getString("baseString");
 		perkstring = c.getString("perkString");
 		healstring = c.getString("perkHealString");

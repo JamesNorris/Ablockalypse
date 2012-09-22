@@ -17,14 +17,15 @@ import com.github.Ablockalypse.JamesNorris.Threading.MobTargetThread;
 
 public class GameZombie implements ZombieInterface {
 	private boolean fire;
-	private Zombie zombie;
+	private final Zombie zombie;
+	private Player target;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
 	 * 
 	 * @param zombie The zombie to be made into this instance
 	 */
-	public GameZombie(Zombie zombie) {
+	public GameZombie(final Zombie zombie) {
 		this.zombie = zombie;
 		if (!Data.zombies.contains(this))
 			Data.zombies.add(this);
@@ -35,8 +36,17 @@ public class GameZombie implements ZombieInterface {
 	 * 
 	 * @param amt The amount of health to give to the zombie
 	 */
-	@Override public void setHealth(int amt) {
+	@Override public void setHealth(final int amt) {
 		zombie.setHealth(amt);
+	}
+
+	/**
+	 * Gets the target of the zombie.
+	 * 
+	 * @return The zombies' target
+	 */
+	@Override public Player getTarget() {
+		return target;
 	}
 
 	/**
@@ -62,13 +72,13 @@ public class GameZombie implements ZombieInterface {
 	 */
 	@Override public void increaseSpeed() {
 		/* BREAKABLE */
-		EntityZombie ez = ((CraftZombie) zombie).getHandle();
+		final EntityZombie ez = ((CraftZombie) zombie).getHandle();
 		Field field;
 		try {
 			field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
 			field.setAccessible(true);
 			field.set(ez, 0.6);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Ablockalypse.crash(e.getCause().toString(), false);
 		}
 		/* BREAKABLE */
@@ -88,8 +98,9 @@ public class GameZombie implements ZombieInterface {
 	 * 
 	 * @param player The player to become the target of the zombie
 	 */
-	@Override public void setTarget(Player player) {
-		LivingEntity le = (LivingEntity) player;
+	@Override public void setTarget(final Player player) {
+		final LivingEntity le = player;
+		target = player;
 		new MobTargetThread(zombie, le, true);
 	}
 

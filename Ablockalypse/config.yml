@@ -62,8 +62,14 @@ lastStandThreshold: 3
 # The amount of health left before a player is put in last stand.
 
 powerupChance: 5
-
 # The chances for the 3 powerups. (atom bomb, barrier fix, weapon fix)
+
+addedEffects: true
+# Adds extra effects to Ablockalypse.
+
+powerupRadius: 15
+# The radius of the effect of powerups. This can be set lower to reduce some lag.
+# NOTE: This only works for barrier fixes and atom bombs.
 
 ###################################################### WEAPONS ######################################################
 
@@ -100,6 +106,9 @@ xmppAnnouncePlayerLeaveGame: true
 xmppAnnounceLastStand: true
 
 #################################################### MAINTENANCE ####################################################
+
+ENABLE_AUTO_UPDATE: false
+# Enables automatic updating for Ablockalypse.
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.

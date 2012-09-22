@@ -11,6 +11,7 @@ import net.minecraft.server.Packet40EntityMetadata;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -28,25 +29,26 @@ import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayerInterface;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager.ZASound;
+import com.github.Ablockalypse.JamesNorris.Util.ControlledEffect;
 import com.github.Ablockalypse.JamesNorris.Util.External;
-import com.github.Ablockalypse.JamesNorris.Util.PowerupType;
 import com.github.Ablockalypse.JamesNorris.Util.Square;
 import com.github.Ablockalypse.JamesNorris.Util.Util;
+import com.github.Ablockalypse.JamesNorris.Util.Util.PowerupType;
 import com.github.Ablockalypse.iKeirNez.Util.StartingItems;
 
 public class ZAPlayer implements ZAPlayerInterface {
-	private ConfigurationData cd;
+	private final ConfigurationData cd;
 	private float exp, saturation, fall, exhaust;
-	private ZAGame game;
+	private final ZAGame game;
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
 	private boolean laststand, sleepingignored, broken;
 	private int level, health, food, fire, points;
-	private String name;
-	private Player player;
+	private final String name;
+	private final Player player;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
-	private SoundManager sound;
+	private final SoundManager sound;
 	private Location spawn;
 
 	/**
@@ -57,12 +59,12 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * @param player The player to be made into this instance
 	 * @param game The game this player should be in
 	 */
-	public ZAPlayer(Player player, ZAGame game) {
-		this.cd = External.ym.getConfigurationData();
+	public ZAPlayer(final Player player, final ZAGame game) {
+		cd = External.ym.getConfigurationData();
 		this.player = player;
-		this.name = player.getName();
+		name = player.getName();
 		this.game = game;
-		this.sound = new SoundManager(player);
+		sound = new SoundManager(player);
 		Data.players.put(player, this);
 	}
 
@@ -71,7 +73,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @param i The amount of points to give the player
 	 */
-	@Override public void addPoints(int i) {
+	@Override public void addPoints(final int i) {
 		points = points + i;
 		if (point.containsKey(getName()))
 			point.remove(getName());
@@ -97,15 +99,15 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * NOTE: The 2 options for the bit byte are 0x00 (down) and 0x04 (up).
 	 */
-	private void generatePacket(Player player, byte bit) {
+	private void generatePacket(final Player player, final byte bit) {
 		try {
 			if (!broken) {
 				player.teleport(player.getLocation().add(0, 1, 0));
-				Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
-				for (Player p : Bukkit.getServer().getOnlinePlayers())
+				final Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
+				for (final Player p : Bukkit.getServer().getOnlinePlayers())
 					((CraftPlayer) p).getHandle().netServerHandler.sendPacket(packet);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			broken = true;
 			Ablockalypse.crash(e.getCause().toString(), false);
 		}
@@ -150,43 +152,47 @@ public class ZAPlayer implements ZAPlayerInterface {
 	/**
 	 * Gives the player the specified powerup.
 	 */
-	@Override public void givePowerup(PowerupType type) {
-		Location loc = player.getLocation();
+	@Override public void givePowerup(final PowerupType type) {
+		final Location loc = player.getLocation();
+		final int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				Square s = new Square(loc, 15);// TODO make the radius configurable, so servers don't have to deal with lag
-				List<Location> locs = s.getLocations();
-				for (GameZombie gz : Data.zombies) {
-					Zombie z = gz.getZombie();
+				final Square s = new Square(loc, radius);
+				final List<Location> locs = s.getLocations();
+				for (final GameZombie gz : Data.zombies) {
+					final Zombie z = gz.getZombie();
 					if (locs.contains(z.getLocation())) {
 						z.remove();
-						for (String s2 : game.getPlayers()) {
-							Player p = Bukkit.getPlayer(s2);
-							ZAPlayer zap = Data.findZAPlayer(p, game.getName());
+						for (final String s2 : game.getPlayers()) {
+							final Player p = Bukkit.getPlayer(s2);
+							final ZAPlayer zap = Data.findZAPlayer(p, game.getName());
 							zap.addPoints(cd.atompoints);
 						}
 					}
 				}
-			break;
+				if (cd.effects)
+					new ControlledEffect(player.getWorld(), Effect.MOBSPAWNER_FLAMES, radius, 1, loc, true);
+				break;
 			case BARRIER_FIX:
-				Square s2 = new Square(loc, 15);
-				List<Location> locs2 = s2.getLocations();
-				for (Barrier b : Data.gamebarriers) {
+				final Square s2 = new Square(loc, radius);
+				final List<Location> locs2 = s2.getLocations();
+				for (final Barrier b : Data.gamebarriers) {
 					if (locs2.contains(b.getCenter()))
 						b.replaceBarrier();
 				}
-			break;
+				break;
 			case WEAPON_FIX:
-				for (String s3 : game.getPlayers()) {
-					Player p = Bukkit.getPlayer(s3);
-					Inventory i = p.getInventory();
-					for (ItemStack it : i.getContents()) {
+				for (final String s3 : game.getPlayers()) {
+					final Player p = Bukkit.getPlayer(s3);
+					final Inventory i = p.getInventory();
+					for (final ItemStack it : i.getContents()) {
 						if (Util.isWeapon(it)) {
 							it.setDurability((short) 0);
+							p.getWorld().playEffect(p.getLocation(), Effect.EXTINGUISH, 1);
 						}
 					}
 				}
-			break;
+				break;
 		}
 	}
 
@@ -214,11 +220,11 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @param name The name of the player to be loaded into the game
 	 */
-	@Override public void loadPlayerToGame(String name) {
+	@Override public void loadPlayerToGame(final String name) {
 		/* Use an old game to add the player to the game */
 		if (Data.games.containsKey(name)) {
-			ZAGame zag = Data.games.get(name);
-			int max = cd.maxplayers;
+			final ZAGame zag = Data.games.get(name);
+			final int max = cd.maxplayers;
 			if (zag.getPlayers().size() < max) {
 				zag.addPlayer(player);
 				saveStatus();
@@ -230,7 +236,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 			}
 			/* Create a new game, and put the player in that game */
 		} else {
-			ZAGame zag = new ZAGame(name, cd, true);
+			final ZAGame zag = new ZAGame(name, cd, true);
 			zag.setSpawn(Data.mainframes.get(name));
 			zag.addPlayer(player);
 			saveStatus();
@@ -259,14 +265,14 @@ public class ZAPlayer implements ZAPlayerInterface {
 		player.setExhaustion(0F);
 		player.setGameMode(GameMode.SURVIVAL);
 		try {
-			for (String s : cd.inventory) {
+			for (final String s : cd.inventory) {
 				player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
 			}
 			player.getInventory().setHelmet(StartingItems.seperateStartingItemsData(cd.helmet));
 			player.getInventory().setChestplate(StartingItems.seperateStartingItemsData(cd.chestplate));
 			player.getInventory().setLeggings(StartingItems.seperateStartingItemsData(cd.leggings));
 			player.getInventory().setBoots(StartingItems.seperateStartingItemsData(cd.boots));
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -328,7 +334,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @param i The amount of points to remove from the player
 	 */
-	@Override public void subtractPoints(int i) {
+	@Override public void subtractPoints(final int i) {
 		points = points - i;
 	}
 
@@ -338,7 +344,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	@Override public void toggleLastStand() {
 		if (!laststand) {
 			laststand = true;
-			Entity v = player.getVehicle();
+			final Entity v = player.getVehicle();
 			if (v != null && !player.isSneaking())
 				v.remove();
 			player.setAllowFlight(true);

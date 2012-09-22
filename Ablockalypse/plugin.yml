@@ -1,6 +1,6 @@
 name: Zombie_Ablockalypse
 author: [iKeirNez, JamesNorris]
-version: 0.01
+version: 1.0
 main: com.github.Ablockalypse.Ablockalypse
 description: Extreme Zombie Ablockalypse plugin for bukkit servers.
 softdepend: [WorldEdit]

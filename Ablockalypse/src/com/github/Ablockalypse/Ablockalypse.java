@@ -4,7 +4,8 @@ import java.io.File;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.Ablockalypse.JamesNorris.EventManager;
+import com.github.Ablockalypse.JamesNorris.RegistrationManager;
+import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Threading.MainThreading;
 import com.github.Ablockalypse.JamesNorris.Util.External;
@@ -23,17 +24,18 @@ public class Ablockalypse extends JavaPlugin {
 
 	/* JAVAPLUGIN METHODS */
 	@Override public void onEnable() {
-		/* UPDATE RUN */
-		Update upd = new Update(this);
+		new Data(this);
+		External.runResources(this);
+		final ConfigurationData cd = External.getYamlManager().getConfigurationData();
+		/* AUTO UPDATER */
+		final Update upd = new Update(this);
 		System.out.println("[Ablockalypse] Checking for updates...");
-		if (upd.updateCheck()) {
+		if (!cd.ENABLE_AUTO_UPDATE && upd.updateCheck()) {
 			getServer().getPluginManager().disablePlugin(this);
 			System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
 		} else {
-			/* REGULAR RUN */
-			new Data(this);
-			External.runConfig(this);
-			EventManager.registerEvents(this);
+			/* STARTUP */
+			RegistrationManager.register(this);
 			External.loadBinaries();
 			new MainThreading(this, true, true);
 		}
@@ -45,7 +47,7 @@ public class Ablockalypse extends JavaPlugin {
 	 * @param reason The reason for the exception
 	 * @param disable Whether or not the Ablockalypse plugin should stop working
 	 */
-	public static void crash(String reason, boolean disable) {
+	public static void crash(final String reason, final boolean disable) {
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(Ablockalypse.issues);
 		System.err.println("--------------------------[ERROR REPORT]--------------------------");

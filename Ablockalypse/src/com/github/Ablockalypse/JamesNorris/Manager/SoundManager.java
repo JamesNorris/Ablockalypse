@@ -12,14 +12,14 @@ public class SoundManager {
 		ACHIEVEMENT, DEATH, END, LAST_STAND, START, TELEPORT;
 	}
 
-	private Player player;
+	private final Player player;
 
 	/**
 	 * Creates a new sound manager for a game, that can play specific types of sounds for players.
 	 * 
 	 * @param player The player to follow with this instance
 	 */
-	public SoundManager(Player player) {
+	public SoundManager(final Player player) {
 		this.player = player;
 	}
 
@@ -38,30 +38,30 @@ public class SoundManager {
 	 * 
 	 * @param sound The type of sound to be played through this manager
 	 */
-	public void generateSound(ZASound sound) {
-		Location l = player.getLocation();
+	public void generateSound(final ZASound sound) {
+		final Location l = player.getLocation();
 		switch (sound) {
 			case TELEPORT:
 				player.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
 				player.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
-			break;
+				break;
 			case LAST_STAND:
 				player.playSound(l, Sound.GHAST_SCREAM, 2, 15);
-			break;
+				break;
 			case DEATH:
 				player.playSound(l, Sound.GHAST_DEATH, 2, 20);
-			break;
+				break;
 			case START:
 				player.playSound(l, Sound.GHAST_MOAN, 4, 1);
-			break;
+				break;
 			case END:
 				player.playSound(l, Sound.BLAZE_BREATH, 5, 10);
 				player.playSound(l, Sound.CREEPER_HISS, 5, 10);
 				player.playSound(l, Sound.EXPLODE, 1, 15);
-			break;
+				break;
 			case ACHIEVEMENT:
 				player.playSound(l, Sound.LEVEL_UP, 1, 5);
-			break;
+				break;
 		}
 	}
 }

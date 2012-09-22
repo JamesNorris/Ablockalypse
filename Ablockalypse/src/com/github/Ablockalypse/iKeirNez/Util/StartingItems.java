@@ -11,15 +11,15 @@ public class StartingItems {
 	 * @param s A string with itemstack arguments
 	 * @return The ItemStack from the string given
 	 */
-	public static ItemStack seperateStartingItemsData(String s) {
+	public static ItemStack seperateStartingItemsData(final String s) {
 		Material item = null;
 		int amount = 1;
 		short damage = 0;
 		Enchantment ench = null;
 		int enchLevel = 1;
-		String[] data = s.split(" ");
+		final String[] data = s.split(" ");
 		if (data[0].contains(":")) {
-			String[] itemInfo = data[0].split(":");
+			final String[] itemInfo = data[0].split(":");
 			item = Material.getMaterial(itemInfo[0]);
 			damage = Short.valueOf(itemInfo[1]);
 		} else {
@@ -27,16 +27,16 @@ public class StartingItems {
 		}
 		amount = Integer.valueOf(data[1]);
 		if (data.length == 4) {
-			String[] enchInfo = {data[2], data[3]};
+			final String[] enchInfo = {data[2], data[3]};
 			// TODO add multiple enchantment support
 			try {
 				ench = Enchantment.getById(Integer.valueOf(enchInfo[0]));
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				ench = Enchantment.getByName(enchInfo[0]);
 			}
 			enchLevel = Integer.valueOf(enchInfo[1]);
 		}
-		ItemStack toReturn = new ItemStack(item, amount, damage);
+		final ItemStack toReturn = new ItemStack(item, amount, damage);
 		if (ench != null) {
 			toReturn.addUnsafeEnchantment(ench, enchLevel);
 		}

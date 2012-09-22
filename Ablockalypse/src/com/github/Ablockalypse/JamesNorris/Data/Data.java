@@ -60,7 +60,7 @@ public class Data {
 	 * @param spawners Whether or not spawners should be immediately loaded
 	 * @return The ZAGame found from the name given
 	 */
-	public static ZAGame findGame(String name, boolean spawners) {
+	public static ZAGame findGame(final String name, final boolean spawners) {
 		ZAGame zag;
 		if (Data.games.containsKey(name))
 			zag = Data.games.get(name);
@@ -77,7 +77,7 @@ public class Data {
 	 * @param radius The radius of the square
 	 * @return The square around the barrier
 	 */
-	public static Square findBarrierSquare(Barrier b, Location l, int radius) {
+	public static Square findBarrierSquare(final Barrier b, final Location l, final int radius) {
 		Square s;
 		if (Data.squares.containsKey(b))
 			s = Data.squares.get(b);
@@ -94,7 +94,7 @@ public class Data {
 	 * @param player The player to check for
 	 * @return Whether or not the player exists
 	 */
-	public static boolean playerExists(Player player) {
+	public static boolean playerExists(final Player player) {
 		if (Data.players.containsKey(player))
 			return true;
 		return false;
@@ -106,7 +106,7 @@ public class Data {
 	 * @param gamename The game name to check for
 	 * @return Whether or not the game exists
 	 */
-	public static boolean gameExists(String gamename) {
+	public static boolean gameExists(final String gamename) {
 		if (Data.games.containsKey(gamename))
 			return true;
 		return false;
@@ -115,7 +115,7 @@ public class Data {
 	/**
 	 * Finds a ZAPlayer, with the specified Player instance.
 	 */
-	public static ZAPlayer findZAPlayer(Player player, String gamename) {
+	public static ZAPlayer findZAPlayer(final Player player, final String gamename) {
 		ZAPlayer zap;
 		if (Data.players.containsKey(player))
 			zap = Data.players.get(player);
@@ -132,8 +132,8 @@ public class Data {
 	 * @param loc The location to load the spawner from
 	 * @param game The game to load the spawner for
 	 */
-	public static void loadSpawner(Location loc, ZAGame game) {
-		World w = loc.getWorld();
+	public static void loadSpawner(final Location loc, final ZAGame game) {
+		final World w = loc.getWorld();
 		new ZASpawner(w.getBlockAt(loc), game);
 	}
 
@@ -142,7 +142,7 @@ public class Data {
 	 * 
 	 * @param plugin The instance of the Ablockalypse plugin
 	 */
-	public Data(Ablockalypse plugin) {
+	public Data(final Ablockalypse plugin) {
 		Data.plugin = plugin;
 		Data.authors = plugin.getDescription().getAuthors();
 		Data.description = plugin.getDescription().getDescription();

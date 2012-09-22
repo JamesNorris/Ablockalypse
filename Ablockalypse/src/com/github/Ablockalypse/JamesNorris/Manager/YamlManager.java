@@ -20,9 +20,9 @@ public class YamlManager {
 	public HashMap<String, Integer> levelmap = new HashMap<String, Integer>();
 	public HashMap<String, Enchantment> enchmap = new HashMap<String, Enchantment>();
 	public HashMap<String, Integer> enchsignline3 = new HashMap<String, Integer>();
-	private ConfigurationData cd;
-	private LocalizationData ld;
-	private GameData gd;
+	private final ConfigurationData cd;
+	private final LocalizationData ld;
+	private final GameData gd;
 
 	/**
 	 * Creates a new instance of the YamlManager, a manager for all ZA configuration.
@@ -30,7 +30,7 @@ public class YamlManager {
 	 * @param cd The ConfigurationData instance to load to the manager
 	 * @param ld The LocalizationData instance to load to the manager
 	 */
-	public YamlManager(ConfigurationData cd, LocalizationData ld, GameData gd) {
+	public YamlManager(final ConfigurationData cd, final LocalizationData ld, final GameData gd) {
 		this.cd = cd;
 		this.ld = ld;
 		this.gd = gd;

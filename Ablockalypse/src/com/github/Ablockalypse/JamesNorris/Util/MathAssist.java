@@ -12,8 +12,21 @@ public class MathAssist {
 	 * @param d The d value for the curve-fit (y-intercept)
 	 * @return The current value for the y variable
 	 */
-	public static double curve(double x, double a, double b, double c, double d) {
-		double y1 = a * x, y2 = b * x, y3 = c * x;
+	public static double curve(final double x, final double a, final double b, final double c, final double d) {
+		final double y1 = a * x, y2 = b * x, y3 = c * x;
 		return d + y3 + (y2 * y2) - (y1 * y1 * y1);
+	}
+
+	/**
+	 * The method for creating a line with a supplied x, m, and b.
+	 * The general equation is y = mx + b.
+	 * 
+	 * @param x The x value for the line (x-intercept)
+	 * @param m The m value for the line (slope)
+	 * @param b The b value for the line (y-intercept)
+	 * @return The current value for the y variable
+	 */
+	public static double line(final double x, final double m, final double b) {
+		return (m * x) + b;
 	}
 }
