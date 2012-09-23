@@ -1,5 +1,7 @@
 package com.github.Ablockalypse.JamesNorris.Event;
 
+import java.util.List;
+
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -11,6 +13,8 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 
 public class ProjectileHit implements Listener {
+	public static List<Integer> pearlids;
+
 	/*
 	 * Called when a player throws an object.
 	 * Used for changing ender pearls to grenades for ZAPlayers.
@@ -22,7 +26,8 @@ public class ProjectileHit implements Listener {
 			final LivingEntity le = ep.getShooter();
 			final Player p = (Player) le;// TODO add a cooldown for each player, so less lag is created
 			if (Data.players.containsKey(p)) {
-				ep.getWorld().createExplosion(ep.getLocation(), (float) 2.5);
+				pearlids.add(e.getEntityId());
+				ep.getWorld().createExplosion(ep.getLocation(), (float) 100);
 				ep.remove();
 			}
 		}

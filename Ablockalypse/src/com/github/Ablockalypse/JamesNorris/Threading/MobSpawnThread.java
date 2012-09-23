@@ -12,6 +12,7 @@ import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZASpawner;
+import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 import com.github.Ablockalypse.JamesNorris.Util.MathAssist;
 
 public class MobSpawnThread {
@@ -22,6 +23,7 @@ public class MobSpawnThread {
 	private final int players;
 	private final Ablockalypse instance;
 	private final long curvefitVariable;
+	private TickManager tm;
 
 	/**
 	 * An instance containing a thread for ZA mobs spawning.
@@ -31,6 +33,7 @@ public class MobSpawnThread {
 	 */
 	public MobSpawnThread(final ZAGame game, final boolean mobspawn) {
 		this.game = game;
+		this.tm = Ablockalypse.getMaster().getTickManager();
 		level = game.getLevel();
 		instance = Ablockalypse.instance;
 		players = game.getPlayers().size();
@@ -48,6 +51,7 @@ public class MobSpawnThread {
 	 * Spawns zombies each round, and if the round is a wolf round, spawns wolves as well.
 	 */
 	protected void mobSpawn() {
+		int i2 = tm.getAdaptedRate() * 3;
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				if (game.getLevel() == level) {
@@ -77,7 +81,7 @@ public class MobSpawnThread {
 					cancel();
 				}
 			}
-		}, 60, 60);
+		}, i2, i2);
 	}
 
 	/**

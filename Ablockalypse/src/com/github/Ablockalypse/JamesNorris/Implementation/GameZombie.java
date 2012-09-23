@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse.Ablockalypse;
+import com.github.Ablockalypse.JamesNorris.PluginMaster;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Interface.ZombieInterface;
 import com.github.Ablockalypse.JamesNorris.Threading.MobTargetThread;
@@ -19,6 +20,7 @@ public class GameZombie implements ZombieInterface {
 	private boolean fire;
 	private final Zombie zombie;
 	private Player target;
+	private PluginMaster pm;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
@@ -27,6 +29,7 @@ public class GameZombie implements ZombieInterface {
 	 */
 	public GameZombie(final Zombie zombie) {
 		this.zombie = zombie;
+		this.pm = Ablockalypse.getMaster();
 		if (!Data.zombies.contains(this))
 			Data.zombies.add(this);
 	}
@@ -79,7 +82,7 @@ public class GameZombie implements ZombieInterface {
 			field.setAccessible(true);
 			field.set(ez, 0.6);
 		} catch (final Exception e) {
-			Ablockalypse.crash(e.getCause().toString(), false);
+			pm.crash(pm.getInstance(), e.getCause().toString(), false);
 		}
 		/* BREAKABLE */
 	}

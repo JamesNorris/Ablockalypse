@@ -12,11 +12,13 @@ import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Implementation.Barrier;
 import com.github.Ablockalypse.JamesNorris.Implementation.GameWolf;
 import com.github.Ablockalypse.JamesNorris.Implementation.GameZombie;
+import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 import com.github.Ablockalypse.JamesNorris.Util.Square;
 
 public class MainThreading {
 	private final Ablockalypse instance;
 	private int id1, id2;
+	private TickManager tm;
 
 	/**
 	 * The instance with all threads that should be run constantly while the plugin is running.
@@ -27,6 +29,7 @@ public class MainThreading {
 	 */
 	public MainThreading(final Ablockalypse instance, final boolean wolf, final boolean barrier) {
 		this.instance = instance;
+		this.tm = Ablockalypse.getMaster().getTickManager();
 		if (wolf)
 			wolfFlames();
 		if (barrier)
@@ -37,6 +40,7 @@ public class MainThreading {
 	 * Checks for GameWolf instances and adds flames to them, making them hellhounds.
 	 */
 	protected void wolfFlames() {
+		int i = tm.getAdaptedRate();
 		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				for (final GameWolf f : Data.wolves) {
@@ -44,13 +48,14 @@ public class MainThreading {
 						f.addEffect();
 				}
 			}
-		}, 20, 20);
+		}, i, i);
 	}
 
 	/**
 	 * Checks for GameZombie instances, and checks if they are in a Barrier area. If they are, the Barrier is broken.
 	 */
 	protected void barrier() {
+		int i = tm.getAdaptedRate() * 3;
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				for (final GameZombie gz : Data.zombies) {
@@ -64,7 +69,7 @@ public class MainThreading {
 					}
 				}
 			}
-		}, 40, 40);
+		}, i, i);
 	}
 
 	/**

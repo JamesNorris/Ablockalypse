@@ -16,16 +16,16 @@ public class XMPP {
 				switch (type) {
 					case PLAYER_JOIN_GAME:
 						send(cd.xmppPlayerJoin, message);
-						break;
+					break;
 					case PLAYER_LEAVE_GAME:
 						send(cd.xmppPlayerLeave, message);
-						break;
+					break;
 					case ZA_GAME_START:
 						send(cd.xmppGameStart, message);
-						break;
+					break;
 					case ZA_GAME_END:
 						send(cd.xmppGameEnd, message);
-						break;
+					break;
 					case LAST_STAND:
 						send(cd.xmppLastStand, message);
 				}

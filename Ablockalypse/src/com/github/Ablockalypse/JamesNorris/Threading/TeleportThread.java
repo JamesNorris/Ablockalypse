@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class TeleportThread {
@@ -19,6 +20,7 @@ public class TeleportThread {
 	private final ZAPlayer zaplayer;
 	private final Ablockalypse instance;
 	private final ConfigurationData cd;
+	private TickManager tm;
 
 	/**
 	 * Creates an instance of the thread for teleporting a player.
@@ -32,6 +34,7 @@ public class TeleportThread {
 		this.time = time;
 		player = zaplayer.getPlayer();
 		instance = Ablockalypse.instance;
+		this.tm = Ablockalypse.getMaster().getTickManager();
 		cd = External.ym.getConfigurationData();
 		if (countdown)
 			countdown();
@@ -41,6 +44,7 @@ public class TeleportThread {
 	 * Counts down to teleport the player.
 	 */
 	protected void countdown() {
+		int i = tm.getAdaptedRate();
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				if (time != 0)
@@ -54,7 +58,7 @@ public class TeleportThread {
 				}
 				--time;
 			}
-		}, 20, 20);
+		}, i, i);
 	}
 
 	/**

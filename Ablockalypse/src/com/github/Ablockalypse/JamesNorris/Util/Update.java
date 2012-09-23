@@ -10,9 +10,11 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import com.github.Ablockalypse.Ablockalypse;
+import com.github.Ablockalypse.JamesNorris.PluginMaster;
 
 public class Update {
 	private final Ablockalypse plugin;
+	private PluginMaster pm;
 
 	/**
 	 * Creates a new instance of the Auto-Updater for Ablockalypse.
@@ -23,6 +25,7 @@ public class Update {
 	 */
 	public Update(final Ablockalypse instance) {
 		plugin = instance;
+		this.pm = Ablockalypse.getMaster();
 	}
 
 	/**
@@ -33,9 +36,9 @@ public class Update {
 	public boolean updateCheck() {
 		URLConnection connection = null;
 		try {
-			final URL url = new URL(plugin.address);
+			final URL url = new URL(pm.getUpdateURL());
 			connection = url.openConnection();
-			final File localfile = new File(plugin.path);
+			final File localfile = new File(pm.getPath());
 			final long lastmodifiedurl = connection.getLastModified();
 			final long lastmodifiedfile = localfile.lastModified();
 			if (lastmodifiedurl > lastmodifiedfile) {
@@ -59,8 +62,8 @@ public class Update {
 		URLConnection connection = null;
 		InputStream in = null;
 		try {
-			final URL url = new URL(plugin.address);
-			out = new BufferedOutputStream(new FileOutputStream(plugin.path));
+			final URL url = new URL(pm.getUpdateURL());
+			out = new BufferedOutputStream(new FileOutputStream(pm.getPath()));
 			connection = url.openConnection();
 			in = connection.getInputStream();
 			final byte[] buffer = new byte[1024];

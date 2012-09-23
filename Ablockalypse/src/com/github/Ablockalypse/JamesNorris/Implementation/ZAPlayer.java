@@ -11,6 +11,7 @@ import net.minecraft.server.Packet40EntityMetadata;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -23,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
 import com.github.Ablockalypse.Ablockalypse;
+import com.github.Ablockalypse.JamesNorris.PluginMaster;
 import com.github.Ablockalypse.JamesNorris.Data.ByteData;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
@@ -50,6 +52,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	private Collection<PotionEffect> pot;
 	private final SoundManager sound;
 	private Location spawn;
+	private PluginMaster pm;
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -61,6 +64,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 */
 	public ZAPlayer(final Player player, final ZAGame game) {
 		cd = External.ym.getConfigurationData();
+		this.pm = Ablockalypse.getMaster();
 		this.player = player;
 		name = player.getName();
 		this.game = game;
@@ -109,7 +113,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 			}
 		} catch (final Exception e) {
 			broken = true;
-			Ablockalypse.crash(e.getCause().toString(), false);
+			pm.crash(pm.getInstance(), e.getCause().toString(), false);
 		}
 	}
 
@@ -172,7 +176,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 				}
 				if (cd.effects)
 					new ControlledEffect(player.getWorld(), Effect.MOBSPAWNER_FLAMES, radius, 1, loc, true);
-				break;
+			break;
 			case BARRIER_FIX:
 				final Square s2 = new Square(loc, radius);
 				final List<Location> locs2 = s2.getLocations();
@@ -180,7 +184,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 					if (locs2.contains(b.getCenter()))
 						b.replaceBarrier();
 				}
-				break;
+			break;
 			case WEAPON_FIX:
 				for (final String s3 : game.getPlayers()) {
 					final Player p = Bukkit.getPlayer(s3);
@@ -192,7 +196,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 						}
 					}
 				}
-				break;
+			break;
 		}
 	}
 
@@ -325,7 +329,11 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * Teleports the player to the mainframe of the game.
 	 */
 	@Override public void sendToMainframe() {
-		player.teleport(game.getSpawn());
+		Location loc = game.getSpawn();
+		Chunk c = loc.getChunk();
+		if (!c.isLoaded())
+			c.load();
+		player.teleport(loc);
 		sound.generateSound(ZASound.TELEPORT);
 	}
 

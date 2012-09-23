@@ -8,12 +8,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse.Ablockalypse;
+import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 
 public class MobTargetThread {
 	private int id;
 	private final Zombie zombie;
 	private LivingEntity player;
 	private final Ablockalypse instance;
+	private TickManager tm;
 
 	/**
 	 * Creates a new instance of the thread.
@@ -25,6 +27,7 @@ public class MobTargetThread {
 	public MobTargetThread(final Zombie zombie, final LivingEntity player, final boolean autorun) {
 		this.zombie = zombie;
 		this.player = player;
+		this.tm = Ablockalypse.getMaster().getTickManager();
 		instance = Ablockalypse.instance;
 		if (autorun)
 			target();
@@ -34,6 +37,7 @@ public class MobTargetThread {
 	 * Forces the zombie to target a player constantly.
 	 */
 	protected void target() {
+		int i = tm.getAdaptedRate() * 2;
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				if (zombie.getTarget() != player) {
@@ -43,7 +47,7 @@ public class MobTargetThread {
 						cancel();
 				}
 			}
-		}, 40, 40);
+		}, i, i);
 	}
 
 	/**

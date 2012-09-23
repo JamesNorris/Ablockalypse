@@ -44,24 +44,24 @@ public class SoundManager {
 			case TELEPORT:
 				player.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
 				player.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
-				break;
+			break;
 			case LAST_STAND:
 				player.playSound(l, Sound.GHAST_SCREAM, 2, 15);
-				break;
+			break;
 			case DEATH:
 				player.playSound(l, Sound.GHAST_DEATH, 2, 20);
-				break;
+			break;
 			case START:
 				player.playSound(l, Sound.GHAST_MOAN, 4, 1);
-				break;
+			break;
 			case END:
 				player.playSound(l, Sound.BLAZE_BREATH, 5, 10);
 				player.playSound(l, Sound.CREEPER_HISS, 5, 10);
 				player.playSound(l, Sound.EXPLODE, 1, 15);
-				break;
+			break;
 			case ACHIEVEMENT:
 				player.playSound(l, Sound.LEVEL_UP, 1, 5);
-				break;
+			break;
 		}
 	}
 }

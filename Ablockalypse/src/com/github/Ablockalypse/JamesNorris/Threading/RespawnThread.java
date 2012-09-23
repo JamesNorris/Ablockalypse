@@ -7,12 +7,14 @@ import org.bukkit.Bukkit;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 
 public class RespawnThread {
 	private final int level;
 	private int id;
 	private final ZAPlayer player;
 	private final Ablockalypse instance;
+	private TickManager tm;
 
 	/**
 	 * The thread used for respawning the player.
@@ -24,6 +26,7 @@ public class RespawnThread {
 	public RespawnThread(final ZAPlayer player, final int level, final boolean waitrespawn) {
 		this.player = player;
 		this.level = level;
+		this.tm = Ablockalypse.getMaster().getTickManager();
 		instance = Ablockalypse.instance;
 		if (waitrespawn)
 			waitToRespawn();
@@ -33,6 +36,7 @@ public class RespawnThread {
 	 * Waits for the next level, then respawns the player.
 	 */
 	protected void waitToRespawn() {
+		int i = tm.getAdaptedRate();
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				if (player.getGame().getLevel() > level) {
@@ -40,7 +44,7 @@ public class RespawnThread {
 					cancel();
 				}
 			}
-		}, 20, 20);
+		}, i, i);
 	}
 
 	/**

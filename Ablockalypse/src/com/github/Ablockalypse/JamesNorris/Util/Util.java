@@ -39,13 +39,13 @@ public class Util {
 			switch (type) {
 				case 1:
 					ptype = PowerupType.ATOM_BOMB;
-					break;
+				break;
 				case 2:
 					ptype = PowerupType.BARRIER_FIX;
-					break;
+				break;
 				case 3:
 					ptype = PowerupType.WEAPON_FIX;
-					break;
+				break;
 			}
 			if (ptype != null)
 				zap.givePowerup(ptype);
