@@ -4,7 +4,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
-public interface WolfInterface {
+public interface HellHound {
 	/**
 	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
 	 */
@@ -18,18 +18,18 @@ public interface WolfInterface {
 	public void addHealth(int amt);
 
 	/**
-	 * Gets the world the wolf is in.
-	 * 
-	 * @return The world the wolf is in
-	 */
-	public World getWorld();
-
-	/**
 	 * Gets the Wolf instance associated with this instance.
 	 * 
 	 * @return The Wolf instance associated with this instance
 	 */
 	public Wolf getWolf();
+
+	/**
+	 * Gets the world the wolf is in.
+	 * 
+	 * @return The world the wolf is in
+	 */
+	public World getWorld();
 
 	/**
 	 * Increases the speed of the wolf.

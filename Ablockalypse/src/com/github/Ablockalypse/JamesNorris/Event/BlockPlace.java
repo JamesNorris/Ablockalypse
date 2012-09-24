@@ -15,22 +15,22 @@ import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class BlockPlace implements Listener {
-	private LocalizationData ld;
 	private ConfigurationData cd;
+	private LocalizationData ld;
 
 	/*
 	 * Called when a player places a block.
 	 * Used mainly for avoiding unwanted players from placing ZASigns.
 	 */
-	@EventHandler public void BPE(final BlockPlaceEvent event) {
+	@EventHandler public void BPE(BlockPlaceEvent event) {
 		if (ld == null)
 			ld = External.ym.getLocalizationData();
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
-		final Player p = event.getPlayer();
-		final Block b = event.getBlock();
+		Player p = event.getPlayer();
+		Block b = event.getBlock();
 		if (b instanceof Sign) {
-			final Sign s = (Sign) b;
+			Sign s = (Sign) b;
 			if (Data.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(ld.first)) {
 				event.setCancelled(true);
 				if (cd.effects)

@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class EntityDamage implements Listener {
@@ -19,15 +19,18 @@ public class EntityDamage implements Listener {
 	 * 
 	 * Used for reviving a player in last stand.
 	 */
-	@EventHandler public void EDE(final EntityDamageEvent event) {
+	@EventHandler public void EDE(EntityDamageEvent event) {
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
-		final Entity e = event.getEntity();
-		final Player p = (Player) e;
-		if (Data.players.containsKey(p)) {
-			final ZAPlayer zap = Data.players.get(p);
-			if ((p.getHealth() / 20) * 100 >= cd.lsthresh && !zap.isInLastStand()) {
-				zap.toggleLastStand();
+		Entity e = event.getEntity();
+		if (e instanceof Player) {
+			Player p = (Player) e;
+			if (Data.players.containsKey(p)) {
+				ZAPlayerBase zap = Data.players.get(p);
+				if (p.getHealth() <= cd.lsthresh && !zap.isInLastStand() && !zap.isInLimbo()) {
+					p.setHealth(cd.lsthresh);
+					zap.toggleLastStand();
+				}
 			}
 		}
 	}

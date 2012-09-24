@@ -16,11 +16,11 @@ public class PlayerMove implements Listener {
 	 * Called whenever a player moves.
 	 * Mostly used for preventing players from going through barriers.
 	 */
-	@EventHandler public void PME(final PlayerMoveEvent event) {
-		final Player p = event.getPlayer();
+	@EventHandler public void PME(PlayerMoveEvent event) {
+		Player p = event.getPlayer();
 		if (++time <= 5 && Data.players.containsKey(p)) {
 			time = 0;
-			for (final Location l : Data.barrierpanels.values()) {
+			for (Location l : Data.barrierpanels.values()) {
 				if (l == p.getLocation()) {
 					p.sendMessage(ChatColor.GRAY + "To replace a barrier, hold SHIFT when nearby.");
 					event.setCancelled(true);

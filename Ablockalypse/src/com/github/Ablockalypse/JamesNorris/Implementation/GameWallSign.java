@@ -1,6 +1,7 @@
 package com.github.Ablockalypse.JamesNorris.Implementation;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -13,17 +14,18 @@ import org.bukkit.potion.PotionEffectType;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
-import com.github.Ablockalypse.JamesNorris.Interface.ZASignInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.WallSign;
 import com.github.Ablockalypse.JamesNorris.Manager.YamlManager;
+import com.github.Ablockalypse.JamesNorris.Util.Util;
 
-public class ZASign implements ZASignInterface {
+public class GameWallSign implements WallSign {
+	private ConfigurationData cd;
+	private String l1, l2, l3, l4;
+	private LocalizationData ld;
+	private Sign sign;
+	private World world;
+	private int x, y, z;
 	private YamlManager ym;
-	private final LocalizationData ld;
-	private final ConfigurationData cd;
-	private final String l1, l2, l3, l4;
-	private final Sign sign;
-	private final World world;
-	private final int x, y, z;
 
 	/**
 	 * Creates a new instance of a ZASign.
@@ -31,18 +33,19 @@ public class ZASign implements ZASignInterface {
 	 * @param sign The sign to be made into this instance
 	 * @param cd The ConfigurationData instance to be used in this instance
 	 */
-	public ZASign(final Sign sign, final YamlManager ym) {
+	public GameWallSign(Sign sign, YamlManager ym) {
 		this.sign = sign;
-		ld = ym.getLocalizationData();
-		cd = ym.getConfigurationData();
-		l1 = sign.getLine(1);
-		l2 = sign.getLine(2);
-		l3 = sign.getLine(3);
-		l4 = sign.getLine(4);
-		x = sign.getX();
-		y = sign.getY();
-		z = sign.getZ();
-		world = sign.getWorld();
+		this.ld = ym.getLocalizationData();
+		this.cd = ym.getConfigurationData();
+		this.ym = ym;
+		this.l1 = sign.getLine(0);
+		this.l2 = sign.getLine(1);
+		this.l3 = sign.getLine(2);
+		this.l4 = sign.getLine(3);
+		this.x = sign.getX();
+		this.y = sign.getY();
+		this.z = sign.getZ();
+		this.world = sign.getWorld();
 	}
 
 	/**
@@ -51,7 +54,7 @@ public class ZASign implements ZASignInterface {
 	 * @param number The line number to get, 1-4
 	 * @return The string of the line specified
 	 */
-	@Override public String getLine(final int number) {
+	@Override public String getLine(int number) {
 		switch (number) {
 			case 1:
 				return l1;
@@ -66,21 +69,21 @@ public class ZASign implements ZASignInterface {
 	}
 
 	/**
-	 * Gets the sign this instance is attached to.
-	 * 
-	 * @return The sign this instance is attached to
-	 */
-	@Override public Sign getSign() {
-		return sign;
-	}
-
-	/**
 	 * Gets the location of the sign.
 	 * 
 	 * @return The location of the sign
 	 */
 	@Override public Location getLocation() {
 		return new Location(world, x, y, z);
+	}
+
+	/**
+	 * Gets the sign this instance is attached to.
+	 * 
+	 * @return The sign this instance is attached to
+	 */
+	@Override public Sign getSign() {
+		return sign;
 	}
 
 	/**
@@ -97,17 +100,26 @@ public class ZASign implements ZASignInterface {
 	 * 
 	 * @param player The player to affect if the lines are run through
 	 */
-	@Override public void runLines(final Player player) {
+	@Override public void runLines(Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
 		if (l1.equalsIgnoreCase(ld.first)) {
 			/* Attempts to add the player to a game if the second line has the join string */
-			if (l2.equalsIgnoreCase(ld.joingame)) {
-				final ZAPlayer zap = Data.findZAPlayer(player, l3);
-				zap.loadPlayerToGame(l3);
+			if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
+				if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
+					setupPlayerWithGame(l3, player);
+					if (cd.effects)
+						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
+				} else if (Data.games.containsKey(l3)) {
+					setupPlayerWithGame(l3, player);
+					if (cd.effects)
+						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
+				} else {
+					player.sendMessage(ChatColor.RED + "That game does not exist!");
+				}
 				/* Otherwise, checks for enough points, then attempts to purchase something for the player */
-			} else if (player.getLevel() >= ym.levelmap.get(l3) && Data.players.containsKey(player)) {
-				final ZAPlayer zap = Data.players.get(player);
-				final int n = zap.getPoints();
+			} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap.get(l3) != null && ym.levelmap != null && Data.players != null && player.getLevel() >= ym.levelmap.get(l3) && Data.players.containsKey(player)) {
+				ZAPlayerBase zap = Data.players.get(player);
+				int n = zap.getPoints();
 				/* PERKS */
 				if (l2.equalsIgnoreCase(ld.perkstring)) {
 					if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
@@ -117,13 +129,15 @@ public class ZASign implements ZASignInterface {
 							player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
 						}
 						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + ym.perksignline3.get(l3) + " points!");
+						if (cd.effects)
+							sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
 						return;
 					}
 					/* ENCHANTMENTS */
-				} else if (l2.equalsIgnoreCase(ld.enchstring)) {
+				} else if (l2.equalsIgnoreCase(ld.enchstring) && Util.isWeapon(player.getItemInHand())) {
 					if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
 						if (l3.equalsIgnoreCase(ld.enchrandstring)) {
 							player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
@@ -131,6 +145,8 @@ public class ZASign implements ZASignInterface {
 							player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
 						}
 						player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + ym.enchsignline3.get(l3) + " points!");
+						if (cd.effects)
+							sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
@@ -138,9 +154,11 @@ public class ZASign implements ZASignInterface {
 					}
 					/* WEAPONS */
 				} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
-					if (ym.wepsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
+					if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
 						player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
 						player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + ym.enchsignline3.get(l3) + " points!");
+						if (cd.effects)
+							sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You don't have enough points for this!");
@@ -148,19 +166,35 @@ public class ZASign implements ZASignInterface {
 					}
 					/* AREAS */
 				} else if (l2.equalsIgnoreCase(ld.areastring)) {
-					final Block b = sign.getBlock();
-					Area a;
+					Block b = sign.getBlock();
+					GameArea a;
 					if (!Data.areas.containsKey(b))
 						a = Data.areas.get(b);
 					else
-						a = new Area(b);
-					a.purchaseArea();
+						a = new GameArea(b);
+					if (!a.isPurchased())
+						a.purchaseArea();
+					else
+						player.sendMessage(ChatColor.RED + "This area has already been purchased!");
+					if (cd.effects)
+						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 					return;
 				} else {
-					System.err.println(ChatColor.RED + "The sign at: [" + world + " : " + x + "," + y + "," + "z" + "] is incorrectly formatted!");
 					return;
 				}
+			} else {
+				return;
 			}
 		}
+	}
+
+	/*
+	 * Checks for the game and player to create a new game instance and player instance.
+	 */
+	private void setupPlayerWithGame(String name, Player player) {
+		ZAGameBase zag = Data.findGame(l3, true);
+		zag.setSpawn(player.getLocation());// TODO remove this when we have a proper spawn-setting system
+		ZAPlayerBase zap = Data.findZAPlayer(player, l3);
+		zap.loadPlayerToGame(l3);
 	}
 }

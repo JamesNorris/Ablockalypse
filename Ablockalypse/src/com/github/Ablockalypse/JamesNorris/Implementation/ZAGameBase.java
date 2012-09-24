@@ -1,5 +1,7 @@
 package com.github.Ablockalypse.JamesNorris.Implementation;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
@@ -13,18 +15,18 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.ZAGameInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.ZAGame;
 import com.github.Ablockalypse.JamesNorris.Threading.MobSpawnThread;
 import com.github.Ablockalypse.JamesNorris.Threading.NextLevelThread;
 import com.github.Ablockalypse.iKeirNez.Util.XMPP;
 import com.github.Ablockalypse.iKeirNez.Util.XMPP.XMPPType;
 
-public class ZAGame implements ZAGameInterface {
-	private final ConfigurationData cd;
+public class ZAGameBase implements ZAGame {
+	private ConfigurationData cd;
 	private int level, mobs;
-	private final String name;
-	private final HashMap<String, Integer> players = new HashMap<String, Integer>();
-	private final Random rand;
+	private String name;
+	private HashMap<String, Integer> players = new HashMap<String, Integer>();
+	private Random rand;
 	private Location spawn;
 	private boolean wolfRound;
 
@@ -35,7 +37,7 @@ public class ZAGame implements ZAGameInterface {
 	 * @param cd The ConfigurationData instance used
 	 * @param spawners Whether or not spawners should be loaded automatically
 	 */
-	public ZAGame(final String name, final ConfigurationData cd, final boolean spawners) {
+	public ZAGameBase(String name, ConfigurationData cd, boolean spawners) {
 		this.name = name;
 		this.cd = cd;
 		rand = new Random();
@@ -51,7 +53,7 @@ public class ZAGame implements ZAGameInterface {
 	 * @param zas The spawner to spawn the entity from
 	 * @param entity The type of entity to spawn from the spawner
 	 */
-	@Override public void addMob(final ZASpawner zas, final EntityType entity) {
+	@Override public void addMob(GameBlockSpawner zas, EntityType entity) {
 		mobs = mobs + 1;
 		zas.spawnEntity(entity, this);
 	}
@@ -62,8 +64,28 @@ public class ZAGame implements ZAGameInterface {
 	 * 
 	 * @param player The player to be added to the game
 	 */
-	@Override public void addPlayer(final Player player) {
+	@Override public void addPlayer(Player player) {
 		players.put(player.getName(), cd.startpoints);
+	}
+
+	@Override public void endGame() {
+		for (String name : getPlayers()) {
+			Player player = Bukkit.getServer().getPlayer(name);
+			player.sendMessage(ChatColor.GRAY + "The game has ended. You made it to level: " + level);
+			removePlayer(player);
+		}
+		Data.games.remove(getName());
+		finalize();
+	}
+
+	/*
+	 * Removes all data associated with this class.
+	 */
+	@SuppressWarnings("unused") @Override public void finalize() {
+		for (Method m : this.getClass().getDeclaredMethods())
+			m = null;
+		for (Field f : this.getClass().getDeclaredFields())
+			f = null;
 	}
 
 	/**
@@ -97,7 +119,7 @@ public class ZAGame implements ZAGameInterface {
 	 * @return The random player from this game
 	 */
 	@Override public Player getRandomPlayer() {
-		final int i = rand.nextInt(players.size()) + 1;
+		int i = rand.nextInt(players.size()) + 1;
 		Player p = null;
 		for (int j = 0; j <= i; j++) {
 			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
@@ -114,13 +136,14 @@ public class ZAGame implements ZAGameInterface {
 		return mobs;
 	}
 
-	/**
-	 * Sets the remaining custom mobs in the game.
-	 * 
-	 * @param i The amount to be set to
-	 */
-	@Override public void setRemainingMobs(final int i) {
-		mobs = i;
+	@Override public int getRemainingPlayers() {
+		int i = 0;
+		for (String s : getPlayers()) {
+			Player p = Bukkit.getPlayer(s);
+			if (!p.isDead() && !Data.players.get(p).isInLimbo())
+				++i;
+		}
+		return i;
 	}
 
 	/**
@@ -145,10 +168,10 @@ public class ZAGame implements ZAGameInterface {
 	 * Load all spawners for this game
 	 */
 	@Override public void loadSpawners() {
-		for (final String s : Data.spawners.keySet()) {
+		for (String s : Data.spawners.keySet()) {
 			if (s == getName()) {
-				final Location l = Data.spawners.get(s);
-				new ZASpawner(l.getWorld().getBlockAt(l), this);
+				Location l = Data.spawners.get(s);
+				new GameBlockSpawner(l.getWorld().getBlockAt(l), this);
 			}
 		}
 	}
@@ -161,8 +184,8 @@ public class ZAGame implements ZAGameInterface {
 		if (Data.gameLevels.containsKey(getName()))
 			Data.gameLevels.remove(getName());
 		Data.gameLevels.put(getName(), level);
-		for (final String s : players.keySet()) {
-			final Player p = Bukkit.getServer().getPlayer(s);
+		for (String s : players.keySet()) {
+			Player p = Bukkit.getServer().getPlayer(s);
 			p.setLevel(level);
 			p.sendMessage(ChatColor.GRAY + "You now have: " + Data.players.get(p).getPoints());
 			if (cd.effects)
@@ -175,17 +198,6 @@ public class ZAGame implements ZAGameInterface {
 	}
 
 	/**
-	 * Removes a player from the game.
-	 * NOTE: This does not change a players' status at all, that must be done throught the ZAPlayer instance.
-	 * 
-	 * @param player The player to be removed from the game
-	 */
-	@Override public void removePlayer(final Player player) {
-		players.remove(player.getName());
-		Data.players.remove(player);
-	}
-
-	/**
 	 * Removes one from the mob count.
 	 */
 	@Override public void removeMob() {
@@ -193,13 +205,33 @@ public class ZAGame implements ZAGameInterface {
 	}
 
 	/**
+	 * Removes a player from the game.
+	 * 
+	 * @param player The player to be removed from the game
+	 */
+	@Override public void removePlayer(Player player) {
+		players.remove(player.getName());
+		Data.players.get(player).removeFromGame();
+		Data.players.remove(player);
+	}
+
+	/**
 	 * Sets the game to the specified level.
 	 * 
 	 * @param i The level the game will be set to
 	 */
-	@Override public void setLevel(final int i) {
+	@Override public void setLevel(int i) {
 		level = i - 1;
 		nextLevel();
+	}
+
+	/**
+	 * Sets the remaining custom mobs in the game.
+	 * 
+	 * @param i The amount to be set to
+	 */
+	@Override public void setRemainingMobs(int i) {
+		mobs = i;
 	}
 
 	/**
@@ -207,20 +239,10 @@ public class ZAGame implements ZAGameInterface {
 	 * 
 	 * @param location The location to be made into the spawn
 	 */
-	@Override public void setSpawn(final Location location) {
+	@Override public void setSpawn(Location location) {
 		if (!Data.mainframes.containsValue(location)) {
-			spawn = location;
+			spawn = location.add(0, 1, 0);
 			Data.mainframes.put(getName(), location);
 		}
-	}
-
-	@Override public int getRemainingPlayers() {
-		int i = 0;
-		for (final String s : getPlayers()) {
-			final Player p = Bukkit.getPlayer(s);
-			if (!p.isDead())
-				++i;
-		}
-		return i;
 	}
 }

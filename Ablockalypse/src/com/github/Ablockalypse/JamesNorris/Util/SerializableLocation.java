@@ -18,28 +18,27 @@ import org.bukkit.World;
  */
 public final class SerializableLocation implements Serializable {
 	private static final long serialVersionUID = 7661607750632441897L;
-
 	/**
 	 * Gets the org.bukkit.Location back from any SerializableLocation.
 	 * 
 	 * @param l The SerializableLocation to be returned as a Location
 	 * @return An instance of Location
 	 */
-	public static Location returnLocation(final SerializableLocation l) {
-		final float pitch = l.pitch;
-		final float yaw = l.yaw;
-		final double x = l.x;
-		final double y = l.y;
-		final double z = l.z;
-		final World world = Bukkit.getWorld(l.world);
-		final Location location = new Location(world, x, y, z, yaw, pitch);
+	public static Location returnLocation(SerializableLocation l) {
+		float pitch = l.pitch;
+		float yaw = l.yaw;
+		double x = l.x;
+		double y = l.y;
+		double z = l.z;
+		World world = Bukkit.getWorld(l.world);
+		Location location = new Location(world, x, y, z, yaw, pitch);
 		return location;
 	}
-
 	private transient Location loc;
 	private final String uuid;
 	private final String world;
 	private final double x, y, z;
+
 	private final float yaw, pitch;
 
 	/**
@@ -47,14 +46,14 @@ public final class SerializableLocation implements Serializable {
 	 * 
 	 * @param l The location to be serialized
 	 */
-	public SerializableLocation(final Location l) {
-		world = l.getWorld().getName();
-		uuid = l.getWorld().getUID().toString();
-		x = l.getX();
-		y = l.getY();
-		z = l.getZ();
-		yaw = l.getYaw();
-		pitch = l.getPitch();
+	public SerializableLocation(Location l) {
+		this.world = l.getWorld().getName();
+		this.uuid = l.getWorld().getUID().toString();
+		this.x = l.getX();
+		this.y = l.getY();
+		this.z = l.getZ();
+		this.yaw = l.getYaw();
+		this.pitch = l.getPitch();
 	}
 
 	/**
@@ -62,14 +61,14 @@ public final class SerializableLocation implements Serializable {
 	 * 
 	 * @param map The map to be made into a SerializableLocation
 	 */
-	public SerializableLocation(final Map<String, Object> map) {
-		world = (String) map.get("world");
-		uuid = (String) map.get("uuid");
-		x = (Double) map.get("x");
-		y = (Double) map.get("y");
-		z = (Double) map.get("z");
-		yaw = ((Float) map.get("yaw")).floatValue();
-		pitch = ((Float) map.get("pitch")).floatValue();
+	public SerializableLocation(Map<String, Object> map) {
+		this.world = (String) map.get("world");
+		this.uuid = (String) map.get("uuid");
+		this.x = (Double) map.get("x");
+		this.y = (Double) map.get("y");
+		this.z = (Double) map.get("z");
+		this.yaw = ((Float) map.get("yaw")).floatValue();
+		this.pitch = ((Float) map.get("pitch")).floatValue();
 	}
 
 	/**
@@ -78,9 +77,9 @@ public final class SerializableLocation implements Serializable {
 	 * @param server The server to get the location from
 	 * @return A Location from this SerializableLocation, that is located on the server
 	 */
-	public final Location getLocation(final Server server) {
+	public final Location getLocation(Server server) {
 		if (loc == null) {
-			World world = server.getWorld(uuid);
+			World world = server.getWorld(this.uuid);
 			if (world == null) {
 				world = server.getWorld(this.world);
 			}
@@ -95,14 +94,14 @@ public final class SerializableLocation implements Serializable {
 	 * @return A map where the key is the type of argument, and the value is the argument
 	 */
 	public final Map<String, Object> serialize() {
-		final Map<String, Object> map = new HashMap<String, Object>();
-		map.put("world", world);
-		map.put("uuid", uuid);
-		map.put("x", x);
-		map.put("y", y);
-		map.put("z", z);
-		map.put("yaw", yaw);
-		map.put("pitch", pitch);
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("world", this.world);
+		map.put("uuid", this.uuid);
+		map.put("x", this.x);
+		map.put("y", this.y);
+		map.put("z", this.z);
+		map.put("yaw", this.yaw);
+		map.put("pitch", this.pitch);
 		return map;
 	}
 }

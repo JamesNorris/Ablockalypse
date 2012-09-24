@@ -4,14 +4,14 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAGameBase;
 
-public interface ZASpawnerInterface {
+public interface BlockSpawner {
 	public Block getBlock();
 
-	public ZAGame getGame();
+	public ZAGameBase getGame();
 
 	public World getWorld();
 
-	public void spawnEntity(EntityType entity, ZAGame game);
+	public void spawnEntity(EntityType entity, ZAGameBase game);
 }

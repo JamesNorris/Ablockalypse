@@ -8,11 +8,14 @@ import com.github.Ablockalypse.JamesNorris.Event.EntityBreakDoor;
 import com.github.Ablockalypse.JamesNorris.Event.EntityDamage;
 import com.github.Ablockalypse.JamesNorris.Event.EntityDeath;
 import com.github.Ablockalypse.JamesNorris.Event.EntityExplode;
+import com.github.Ablockalypse.JamesNorris.Event.EntityTarget;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerDeath;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerInteract;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerInteractEntity;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerMove;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerPickupItem;
+import com.github.Ablockalypse.JamesNorris.Event.PlayerQuit;
+import com.github.Ablockalypse.JamesNorris.Event.PlayerRespawn;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerTeleport;
 import com.github.Ablockalypse.JamesNorris.Event.PlayerToggleSneak;
 import com.github.Ablockalypse.JamesNorris.Event.ProjectileHit;
@@ -40,6 +43,9 @@ public class RegistrationManager {
 		pm.registerEvents(new EntityBreakDoor(), instance);
 		pm.registerEvents(new EntityExplode(), instance);
 		pm.registerEvents(new PlayerTeleport(), instance);
+		pm.registerEvents(new PlayerQuit(), instance);
+		pm.registerEvents(new EntityTarget(), instance);
+		pm.registerEvents(new PlayerRespawn(), instance);
 		/* COMMANDS */
 		instance.getCommand("za").setExecutor(new BaseCommand());
 	}

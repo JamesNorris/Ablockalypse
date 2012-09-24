@@ -58,8 +58,9 @@ pointsGivenOnHelp: 200
 pointsGivenOnAtomBomb: 600
 # Amount of points to give all players when an atom bomb is found.
 
-lastStandThreshold: 3
+lastStandThreshold: 6
 # The amount of health left before a player is put in last stand.
+# Max health is 20, so 6 health = 3 hearts.
 
 powerupChance: 5
 # The chances for the 3 powerups. (atom bomb, barrier fix, weapon fix)

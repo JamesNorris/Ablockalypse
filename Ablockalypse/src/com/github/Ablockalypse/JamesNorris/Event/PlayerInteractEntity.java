@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class PlayerInteractEntity implements Listener {
@@ -19,14 +19,14 @@ public class PlayerInteractEntity implements Listener {
 	 * 
 	 * Used for picking a player up out of last stand.
 	 */
-	@EventHandler public void PIEE(final PlayerInteractEntityEvent event) {
+	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
 		if (cd == null)
 			cd = External.ym.getConfigurationData();
-		final Player p = event.getPlayer();
-		final Entity e = event.getRightClicked();
+		Player p = event.getPlayer();
+		Entity e = event.getRightClicked();
 		if (Data.players.containsKey(p) && Data.players.containsKey(e)) {
-			final ZAPlayer zap = Data.players.get(e);
-			final ZAPlayer zap2 = Data.players.get(p);
+			ZAPlayerBase zap = Data.players.get(e);
+			ZAPlayerBase zap2 = Data.players.get(p);
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints(cd.helppoints);

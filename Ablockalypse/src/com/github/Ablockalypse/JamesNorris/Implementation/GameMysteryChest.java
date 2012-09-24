@@ -10,20 +10,20 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Interface.MysteryChestInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.MysteryChest;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
-public class MysteryChest implements MysteryChestInterface {
-	private final Chest chest;
-	private final Random rand;
-	private final ConfigurationData cd;
+public class GameMysteryChest implements MysteryChest {
+	private ConfigurationData cd;
+	private Chest chest;
+	private Random rand;
 
 	/**
 	 * Creates a new instance of the MysteryChest.
 	 * 
 	 * @param chest The chest to be made into this instance
 	 */
-	public MysteryChest(final Chest chest) {
+	public GameMysteryChest(Chest chest) {
 		this.chest = chest;
 		rand = new Random();
 		cd = External.getYamlManager().getConfigurationData();
@@ -42,11 +42,11 @@ public class MysteryChest implements MysteryChestInterface {
 	 * Randomizes the contents of the MysteryChest.
 	 */
 	@Override public void randomize() {
-		final Inventory inv = chest.getBlockInventory();
+		Inventory inv = chest.getBlockInventory();
 		inv.clear();
-		final int i = rand.nextInt(1000) + 1;
+		int i = rand.nextInt(1000) + 1;
 		if (i >= 950) {
-			final ItemStack it = new ItemStack(Material.BOW, 1);
+			ItemStack it = new ItemStack(Material.BOW, 1);
 			it.addEnchantment(Enchantment.ARROW_INFINITE, 1);
 			inv.addItem(it);
 		} else if (i >= 920)

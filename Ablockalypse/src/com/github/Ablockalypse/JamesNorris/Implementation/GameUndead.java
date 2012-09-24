@@ -13,34 +13,25 @@ import org.bukkit.entity.Zombie;
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.PluginMaster;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.ZombieInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.Undead;
 import com.github.Ablockalypse.JamesNorris.Threading.MobTargetThread;
 
-public class GameZombie implements ZombieInterface {
+public class GameUndead implements Undead {
 	private boolean fire;
-	private final Zombie zombie;
-	private Player target;
 	private PluginMaster pm;
+	private Player target;
+	private Zombie zombie;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
 	 * 
 	 * @param zombie The zombie to be made into this instance
 	 */
-	public GameZombie(final Zombie zombie) {
+	public GameUndead(Zombie zombie) {
 		this.zombie = zombie;
 		this.pm = Ablockalypse.getMaster();
 		if (!Data.zombies.contains(this))
 			Data.zombies.add(this);
-	}
-
-	/**
-	 * Sets the zombie health. Mostly used for increasing health through the levels.
-	 * 
-	 * @param amt The amount of health to give to the zombie
-	 */
-	@Override public void setHealth(final int amt) {
-		zombie.setHealth(amt);
 	}
 
 	/**
@@ -75,13 +66,13 @@ public class GameZombie implements ZombieInterface {
 	 */
 	@Override public void increaseSpeed() {
 		/* BREAKABLE */
-		final EntityZombie ez = ((CraftZombie) zombie).getHandle();
+		EntityZombie ez = ((CraftZombie) zombie).getHandle();
 		Field field;
 		try {
 			field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
 			field.setAccessible(true);
 			field.set(ez, 0.6);
-		} catch (final Exception e) {
+		} catch (Exception e) {
 			pm.crash(pm.getInstance(), e.getCause().toString(), false);
 		}
 		/* BREAKABLE */
@@ -97,12 +88,21 @@ public class GameZombie implements ZombieInterface {
 	}
 
 	/**
+	 * Sets the zombie health. Mostly used for increasing health through the levels.
+	 * 
+	 * @param amt The amount of health to give to the zombie
+	 */
+	@Override public void setHealth(int amt) {
+		zombie.setHealth(amt);
+	}
+
+	/**
 	 * Sets the zombies' target.
 	 * 
 	 * @param player The player to become the target of the zombie
 	 */
-	@Override public void setTarget(final Player player) {
-		final LivingEntity le = player;
+	@Override public void setTarget(Player player) {
+		LivingEntity le = player;
 		target = player;
 		new MobTargetThread(zombie, le, true);
 	}

@@ -2,7 +2,7 @@ package com.github.Ablockalypse.JamesNorris.Interface;
 
 import org.bukkit.block.Block;
 
-public interface AreaInterface {
+public interface Area {
 	/**
 	 * Returns the block that is the sign clicked to buy the area.
 	 * 

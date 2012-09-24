@@ -10,14 +10,14 @@ import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.ZASpawnerInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.BlockSpawner;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
-public class ZASpawner implements ZASpawnerInterface {
-	private final Block block;
-	private final ConfigurationData cd = External.ym.getConfigurationData();
-	private final ZAGame game;
-	private final World world;
+public class GameBlockSpawner implements BlockSpawner {
+	private Block block;
+	private ConfigurationData cd = External.ym.getConfigurationData();
+	private ZAGameBase game;
+	private World world;
 
 	/**
 	 * Creates a new instance of a ZASpawner, which should be used to spawn entities from a specified mobspawner.
@@ -25,11 +25,11 @@ public class ZASpawner implements ZASpawnerInterface {
 	 * @param block The block this ZASpawner is attached to
 	 * @param game The game this ZASpawner is involved in
 	 */
-	public ZASpawner(final Block block, final ZAGame game) {
+	public GameBlockSpawner(Block block, ZAGameBase game) {
 		this.block = block;
 		world = block.getWorld();
 		this.game = game;
-		final Location l = block.getLocation();
+		Location l = block.getLocation();
 		if (!Data.spawners.containsValue(l))
 			Data.spawners.put(game.getName(), l);
 		if (!Data.loadedspawners.containsKey(l)) {
@@ -51,7 +51,7 @@ public class ZASpawner implements ZASpawnerInterface {
 	 * 
 	 * @return The game this ZASpawner is involved in
 	 */
-	@Override public ZAGame getGame() {
+	@Override public ZAGameBase getGame() {
 		return game;
 	}
 
@@ -72,11 +72,11 @@ public class ZASpawner implements ZASpawnerInterface {
 	 * @param entity The EntityType to spawn
 	 * @param game The game to spawn the entity for
 	 */
-	@Override public void spawnEntity(final EntityType entity, final ZAGame game) {
-		final Entity e = world.spawnEntity(block.getLocation().add(0, 1, 0), entity);
+	@Override public void spawnEntity(EntityType entity, ZAGameBase game) {
+		Entity e = world.spawnEntity(block.getLocation().add(0, 1, 0), entity);
 		if (e instanceof Zombie) {
-			final Zombie z = (Zombie) e;
-			final GameZombie gz = new GameZombie(z);
+			Zombie z = (Zombie) e;
+			GameUndead gz = new GameUndead(z);
 			gz.setTarget(game.getRandomPlayer());
 			gz.toggleFireImmunity();
 			gz.setHealth(game.getLevel() * 4);// TODO make sure this is correct

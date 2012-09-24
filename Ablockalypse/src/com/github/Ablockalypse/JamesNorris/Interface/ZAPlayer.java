@@ -2,14 +2,14 @@ package com.github.Ablockalypse.JamesNorris.Interface;
 
 import org.bukkit.entity.Player;
 
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAGame;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAGameBase;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
 import com.github.Ablockalypse.JamesNorris.Util.Util.PowerupType;
 
-public interface ZAPlayerInterface {
+public interface ZAPlayer {
 	public void addPoints(int i);
 
-	public ZAGame getGame();
+	public ZAGameBase getGame();
 
 	public String getName();
 
@@ -19,9 +19,15 @@ public interface ZAPlayerInterface {
 
 	public SoundManager getSoundManager();
 
+	public void givePowerup(PowerupType type);
+
 	public boolean isInLastStand();
 
+	public boolean isInLimbo();
+
 	public void loadPlayerToGame(String name);
+
+	public void removeFromGame();
 
 	public void sendToMainframe();
 
@@ -29,5 +35,5 @@ public interface ZAPlayerInterface {
 
 	public void toggleLastStand();
 
-	public void givePowerup(PowerupType type);
+	public void toggleLimbo();
 }

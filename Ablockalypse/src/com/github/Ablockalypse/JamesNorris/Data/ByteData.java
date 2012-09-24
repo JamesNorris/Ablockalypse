@@ -6,14 +6,14 @@ import net.minecraft.server.DataWatcher;
 import net.minecraft.server.WatchableObject;
 
 public class ByteData extends DataWatcher {
-	private final byte metadata;
+	private byte metadata;
 
 	/**
 	 * Creates a new instance of ByteData, which extends DataWatcher.
 	 * 
 	 * @param metadata A hex byte
 	 */
-	public ByteData(final byte metadata) {
+	public ByteData(byte metadata) {
 		this.metadata = metadata;
 	}
 
@@ -28,8 +28,8 @@ public class ByteData extends DataWatcher {
 	 * @category breakable This is subject to break!
 	 */
 	@Override public ArrayList<WatchableObject> b() {
-		final ArrayList<WatchableObject> list = new ArrayList<WatchableObject>();
-		final WatchableObject wo = new WatchableObject(0, 0, metadata);
+		ArrayList<WatchableObject> list = new ArrayList<WatchableObject>();
+		WatchableObject wo = new WatchableObject(0, 0, metadata);
 		list.add(wo);
 		return list;
 	}

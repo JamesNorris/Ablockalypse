@@ -8,14 +8,15 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse.Ablockalypse;
-import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayerBase;
 
 public class MobTargetThread {
 	private int id;
-	private final Zombie zombie;
+	private Ablockalypse instance;
 	private LivingEntity player;
-	private final Ablockalypse instance;
-	private TickManager tm;
+	private ZAPlayerBase zap;
+	private Zombie zombie;
 
 	/**
 	 * Creates a new instance of the thread.
@@ -24,30 +25,13 @@ public class MobTargetThread {
 	 * @param player The player to target
 	 * @param autorun Whether or not to autorun the target() method
 	 */
-	public MobTargetThread(final Zombie zombie, final LivingEntity player, final boolean autorun) {
+	public MobTargetThread(Zombie zombie, LivingEntity player, boolean autorun) {
 		this.zombie = zombie;
 		this.player = player;
-		this.tm = Ablockalypse.getMaster().getTickManager();
+		this.zap = Data.players.get(player);
 		instance = Ablockalypse.instance;
 		if (autorun)
 			target();
-	}
-
-	/**
-	 * Forces the zombie to target a player constantly.
-	 */
-	protected void target() {
-		int i = tm.getAdaptedRate() * 2;
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			@Override public void run() {
-				if (zombie.getTarget() != player) {
-					if (!zombie.isDead() && !player.isDead())
-						zombie.setTarget(player);
-					else
-						cancel();
-				}
-			}
-		}, i, i);
 	}
 
 	/**
@@ -66,5 +50,21 @@ public class MobTargetThread {
 			m = null;
 		for (Field f : this.getClass().getDeclaredFields())
 			f = null;
+	}
+
+	/**
+	 * Forces the zombie to target a player constantly.
+	 */
+	protected void target() {
+		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
+			@Override public void run() {
+				if (zombie.getTarget() != player) {
+					if (!zombie.isDead() && !player.isDead() && !zap.isInLastStand())
+						zombie.setTarget(player);
+					else
+						cancel();
+				}
+			}
+		}, 40, 40);
 	}
 }

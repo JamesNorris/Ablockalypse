@@ -2,7 +2,7 @@ package com.github.Ablockalypse.JamesNorris.Interface;
 
 import org.bukkit.block.Chest;
 
-public interface MysteryChestInterface {
+public interface MysteryChest {
 	/**
 	 * Gets the chest associated with this instance.
 	 * 

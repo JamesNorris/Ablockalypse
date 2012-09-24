@@ -7,14 +7,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Implementation.GameZombie;
+import com.github.Ablockalypse.JamesNorris.Implementation.GameUndead;
 
 public class EntityBreakDoor implements Listener {
-	@EventHandler public void EBDE(final EntityBreakDoorEvent event) {
-		final LivingEntity e = event.getEntity();
+	@EventHandler public void EBDE(EntityBreakDoorEvent event) {
+		LivingEntity e = event.getEntity();
 		if (e instanceof Zombie) {
-			final Zombie z = (Zombie) e;
-			for (final GameZombie gz : Data.zombies) {
+			Zombie z = (Zombie) e;
+			for (GameUndead gz : Data.zombies) {
 				if (gz.getZombie() == z)
 					event.setCancelled(true);
 			}

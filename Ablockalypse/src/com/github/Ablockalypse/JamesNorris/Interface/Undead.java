@@ -4,7 +4,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
-public interface ZombieInterface {
+public interface Undead {
 	/**
 	 * Gets the target of the zombie.
 	 * 
@@ -39,6 +39,13 @@ public interface ZombieInterface {
 	public boolean isOnFire();
 
 	/**
+	 * Sets the zombie health. Mostly used for increasing health through the levels.
+	 * 
+	 * @param amt The amount of health to give to the zombie
+	 */
+	public void setHealth(int amt);
+
+	/**
 	 * Sets the zombies' target.
 	 * 
 	 * @param player The player to become the target of the zombie
@@ -49,11 +56,4 @@ public interface ZombieInterface {
 	 * Toggles whether or not the zombie should be immune to fire.
 	 */
 	public void toggleFireImmunity();
-
-	/**
-	 * Sets the zombie health. Mostly used for increasing health through the levels.
-	 * 
-	 * @param amt The amount of health to give to the zombie
-	 */
-	public void setHealth(int amt);
 }

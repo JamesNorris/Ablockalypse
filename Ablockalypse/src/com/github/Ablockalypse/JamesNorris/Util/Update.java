@@ -13,7 +13,7 @@ import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.PluginMaster;
 
 public class Update {
-	private final Ablockalypse plugin;
+	private Ablockalypse plugin;
 	private PluginMaster pm;
 
 	/**
@@ -23,35 +23,9 @@ public class Update {
 	 * 
 	 * @param instance The instance of Ablockalypse to use for the Updater
 	 */
-	public Update(final Ablockalypse instance) {
+	public Update(Ablockalypse instance) {
 		plugin = instance;
 		this.pm = Ablockalypse.getMaster();
-	}
-
-	/**
-	 * Runs a check for updates, and if there is an update available, runs the download method to download the newest version from dev.bukkit.org.
-	 * 
-	 * @return Whether or not there is an update available.
-	 */
-	public boolean updateCheck() {
-		URLConnection connection = null;
-		try {
-			final URL url = new URL(pm.getUpdateURL());
-			connection = url.openConnection();
-			final File localfile = new File(pm.getPath());
-			final long lastmodifiedurl = connection.getLastModified();
-			final long lastmodifiedfile = localfile.lastModified();
-			if (lastmodifiedurl > lastmodifiedfile) {
-				System.out.println("[Ablockalypse] Update found! Updating...");
-				download();
-				return true;
-			} else
-				return false;
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
-		plugin.getServer().notify();
-		return false;
 	}
 
 	/*
@@ -62,18 +36,18 @@ public class Update {
 		URLConnection connection = null;
 		InputStream in = null;
 		try {
-			final URL url = new URL(pm.getUpdateURL());
+			URL url = new URL(pm.getUpdateURL());
 			out = new BufferedOutputStream(new FileOutputStream(pm.getPath()));
 			connection = url.openConnection();
 			in = connection.getInputStream();
-			final byte[] buffer = new byte[1024];
+			byte[] buffer = new byte[1024];
 			int numRead;
 			long numWritten = 0;
 			while ((numRead = in.read(buffer)) != -1) {
 				out.write(buffer, 0, numRead);
 				numWritten += numRead;
 			}
-		} catch (final Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			try {
@@ -84,9 +58,35 @@ public class Update {
 					out.close();
 				}
 				System.out.println("[Ablockalypse] Update completed, please restart the server!");
-			} catch (final IOException ioe) {
+			} catch (IOException ioe) {
 				ioe.printStackTrace();
 			}
 		}
+	}
+
+	/**
+	 * Runs a check for updates, and if there is an update available, runs the download method to download the newest version from dev.bukkit.org.
+	 * 
+	 * @return Whether or not there is an update available.
+	 */
+	public boolean updateCheck() {
+		URLConnection connection = null;
+		try {
+			URL url = new URL(pm.getUpdateURL());
+			connection = url.openConnection();
+			File localfile = new File(pm.getPath());
+			long lastmodifiedurl = connection.getLastModified();
+			long lastmodifiedfile = localfile.lastModified();
+			if (lastmodifiedurl > lastmodifiedfile) {
+				System.out.println("[Ablockalypse] Update found! Updating...");
+				download();
+				return true;
+			} else
+				return false;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		plugin.getServer().notify();
+		return false;
 	}
 }

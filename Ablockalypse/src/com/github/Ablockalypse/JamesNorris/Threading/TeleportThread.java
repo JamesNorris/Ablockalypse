@@ -10,17 +10,15 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
-import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class TeleportThread {
-	private final Player player;
+	private ConfigurationData cd;
+	private Ablockalypse instance;
+	private Player player;
 	private int time, id;
-	private final ZAPlayer zaplayer;
-	private final Ablockalypse instance;
-	private final ConfigurationData cd;
-	private TickManager tm;
+	private ZAPlayerBase zaplayer;
 
 	/**
 	 * Creates an instance of the thread for teleporting a player.
@@ -29,36 +27,14 @@ public class TeleportThread {
 	 * @param time The time before the countdown stops
 	 * @param countdown Whether or not to run the thread automatically
 	 */
-	public TeleportThread(final ZAPlayer zaplayer, final int time, final boolean countdown) {
+	public TeleportThread(ZAPlayerBase zaplayer, int time, boolean countdown) {
 		this.zaplayer = zaplayer;
 		this.time = time;
 		player = zaplayer.getPlayer();
 		instance = Ablockalypse.instance;
-		this.tm = Ablockalypse.getMaster().getTickManager();
 		cd = External.ym.getConfigurationData();
 		if (countdown)
 			countdown();
-	}
-
-	/**
-	 * Counts down to teleport the player.
-	 */
-	protected void countdown() {
-		int i = tm.getAdaptedRate();
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			@Override public void run() {
-				if (time != 0)
-					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
-				else {
-					player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
-					zaplayer.sendToMainframe();
-					if (cd.effects)
-						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
-					cancel();
-				}
-				--time;
-			}
-		}, i, i);
 	}
 
 	/**
@@ -66,6 +42,26 @@ public class TeleportThread {
 	 */
 	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
+	}
+
+	/**
+	 * Counts down to teleport the player.
+	 */
+	protected void countdown() {
+		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
+			@Override public void run() {
+				if (time != 0) {
+					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
+					--time;
+				} else if (time <= 0) {
+					player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
+					zaplayer.sendToMainframe();
+					if (cd.effects)
+						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
+					cancel();
+				}
+			}
+		}, 20, 20);
 	}
 
 	/*

@@ -10,30 +10,30 @@ import org.bukkit.block.BlockFace;
 
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.BarrierInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.Barrier;
 import com.github.Ablockalypse.JamesNorris.Util.ControlledEffect;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
-public class Barrier implements BarrierInterface {
+public class GameBarrier implements Barrier {
 	private List<Block> blocks;
-	private final Location center;
-	private final ConfigurationData cd;
+	private ConfigurationData cd;
+	private Location center;
 
 	/**
 	 * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
 	 * 
 	 * @param center The center of the barrier
 	 */
-	public Barrier(final Block center) {
+	public GameBarrier(Block center) {
 		this.center = center.getLocation();
 		cd = External.getYamlManager().getConfigurationData();
-		final Location l = center.getLocation();
+		Location l = center.getLocation();
 		if (!Data.barriers.contains(l))
 			Data.barriers.add(center.getLocation());
 		if (!Data.gamebarriers.contains(this))
 			Data.gamebarriers.add(this);
-		for (final BlockFace bf : new BlockFace[] {BlockFace.DOWN, BlockFace.UP, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST}) {
-			final Block b = center.getRelative(bf);
+		for (BlockFace bf : new BlockFace[] {BlockFace.DOWN, BlockFace.UP, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST}) {
+			Block b = center.getRelative(bf);
 			if (b.getType() == Material.FENCE) {
 				blocks.add(b);
 				Data.barrierpanels.put(this, b.getLocation());
@@ -45,7 +45,7 @@ public class Barrier implements BarrierInterface {
 	 * Changes all blocks within the barrier to air.
 	 */
 	@Override public void breakBarrier() {
-		for (final Block block : blocks) {
+		for (Block block : blocks) {
 			blocks.remove(block);
 			block.setType(Material.AIR);
 			blocks.add(block);
@@ -78,7 +78,7 @@ public class Barrier implements BarrierInterface {
 	 * @return Whether or not the barrier is broken
 	 */
 	@Override public boolean isBroken() {
-		for (final Block b : blocks) {
+		for (Block b : blocks) {
 			if (b.getType() != Material.FENCE)
 				return true;
 		}
@@ -89,7 +89,7 @@ public class Barrier implements BarrierInterface {
 	 * Replaces all holes in the barrier.
 	 */
 	@Override public void replaceBarrier() {
-		for (final Block b : blocks) {
+		for (Block b : blocks) {
 			if (b.getType() != Material.FENCE) {
 				blocks.remove(b);
 				b.setType(Material.FENCE);

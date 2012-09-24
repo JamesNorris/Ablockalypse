@@ -4,7 +4,6 @@ import java.io.File;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
 import com.github.Ablockalypse.JamesNorris.Threading.MainThreading;
 
 /**
@@ -12,14 +11,13 @@ import com.github.Ablockalypse.JamesNorris.Threading.MainThreading;
  * This is the most powerful class in the plugin, and should not be nulled out, for it will break the entire plugin.
  */
 public class PluginMaster {
-	private Ablockalypse instance;
 	private String ablockalypse = "Ablockalypse";
 	private String address = "http://api.bukget.org/api2/bukkit/plugin/" + ablockalypse + "/latest";
-	private String path = "plugins" + File.separator + "Ablockalypse.jar";
-	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private Data d;
-	private TickManager tm;
+	private Ablockalypse instance;
+	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private MainThreading mt;
+	private String path = "plugins" + File.separator + "Ablockalypse.jar";
 
 	/**
 	 * Creates a new PluginMaster instance for Ablockalypse.
@@ -37,10 +35,9 @@ public class PluginMaster {
 	 * @param mt The MainThreading instance
 	 * @param tm The TickManager instance
 	 */
-	public void addData(Data d, MainThreading mt, TickManager tm) {
+	public void addData(Data d, MainThreading mt) {
 		this.d = d;
 		this.mt = mt;
-		this.tm = tm;
 	}
 
 	/**
@@ -49,12 +46,12 @@ public class PluginMaster {
 	 * @param reason The reason for the exception
 	 * @param disable Whether or not the Ablockalypse plugin should stop working
 	 */
-	public void crash(Ablockalypse instance, final String reason, final boolean disable) {
+	public void crash(Ablockalypse instance, String reason, boolean disable) {
 		/* Everything in this method should be static, except for strings */
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(getIssuesURL());
 		System.err.println("--------------------------[ERROR REPORT]--------------------------");
-		System.err.println("VERSION: " + Data.version);
+		// System.err.println("VERSION: " + Data.version);//TODO see Data.java
 		System.err.println("BREAK REASON: " + reason);
 		System.err.println("---------------------------[END REPORT]---------------------------");
 		if (!disable)
@@ -66,30 +63,12 @@ public class PluginMaster {
 	}
 
 	/**
-	 * Gets the URL for issues to be sent to github.
+	 * Gets the primary Data instance
 	 * 
-	 * @return The github issues URL
+	 * @return The primary Data instance
 	 */
-	public String getIssuesURL() {
-		return issues;
-	}
-
-	/**
-	 * Gets the URL from bukget for updating.
-	 * 
-	 * @return The bukget URL
-	 */
-	public String getUpdateURL() {
-		return address;
-	}
-
-	/**
-	 * Gets the path from the plugins folder to the data folder.
-	 * 
-	 * @return The data folder path
-	 */
-	public String getPath() {
-		return path;
+	public Data getData() {
+		return d;
 	}
 
 	/**
@@ -102,6 +81,15 @@ public class PluginMaster {
 	}
 
 	/**
+	 * Gets the URL for issues to be sent to github.
+	 * 
+	 * @return The github issues URL
+	 */
+	public String getIssuesURL() {
+		return issues;
+	}
+
+	/**
 	 * Gets the primary MainThreading instance
 	 * 
 	 * @return The primary MainThreading instance
@@ -111,20 +99,20 @@ public class PluginMaster {
 	}
 
 	/**
-	 * Gets the primary TickManager instance
+	 * Gets the path from the plugins folder to the data folder.
 	 * 
-	 * @return The primary TickManager instance
+	 * @return The data folder path
 	 */
-	public TickManager getTickManager() {
-		return tm;
+	public String getPath() {
+		return path;
 	}
 
 	/**
-	 * Gets the primary Data instance
+	 * Gets the URL from bukget for updating.
 	 * 
-	 * @return The primary Data instance
+	 * @return The bukget URL
 	 */
-	public Data getData() {
-		return d;
+	public String getUpdateURL() {
+		return address;
 	}
 }

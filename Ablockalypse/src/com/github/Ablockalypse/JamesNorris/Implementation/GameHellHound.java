@@ -12,11 +12,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.WolfInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.HellHound;
 
-public class GameWolf implements WolfInterface {
+public class GameHellHound implements HellHound {
 	private int health;
-	private final Wolf wolf;
+	private Wolf wolf;
 	private World world;
 
 	/**
@@ -24,7 +24,7 @@ public class GameWolf implements WolfInterface {
 	 * 
 	 * @param wolf The wolf to be made into this instance
 	 */
-	public GameWolf(final Wolf wolf) {
+	public GameHellHound(Wolf wolf) {
 		this.wolf = wolf;
 		world = wolf.getWorld();
 		setAggressive(true);
@@ -44,7 +44,7 @@ public class GameWolf implements WolfInterface {
 	 * 
 	 * @param amt The amount of health to add to the wolf
 	 */
-	@Override public void addHealth(final int amt) {
+	@Override public void addHealth(int amt) {
 		health = wolf.getHealth();
 		wolf.setHealth(health + amt);
 	}
@@ -72,13 +72,13 @@ public class GameWolf implements WolfInterface {
 	 * Increases the speed of the wolf.
 	 */
 	@Override public void increaseSpeed() {
-		final EntityWolf ew = ((CraftWolf) wolf).getHandle();
+		EntityWolf ew = ((CraftWolf) wolf).getHandle();
 		Field field;
 		try {
 			field = net.minecraft.server.EntityWolf.class.getDeclaredField("bw");
 			field.setAccessible(true);
 			field.set(ew, 0.6);
-		} catch (final Exception e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -88,7 +88,7 @@ public class GameWolf implements WolfInterface {
 	 * 
 	 * @param tf Whether or not to make the wolf aggressive
 	 */
-	@Override public void setAggressive(final boolean tf) {
+	@Override public void setAggressive(boolean tf) {
 		wolf.setAngry(tf);
 	}
 
@@ -97,8 +97,8 @@ public class GameWolf implements WolfInterface {
 	 * 
 	 * @param player The player to be made into the target
 	 */
-	@Override public void setTarget(final Player player) {
-		final LivingEntity le = player;
+	@Override public void setTarget(Player player) {
+		LivingEntity le = player;
 		wolf.setTarget(le);
 	}
 }

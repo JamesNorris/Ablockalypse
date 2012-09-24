@@ -8,7 +8,9 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse.JamesNorris.Data.Data;
 import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAGameBase;
+import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 import com.github.Ablockalypse.iKeirNez.Util.CommandUtil;
 import com.github.Ablockalypse.iKeirNez.Util.CommonMsg;
@@ -18,11 +20,11 @@ import com.github.Ablockalypse.iKeirNez.Util.StringFunctions;
 public class BaseCommand extends CommandUtil implements CommandExecutor {
 	private LocalizationData ld;
 
-	@Override public boolean onCommand(final CommandSender sender, final Command cmd, final String inf, final String[] args) {
+	@Override public boolean onCommand(CommandSender sender, Command cmd, String inf, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("za")) {
 			if (ld == null)
 				ld = External.ym.getLocalizationData();
-			final String alias = cmd.getLabel();
+			String alias = cmd.getLabel();
 			if (args.length == 0 || args[0].equalsIgnoreCase("help") || (args.length == 2 && args[1].equalsIgnoreCase("sign"))) {
 				showHelp(sender, args, alias);
 			} else if (args[0].equalsIgnoreCase("list")) {
@@ -30,13 +32,19 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 			} else if (args[0].equalsIgnoreCase("join")) {
 				if (args.length == 2 && sender.hasPermission("za.join")) {
 					if (sender instanceof Player) {
-						final Player player = (Player) sender;
-						final String gameName = args[1];
+						Player player = (Player) sender;
+						String gameName = args[1];
 						if (!Data.gameExists(gameName)) {
-							sender.sendMessage(ChatColor.RED + "That game was not found");
-							return true;
+							if (!player.hasPermission("za.create")) {
+								sender.sendMessage(ChatColor.RED + "That game was not found");
+								return true;
+							} else {
+								new ZAGameBase(gameName, External.getYamlManager().getConfigurationData(), true);
+								sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game!");
+								return true;
+							}
 						}
-						final ZAPlayer zap = Data.findZAPlayer(player, gameName);
+						ZAPlayer zap = (ZAPlayer) Data.findZAPlayer(player, gameName);// TODO make sure the interface cast works!
 						zap.loadPlayerToGame(gameName);
 					} else {
 						sender.sendMessage(CommonMsg.notPlayer);
@@ -47,19 +55,20 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
-				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version " + Data.version);
-				sender.sendMessage(ChatColor.GOLD + "Developed by " + StringFunctions.implode(Data.authors.toArray(), ", ", " and "));
+				// sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version " + Data.version);//TODO see Data.java
+				// sender.sendMessage(ChatColor.GOLD + "Developed by " + StringFunctions.implode(Data.authors.toArray(), ", ", " and "));
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
-					final Player player = (Player) sender;
+					Player player = (Player) sender;
 					if (Data.players.containsKey(player)) {
-						final ZAPlayer zap = Data.players.get(player);
-						zap.finalize();
-						sender.sendMessage(ChatColor.AQUA + "Successfully quit the Zombie Ablockalypse game.");
+						ZAPlayerBase zap = Data.players.get(player);
+						ZAGameBase zag = zap.getGame();
+						zag.removePlayer(player);
+						sender.sendMessage(ChatColor.AQUA + "Successfully quit the Ablockalypse game.");
 						return true;
 					} else {
-						sender.sendMessage(ChatColor.RED + "You must be in a Zombie Ablockalypse game to do that.");
+						sender.sendMessage(ChatColor.RED + "You must be in an Ablockalypse game to do that.");
 						return true;
 					}
 				} else {

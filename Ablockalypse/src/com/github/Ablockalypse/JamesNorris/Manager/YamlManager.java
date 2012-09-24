@@ -13,16 +13,16 @@ import com.github.Ablockalypse.JamesNorris.Data.GameData;
 import com.github.Ablockalypse.JamesNorris.Data.LocalizationData;
 
 public class YamlManager {
-	public HashMap<String, Material> wepmap = new HashMap<String, Material>();
-	public HashMap<String, Integer> wepsignline3 = new HashMap<String, Integer>();
-	public HashMap<String, PotionEffectType> perkmap = new HashMap<String, PotionEffectType>();
-	public HashMap<String, Integer> perksignline3 = new HashMap<String, Integer>();
-	public HashMap<String, Integer> levelmap = new HashMap<String, Integer>();
+	private ConfigurationData cd;
 	public HashMap<String, Enchantment> enchmap = new HashMap<String, Enchantment>();
 	public HashMap<String, Integer> enchsignline3 = new HashMap<String, Integer>();
-	private final ConfigurationData cd;
-	private final LocalizationData ld;
-	private final GameData gd;
+	private GameData gd;
+	private LocalizationData ld;
+	public HashMap<String, Integer> levelmap = new HashMap<String, Integer>();
+	public HashMap<String, PotionEffectType> perkmap = new HashMap<String, PotionEffectType>();
+	public HashMap<String, Integer> perksignline3 = new HashMap<String, Integer>();
+	public HashMap<String, Material> wepmap = new HashMap<String, Material>();
+	public HashMap<String, Integer> wepsignline3 = new HashMap<String, Integer>();
 
 	/**
 	 * Creates a new instance of the YamlManager, a manager for all ZA configuration.
@@ -30,11 +30,48 @@ public class YamlManager {
 	 * @param cd The ConfigurationData instance to load to the manager
 	 * @param ld The LocalizationData instance to load to the manager
 	 */
-	public YamlManager(final ConfigurationData cd, final LocalizationData ld, final GameData gd) {
+	public YamlManager(ConfigurationData cd, LocalizationData ld, GameData gd) {
 		this.cd = cd;
 		this.ld = ld;
 		this.gd = gd;
 		initSignRequirements();
+	}
+
+	/**
+	 * Clears all data from this instance.
+	 */
+	@SuppressWarnings("unused") @Override public void finalize() {
+		for (Method m : this.getClass().getDeclaredMethods())
+			m = null;
+		for (Field f : this.getClass().getDeclaredFields())
+			f = null;
+	}
+
+	/**
+	 * Gets the ConfigurationData from this instance.
+	 * 
+	 * @return The ConfigurationData used with this instance
+	 */
+	public ConfigurationData getConfigurationData() {
+		return cd;
+	}
+
+	/**
+	 * Gets the GameData from this instance.
+	 * 
+	 * @return The GameData used with this instance
+	 */
+	public GameData getGameData() {
+		return gd;
+	}
+
+	/**
+	 * Gets the LocalizationData from this instance.
+	 * 
+	 * @return The LocalizationData used with this instance
+	 */
+	public LocalizationData getLocalizationData() {
+		return ld;
 	}
 
 	/**
@@ -83,42 +120,5 @@ public class YamlManager {
 		wepmap.put(ld.weapondiamondstring, Material.DIAMOND_SWORD);
 		wepmap.put(ld.weapongoldstring, Material.GOLD_SWORD);
 		wepmap.put(ld.weapongrenadestring, Material.ENDER_PEARL);
-	}
-
-	/**
-	 * Gets the GameData from this instance.
-	 * 
-	 * @return The GameData used with this instance
-	 */
-	public GameData getGameData() {
-		return gd;
-	}
-
-	/**
-	 * Gets the ConfigurationData from this instance.
-	 * 
-	 * @return The ConfigurationData used with this instance
-	 */
-	public ConfigurationData getConfigurationData() {
-		return cd;
-	}
-
-	/**
-	 * Gets the LocalizationData from this instance.
-	 * 
-	 * @return The LocalizationData used with this instance
-	 */
-	public LocalizationData getLocalizationData() {
-		return ld;
-	}
-
-	/**
-	 * Clears all data from this instance.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 }

@@ -9,16 +9,14 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.Ablockalypse.Ablockalypse;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Implementation.Barrier;
-import com.github.Ablockalypse.JamesNorris.Implementation.GameWolf;
-import com.github.Ablockalypse.JamesNorris.Implementation.GameZombie;
-import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
+import com.github.Ablockalypse.JamesNorris.Implementation.GameBarrier;
+import com.github.Ablockalypse.JamesNorris.Implementation.GameHellHound;
+import com.github.Ablockalypse.JamesNorris.Implementation.GameUndead;
 import com.github.Ablockalypse.JamesNorris.Util.Square;
 
 public class MainThreading {
-	private final Ablockalypse instance;
 	private int id1, id2;
-	private TickManager tm;
+	private Ablockalypse instance;
 
 	/**
 	 * The instance with all threads that should be run constantly while the plugin is running.
@@ -27,9 +25,8 @@ public class MainThreading {
 	 * @param wolf Whether or not to run the wolfFlames thread
 	 * @param barrier Whether or not to run the barrier thread
 	 */
-	public MainThreading(final Ablockalypse instance, final boolean wolf, final boolean barrier) {
+	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier) {
 		this.instance = instance;
-		this.tm = Ablockalypse.getMaster().getTickManager();
 		if (wolf)
 			wolfFlames();
 		if (barrier)
@@ -37,62 +34,48 @@ public class MainThreading {
 	}
 
 	/**
-	 * Checks for GameWolf instances and adds flames to them, making them hellhounds.
-	 */
-	protected void wolfFlames() {
-		int i = tm.getAdaptedRate();
-		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			@Override public void run() {
-				for (final GameWolf f : Data.wolves) {
-					if (!f.getWolf().isDead())
-						f.addEffect();
-				}
-			}
-		}, i, i);
-	}
-
-	/**
 	 * Checks for GameZombie instances, and checks if they are in a Barrier area. If they are, the Barrier is broken.
 	 */
-	protected void barrier() {
-		int i = tm.getAdaptedRate() * 3;
+	public void barrier() {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				for (final GameZombie gz : Data.zombies) {
-					for (final Barrier b : Data.barrierpanels.keySet()) {
-						final Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
-						for (final Location l : s.getLocations()) {
-							if (gz.getZombie().getLocation() == l) {
-								b.breakBarrier();
+				if (Data.zombies != null && Data.barrierpanels != null) {
+					for (GameUndead gz : Data.zombies) {
+						for (GameBarrier b : Data.barrierpanels.keySet()) {
+							Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
+							for (Location l : s.getLocations()) {
+								if (gz.getZombie().getLocation() == l) {
+									b.breakBarrier();
+								}
 							}
 						}
 					}
 				}
 			}
-		}, i, i);
+		}, 60, 60);
 	}
 
 	/**
 	 * Cancels both tasks.
 	 */
-	protected void cancelAll() {
-		final BukkitScheduler bgs = Bukkit.getScheduler();
+	public void cancelAll() {
+		BukkitScheduler bgs = Bukkit.getScheduler();
 		bgs.cancelTask(id1);
 		bgs.cancelTask(id2);
 	}
 
 	/**
-	 * Cancels the wolf flames task.
+	 * Cancels the barrier break task.
 	 */
-	protected void cancelFlames() {
-		Bukkit.getScheduler().cancelTask(id1);
+	public void cancelBarrier() {
+		Bukkit.getScheduler().cancelTask(id2);
 	}
 
 	/**
-	 * Cancels the barrier break task.
+	 * Cancels the wolf flames task.
 	 */
-	protected void cancelBarrier() {
-		Bukkit.getScheduler().cancelTask(id2);
+	public void cancelFlames() {
+		Bukkit.getScheduler().cancelTask(id1);
 	}
 
 	/*
@@ -103,5 +86,21 @@ public class MainThreading {
 			m = null;
 		for (Field f : this.getClass().getDeclaredFields())
 			f = null;
+	}
+
+	/**
+	 * Checks for GameWolf instances and adds flames to them, making them hellhounds.
+	 */
+	public void wolfFlames() {
+		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
+			@Override public void run() {
+				if (Data.wolves != null) {
+					for (GameHellHound f : Data.wolves) {
+						if (!f.getWolf().isDead())
+							f.addEffect();
+					}
+				}
+			}
+		}, 20, 20);
 	}
 }

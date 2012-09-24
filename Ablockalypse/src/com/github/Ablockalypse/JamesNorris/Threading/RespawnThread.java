@@ -4,47 +4,28 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse.Ablockalypse;
-import com.github.Ablockalypse.JamesNorris.Implementation.ZAPlayer;
-import com.github.Ablockalypse.JamesNorris.Manager.TickManager;
+import com.github.Ablockalypse.JamesNorris.Data.Data;
+import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayer;
 
 public class RespawnThread {
-	private final int level;
-	private int id;
-	private final ZAPlayer player;
-	private final Ablockalypse instance;
-	private TickManager tm;
+	private Player player;
+	private int time, id;
 
 	/**
-	 * The thread used for respawning the player.
+	 * Creates a new RespawnThread instance.
 	 * 
 	 * @param player The player to wait for
-	 * @param level The level the game is currently on
-	 * @param waitrespawn Whether or not to automatically run this thread
+	 * @param time The time to count down
+	 * @param autorun Whether or not to automatically run the thread
 	 */
-	public RespawnThread(final ZAPlayer player, final int level, final boolean waitrespawn) {
+	public RespawnThread(Player player, int time, boolean autorun) {
 		this.player = player;
-		this.level = level;
-		this.tm = Ablockalypse.getMaster().getTickManager();
-		instance = Ablockalypse.instance;
-		if (waitrespawn)
+		this.time = time;
+		if (autorun)
 			waitToRespawn();
-	}
-
-	/**
-	 * Waits for the next level, then respawns the player.
-	 */
-	protected void waitToRespawn() {
-		int i = tm.getAdaptedRate();
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			@Override public void run() {
-				if (player.getGame().getLevel() > level) {
-					player.sendToMainframe();
-					cancel();
-				}
-			}
-		}, i, i);
 	}
 
 	/**
@@ -62,5 +43,25 @@ public class RespawnThread {
 			m = null;
 		for (Field f : this.getClass().getDeclaredFields())
 			f = null;
+	}
+
+	/**
+	 * Counts down for the player to respawn.
+	 */
+	protected void waitToRespawn() {
+		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
+			public void run() {
+				if (time == 0) {
+					ZAPlayer zap = (ZAPlayer) Data.players.get(player);
+					zap.sendToMainframe();
+					if (zap.isInLimbo())
+						zap.toggleLimbo();
+					cancel();
+				} else {
+					player.sendMessage("Waiting to respawn... " + time);
+				}
+				--time;
+			}
+		}, 20, 20);
 	}
 }

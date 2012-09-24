@@ -6,12 +6,14 @@ import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import com.github.Ablockalypse.JamesNorris.Implementation.ZASpawner;
+import com.github.Ablockalypse.JamesNorris.Implementation.GameBlockSpawner;
 
-public interface ZAGameInterface {
-	public void addMob(ZASpawner zas, EntityType entity);
+public interface ZAGame {
+	public void addMob(GameBlockSpawner zas, EntityType entity);
 
 	public void addPlayer(Player player);
+
+	public void endGame();
 
 	public int getLevel();
 
@@ -33,13 +35,13 @@ public interface ZAGameInterface {
 
 	public void nextLevel();
 
+	public void removeMob();
+
 	public void removePlayer(Player player);
 
 	public void setLevel(int i);
 
-	public void setSpawn(Location location);
-
 	public void setRemainingMobs(int i);
 
-	public void removeMob();
+	public void setSpawn(Location location);
 }

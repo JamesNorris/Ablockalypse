@@ -28,9 +28,10 @@ import com.github.Ablockalypse.JamesNorris.PluginMaster;
 import com.github.Ablockalypse.JamesNorris.Data.ByteData;
 import com.github.Ablockalypse.JamesNorris.Data.ConfigurationData;
 import com.github.Ablockalypse.JamesNorris.Data.Data;
-import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayerInterface;
+import com.github.Ablockalypse.JamesNorris.Interface.ZAPlayer;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager;
 import com.github.Ablockalypse.JamesNorris.Manager.SoundManager.ZASound;
+import com.github.Ablockalypse.JamesNorris.Threading.LastStandThread;
 import com.github.Ablockalypse.JamesNorris.Util.ControlledEffect;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 import com.github.Ablockalypse.JamesNorris.Util.Square;
@@ -38,21 +39,20 @@ import com.github.Ablockalypse.JamesNorris.Util.Util;
 import com.github.Ablockalypse.JamesNorris.Util.Util.PowerupType;
 import com.github.Ablockalypse.iKeirNez.Util.StartingItems;
 
-public class ZAPlayer implements ZAPlayerInterface {
-	private final ConfigurationData cd;
+public class ZAPlayerBase implements ZAPlayer {
+	private ConfigurationData cd;
 	private float exp, saturation, fall, exhaust;
-	private final ZAGame game;
+	private ZAGameBase game;
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
-	private boolean laststand, sleepingignored, broken;
+	private boolean laststand, sleepingignored, broken = false, sent, limbo;
 	private int level, health, food, fire, points;
-	private final String name;
-	private final Player player;
+	private String name;
+	private Player player;
+	private PluginMaster pm;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
-	private final SoundManager sound;
-	private Location spawn;
-	private PluginMaster pm;
+	private SoundManager sound;
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -62,7 +62,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * @param player The player to be made into this instance
 	 * @param game The game this player should be in
 	 */
-	public ZAPlayer(final Player player, final ZAGame game) {
+	public ZAPlayerBase(Player player, ZAGameBase game) {
 		cd = External.ym.getConfigurationData();
 		this.pm = Ablockalypse.getMaster();
 		this.player = player;
@@ -77,7 +77,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @param i The amount of points to give the player
 	 */
-	@Override public void addPoints(final int i) {
+	@Override public void addPoints(int i) {
 		points = points + i;
 		if (point.containsKey(getName()))
 			point.remove(getName());
@@ -101,17 +101,17 @@ public class ZAPlayer implements ZAPlayerInterface {
 	/*
 	 * Creates a new Packet40EntityMetadata packet for players standing up or sitting down.
 	 * 
-	 * NOTE: The 2 options for the bit byte are 0x00 (down) and 0x04 (up).
+	 * NOTE: The 2 options for the bit byte are 0x04 (down) and 0x00 (up).
 	 */
-	private void generatePacket(final Player player, final byte bit) {
+	private void generatePacket(Player player, byte bit) {
 		try {
 			if (!broken) {
-				player.teleport(player.getLocation().add(0, 1, 0));
-				final Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
-				for (final Player p : Bukkit.getServer().getOnlinePlayers())
+				// player.teleport(player.getLocation().add(0, 1, 0));
+				Packet packet = new Packet40EntityMetadata(player.getEntityId(), new ByteData(bit));
+				for (Player p : Bukkit.getServer().getOnlinePlayers())
 					((CraftPlayer) p).getHandle().netServerHandler.sendPacket(packet);
 			}
-		} catch (final Exception e) {
+		} catch (Exception e) {
 			broken = true;
 			pm.crash(pm.getInstance(), e.getCause().toString(), false);
 		}
@@ -122,7 +122,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @return The game the player is in
 	 */
-	@Override public ZAGame getGame() {
+	@Override public ZAGameBase getGame() {
 		return game;
 	}
 
@@ -154,22 +154,31 @@ public class ZAPlayer implements ZAPlayerInterface {
 	}
 
 	/**
+	 * Gets the SoundManager instance associated with this instance.
+	 * 
+	 * @return The SoundManager associated with this instance
+	 */
+	@Override public SoundManager getSoundManager() {
+		return sound;
+	}
+
+	/**
 	 * Gives the player the specified powerup.
 	 */
-	@Override public void givePowerup(final PowerupType type) {
-		final Location loc = player.getLocation();
-		final int radius = cd.powerrad;
+	@Override public void givePowerup(PowerupType type) {
+		Location loc = player.getLocation();
+		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				final Square s = new Square(loc, radius);
-				final List<Location> locs = s.getLocations();
-				for (final GameZombie gz : Data.zombies) {
-					final Zombie z = gz.getZombie();
+				Square s = new Square(loc, radius);
+				List<Location> locs = s.getLocations();
+				for (GameUndead gz : Data.zombies) {
+					Zombie z = gz.getZombie();
 					if (locs.contains(z.getLocation())) {
 						z.remove();
-						for (final String s2 : game.getPlayers()) {
-							final Player p = Bukkit.getPlayer(s2);
-							final ZAPlayer zap = Data.findZAPlayer(p, game.getName());
+						for (String s2 : game.getPlayers()) {
+							Player p = Bukkit.getPlayer(s2);
+							ZAPlayerBase zap = Data.findZAPlayer(p, game.getName());
 							zap.addPoints(cd.atompoints);
 						}
 					}
@@ -178,18 +187,18 @@ public class ZAPlayer implements ZAPlayerInterface {
 					new ControlledEffect(player.getWorld(), Effect.MOBSPAWNER_FLAMES, radius, 1, loc, true);
 			break;
 			case BARRIER_FIX:
-				final Square s2 = new Square(loc, radius);
-				final List<Location> locs2 = s2.getLocations();
-				for (final Barrier b : Data.gamebarriers) {
+				Square s2 = new Square(loc, radius);
+				List<Location> locs2 = s2.getLocations();
+				for (GameBarrier b : Data.gamebarriers) {
 					if (locs2.contains(b.getCenter()))
 						b.replaceBarrier();
 				}
 			break;
 			case WEAPON_FIX:
-				for (final String s3 : game.getPlayers()) {
-					final Player p = Bukkit.getPlayer(s3);
-					final Inventory i = p.getInventory();
-					for (final ItemStack it : i.getContents()) {
+				for (String s3 : game.getPlayers()) {
+					Player p = Bukkit.getPlayer(s3);
+					Inventory i = p.getInventory();
+					for (ItemStack it : i.getContents()) {
 						if (Util.isWeapon(it)) {
 							it.setDurability((short) 0);
 							p.getWorld().playEffect(p.getLocation(), Effect.EXTINGUISH, 1);
@@ -198,15 +207,6 @@ public class ZAPlayer implements ZAPlayerInterface {
 				}
 			break;
 		}
-	}
-
-	/**
-	 * Gets the SoundManager instance associated with this instance.
-	 * 
-	 * @return The SoundManager associated with this instance
-	 */
-	@Override public SoundManager getSoundManager() {
-		return sound;
 	}
 
 	/**
@@ -219,33 +219,44 @@ public class ZAPlayer implements ZAPlayerInterface {
 	}
 
 	/**
+	 * Gets whether or not the player is in limbo.
+	 * 
+	 * @return Whether or not the player is in limbo
+	 */
+	@Override public boolean isInLimbo() {
+		return limbo;
+	}
+
+	/**
 	 * Checks if the name given is the name of a game. If not, creates a new game.
 	 * Then, adds the player to that game with all settings completed.
 	 * 
 	 * @param name The name of the player to be loaded into the game
 	 */
-	@Override public void loadPlayerToGame(final String name) {
+	@Override public void loadPlayerToGame(String name) {
 		/* Use an old game to add the player to the game */
 		if (Data.games.containsKey(name)) {
-			final ZAGame zag = Data.games.get(name);
-			final int max = cd.maxplayers;
+			ZAGameBase zag = Data.games.get(name);
+			int max = cd.maxplayers;
 			if (zag.getPlayers().size() < max) {
 				zag.addPlayer(player);
 				saveStatus();
 				prepForGame();
 				sendToMainframe();
+				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 				return;
 			} else {
 				player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
 			}
 			/* Create a new game, and put the player in that game */
 		} else {
-			final ZAGame zag = new ZAGame(name, cd, true);
+			ZAGameBase zag = new ZAGameBase(name, cd, true);
 			zag.setSpawn(Data.mainframes.get(name));
 			zag.addPlayer(player);
 			saveStatus();
 			prepForGame();
 			sendToMainframe();
+			player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 			return;
 		}
 	}
@@ -263,22 +274,28 @@ public class ZAPlayer implements ZAPlayerInterface {
 		player.getActivePotionEffects().clear();
 		player.getInventory().setArmorContents(null);
 		player.setSleepingIgnored(true);
-		player.setBedSpawnLocation(game.getSpawn());
 		player.setFireTicks(0);
 		player.setFallDistance(0F);
 		player.setExhaustion(0F);
 		player.setGameMode(GameMode.SURVIVAL);
-		try {
-			for (final String s : cd.inventory) {
-				player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
-			}
-			player.getInventory().setHelmet(StartingItems.seperateStartingItemsData(cd.helmet));
-			player.getInventory().setChestplate(StartingItems.seperateStartingItemsData(cd.chestplate));
-			player.getInventory().setLeggings(StartingItems.seperateStartingItemsData(cd.leggings));
-			player.getInventory().setBoots(StartingItems.seperateStartingItemsData(cd.boots));
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+		// try {//TODO fix this
+		// for (String s : cd.inventory) {
+		// player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
+		// }
+		// player.getInventory().setHelmet(StartingItems.seperateStartingItemsData(cd.helmet));
+		// player.getInventory().setChestplate(StartingItems.seperateStartingItemsData(cd.chestplate));
+		// player.getInventory().setLeggings(StartingItems.seperateStartingItemsData(cd.leggings));
+		// player.getInventory().setBoots(StartingItems.seperateStartingItemsData(cd.boots));
+		// } catch (Exception e) {
+		// e.printStackTrace();
+		// }
+	}
+
+	/**
+	 * Removes the player from the game, and removes all data from the player.
+	 */
+	@Override public void removeFromGame() {
+		finalize();
 	}
 
 	/*
@@ -295,7 +312,6 @@ public class ZAPlayer implements ZAPlayerInterface {
 		player.addPotionEffects(pot);
 		player.getInventory().setArmorContents(armor);
 		player.setSleepingIgnored(sleepingignored);
-		player.setBedSpawnLocation(spawn);
 		player.setFireTicks(fire);
 		player.setFallDistance(fall);
 		player.setExhaustion(exhaust);
@@ -317,7 +333,6 @@ public class ZAPlayer implements ZAPlayerInterface {
 		pot = player.getActivePotionEffects();
 		armor = player.getInventory().getArmorContents();
 		sleepingignored = player.isSleepingIgnored();
-		spawn = player.getBedSpawnLocation();
 		fire = player.getFireTicks();
 		fall = player.getFallDistance();
 		exhaust = player.getExhaustion();
@@ -334,7 +349,12 @@ public class ZAPlayer implements ZAPlayerInterface {
 		if (!c.isLoaded())
 			c.load();
 		player.teleport(loc);
-		sound.generateSound(ZASound.TELEPORT);
+		if (sent) {
+			sound.generateSound(ZASound.START);
+			sent = true;
+		} else {
+			sound.generateSound(ZASound.TELEPORT);
+		}
 	}
 
 	/**
@@ -342,7 +362,7 @@ public class ZAPlayer implements ZAPlayerInterface {
 	 * 
 	 * @param i The amount of points to remove from the player
 	 */
-	@Override public void subtractPoints(final int i) {
+	@Override public void subtractPoints(int i) {
 		points = points - i;
 	}
 
@@ -352,20 +372,31 @@ public class ZAPlayer implements ZAPlayerInterface {
 	@Override public void toggleLastStand() {
 		if (!laststand) {
 			laststand = true;
-			final Entity v = player.getVehicle();
+			Entity v = player.getVehicle();
 			if (v != null && !player.isSneaking())
 				v.remove();
 			player.setAllowFlight(true);
 			player.setFlying(true);
-			generatePacket(player, (byte) 0x00);
+			generatePacket(player, (byte) 0x04);// TODO why doesn't this make the player sit?
 			sound.generateSound(ZASound.LAST_STAND);
+			new LastStandThread((ZAPlayer) this, true);
 			if (cd.losePerksLastStand)
 				player.getActivePotionEffects().clear();
 		} else {
 			laststand = false;
 			player.setAllowFlight(false);
 			player.setFlying(false);
-			generatePacket(player, (byte) 0x04);
+			generatePacket(player, (byte) 0x00);
 		}
+	}
+
+	/**
+	 * Toggles the player limbo status.
+	 */
+	@Override public void toggleLimbo() {
+		if (limbo)
+			limbo = false;
+		else
+			limbo = true;
 	}
 }

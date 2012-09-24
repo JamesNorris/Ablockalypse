@@ -5,7 +5,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
-public interface BarrierInterface {
+public interface Barrier {
 	/**
 	 * Changes all blocks within the barrier to air.
 	 */

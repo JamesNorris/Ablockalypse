@@ -1,5 +1,6 @@
 package com.github.Ablockalypse.JamesNorris.Data;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
@@ -8,12 +9,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import com.github.Ablockalypse.JamesNorris.Util.External;
 
 public class LocalizationData {
-	public String first, perkstring, healstring, speedstring, damagestring, regenstring, enchstring, enchdamagestring;
 	public String enchrandstring, weaponstring, weaponwoodstring, weaponstonestring, weaponironstring, weapondiamondstring;
+	public String first, perkstring, healstring, speedstring, damagestring, regenstring, enchstring, enchdamagestring;
 	public String weapongoldstring, weapongrenadestring, areastring, joingame;
 
-	public LocalizationData() {
-		final FileConfiguration c = External.getConfig(External.l, External.local);
+	public LocalizationData(File file, String path) {
+		FileConfiguration c = External.getConfig(file, path);
 		first = c.getString("baseString");
 		perkstring = c.getString("perkString");
 		healstring = c.getString("perkHealString");
