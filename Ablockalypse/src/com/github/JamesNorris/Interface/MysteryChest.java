@@ -1,6 +1,7 @@
 package com.github.JamesNorris.Interface;
 
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Player;
 
 public interface MysteryChest {
 	/**
@@ -13,5 +14,5 @@ public interface MysteryChest {
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	public void randomize();
+	public void randomize(Player p);
 }

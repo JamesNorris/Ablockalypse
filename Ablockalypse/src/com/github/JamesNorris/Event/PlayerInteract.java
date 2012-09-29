@@ -61,7 +61,7 @@ public class PlayerInteract implements Listener {
 					if (zap.getPoints() >= cd.mccost) {
 						Chest c = (Chest) b.getState();
 						GameMysteryChest mb = new GameMysteryChest(c);
-						mb.randomize();
+						mb.randomize(p);
 						zap.subtractPoints(cd.mccost);
 						return;
 					} else {

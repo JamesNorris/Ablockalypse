@@ -65,7 +65,7 @@ public class GameUndead extends Entity implements Undead {
 	 * @category breakable This is subject to break
 	 */
 	@Override public void increaseSpeed() {
-		this.setSprinting(true);//TODO this doesn't work.
+		this.setSprinting(true);// TODO this doesn't work. Find a way to improve zombie speed.
 	}
 
 	/**

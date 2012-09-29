@@ -6,6 +6,7 @@ import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,9 +42,8 @@ public class GameMysteryChest implements MysteryChest {
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	@Override public void randomize() {
-		Inventory inv = chest.getBlockInventory();
-		inv.clear();
+	@Override public void randomize(Player p) {
+		Inventory inv = p.getInventory();
 		int i = rand.nextInt(1000) + 1;
 		if (i >= 950) {
 			ItemStack it = new ItemStack(Material.BOW, 1);
