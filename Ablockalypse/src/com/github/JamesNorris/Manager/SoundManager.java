@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 public class SoundManager {
 	public enum ZASound {
-		ACHIEVEMENT, DEATH, END, LAST_STAND, START, TELEPORT;
+		ACHIEVEMENT, DEATH, END, LAST_STAND, START, TELEPORT, NEXT_LEVEL, PREV_LEVEL;
 	}
 
 	private Player player;
@@ -38,7 +38,7 @@ public class SoundManager {
 	 * 
 	 * @param sound The type of sound to be played through this manager
 	 */
-	public void generateSound(ZASound sound) {
+	public void generateSound(ZASound sound) {// TODO allow sounds to be changed from the API
 		Location l = player.getLocation();
 		switch (sound) {
 			case TELEPORT:
@@ -61,6 +61,12 @@ public class SoundManager {
 			break;
 			case ACHIEVEMENT:
 				player.playSound(l, Sound.LEVEL_UP, 1, 1);
+			break;
+			case NEXT_LEVEL:
+				player.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
+			break;
+			case PREV_LEVEL:
+				player.playSound(l, Sound.AMBIENCE_CAVE, 7, 1);
 			break;
 		}
 	}

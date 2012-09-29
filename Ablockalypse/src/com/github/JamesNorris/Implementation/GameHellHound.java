@@ -1,31 +1,31 @@
 package com.github.JamesNorris.Implementation;
 
-import java.lang.reflect.Field;
-
-import net.minecraft.server.EntityWolf;
-
 import org.bukkit.Effect;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.entity.CraftWolf;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.HellHound;
+import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Util.Breakable;
 
 public class GameHellHound implements HellHound {
 	private int health;
 	private Wolf wolf;
 	private World world;
+	private ZAGame game;
+	public boolean killed;
 
 	/**
 	 * Creates a new instance of the GameWolf for ZA.
 	 * 
 	 * @param wolf The wolf to be made into this instance
 	 */
-	public GameHellHound(Wolf wolf) {
+	public GameHellHound(Wolf wolf, ZAGame game) {
 		this.wolf = wolf;
+		this.game = game;
 		world = wolf.getWorld();
 		setAggressive(true);
 		if (!Data.wolves.contains(this))
@@ -72,15 +72,7 @@ public class GameHellHound implements HellHound {
 	 * Increases the speed of the wolf.
 	 */
 	@Override public void increaseSpeed() {
-		EntityWolf ew = ((CraftWolf) wolf).getHandle();
-		Field field;
-		try {
-			field = net.minecraft.server.EntityWolf.class.getDeclaredField("bw");
-			field.setAccessible(true);
-			field.set(ew, 0.6);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Breakable.increaseWolfSpeed(wolf);
 	}
 
 	/**
@@ -100,5 +92,23 @@ public class GameHellHound implements HellHound {
 	@Override public void setTarget(Player player) {
 		LivingEntity le = player;
 		wolf.setTarget(le);
+	}
+
+	/**
+	 * Gets the ZAGame that the hellhound is in.
+	 * 
+	 * @return The ZAGame this hellhound is in
+	 */
+	@Override public ZAGame getGame() {
+		return game;
+	}
+
+	/**
+	 * Clears all data from this instance.
+	 */
+	@Override public void finalize() {
+		if (!killed) {
+			game.subtractMobCount();
+		}
 	}
 }

@@ -6,11 +6,14 @@ import java.lang.reflect.Method;
 import org.bukkit.Bukkit;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Manager.SoundManager.ZASound;
 
 public class NextLevelThread {
 	private ZAGame game;
-	private int id, counter;
+	private int id, counter, original;
 	private Ablockalypse instance;
 
 	/**
@@ -23,6 +26,7 @@ public class NextLevelThread {
 		this.game = game;
 		this.instance = Ablockalypse.instance;
 		this.counter = 10;
+		this.original = counter;
 		if (nextlevel)
 			waitForNextLevel();
 	}
@@ -52,8 +56,18 @@ public class NextLevelThread {
 			@Override public void run() {
 				if (game.getRemainingMobs() <= 0) {
 					--counter;
+					if (counter == original - 1) {
+						for (String s : game.getPlayers()) {
+							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
+							zap.getSoundManager().generateSound(ZASound.PREV_LEVEL);
+						}
+					}
 					if (counter == 0) {
 						game.nextLevel();
+						for (String s : game.getPlayers()) {
+							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
+							zap.getSoundManager().generateSound(ZASound.NEXT_LEVEL);
+						}
 						cancel();
 					}
 				}

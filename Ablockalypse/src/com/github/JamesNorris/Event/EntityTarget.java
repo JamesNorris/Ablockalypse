@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
-import com.github.JamesNorris.Util.Util;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class EntityTarget implements Listener {
 	/*
@@ -22,7 +22,7 @@ public class EntityTarget implements Listener {
 			Player p = (Player) target;
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);
-				if (zap.isInLastStand() || !Util.isAcceptedMob(entity)) {
+				if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !Data.isZAMob(entity)) {
 					event.setCancelled(true);
 				}
 			}

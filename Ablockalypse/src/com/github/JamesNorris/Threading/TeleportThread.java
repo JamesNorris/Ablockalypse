@@ -10,9 +10,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Util.External;
 
 public class TeleportThread {
 	private ConfigurationData cd;
@@ -73,8 +73,7 @@ public class TeleportThread {
 						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
 					--time;
 				} else if (time <= 0) {
-					player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
-					zaplayer.sendToMainframe();
+					zaplayer.sendToMainframe("Teleport");
 					if (cd.effects)
 						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
 					cancel();

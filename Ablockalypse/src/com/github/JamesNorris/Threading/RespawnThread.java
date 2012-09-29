@@ -54,7 +54,9 @@ public class RespawnThread {
 			public void run() {
 				if (time == 0) {
 					ZAPlayer zap = (ZAPlayer) Data.players.get(player);
-					zap.sendToMainframe();
+					if (zap.getGame() == null)
+						cancel();
+					zap.sendToMainframe("Respawn");
 					if (zap.isInLimbo())
 						zap.toggleLimbo();
 					cancel();

@@ -49,4 +49,11 @@ public interface HellHound {
 	 * @param player The player to be made into the target
 	 */
 	public void setTarget(Player player);
+
+	/**
+	 * Gets the ZAGame that the hellhound is in.
+	 * 
+	 * @return The ZAGame this hellhound is in
+	 */
+	public ZAGame getGame();
 }

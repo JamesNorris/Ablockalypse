@@ -1,34 +1,35 @@
 package com.github.JamesNorris.Implementation;
 
-import java.lang.reflect.Field;
-
-import net.minecraft.server.EntityZombie;
+import net.minecraft.server.Entity;
+import net.minecraft.server.NBTTagCompound;
 
 import org.bukkit.World;
-import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
-import com.github.Ablockalypse;
-import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Undead;
+import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Util.Breakable;
 
-public class GameUndead implements Undead {
+public class GameUndead extends Entity implements Undead {
 	private boolean fire;
-	private PluginMaster pm;
 	private Player target;
 	private Zombie zombie;
+	private ZAGame game;
+	public boolean killed;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
 	 * 
 	 * @param zombie The zombie to be made into this instance
 	 */
-	public GameUndead(Zombie zombie) {
+	public GameUndead(Zombie zombie, ZAGame game) {
+		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
-		this.pm = Ablockalypse.getMaster();
-		toggleFireImmunity();
+		this.game = game;
+		if (this.fireProof == false)
+			setFireProof(true);
 		if (!Data.zombies.contains(this))
 			Data.zombies.add(this);
 	}
@@ -64,17 +65,7 @@ public class GameUndead implements Undead {
 	 * @category breakable This is subject to break
 	 */
 	@Override public void increaseSpeed() {
-		/* BREAKABLE */
-		EntityZombie ez = ((CraftZombie) zombie).getHandle();
-		Field field;
-		try {
-			field = net.minecraft.server.EntityZombie.class.getDeclaredField("bw");
-			field.setAccessible(true);
-			field.set(ez, 0.6);
-		} catch (Exception e) {
-			pm.crash(pm.getInstance(), e.getCause().toString(), false);
-		}
-		/* BREAKABLE */
+		this.setSprinting(true);//TODO this doesn't work.
 	}
 
 	/**
@@ -98,11 +89,45 @@ public class GameUndead implements Undead {
 	/**
 	 * Toggles whether or not the zombie should be immune to fire.
 	 */
-	@Override public void toggleFireImmunity() {
-		if (fire) {
+	@Override public void setFireProof(boolean tf) {
+		if (tf) {
+			this.fireProof = true;
 			zombie.setFireTicks(0);
 		} else {
 			zombie.setFireTicks((zombie.getHealth() * 2));
+			this.fireProof = false;
 		}
 	}
+
+	/**
+	 * Gets the game the zombie is in.
+	 */
+	@Override public ZAGame getGame() {
+		return game;
+	}
+
+	/**
+	 * Clears all data from this instance.
+	 */
+	@Override public void finalize() {
+		if (!killed) {
+			game.subtractMobCount();
+		}
+	}
+
+	/* BREAKABLE CODE BELOW, THIS MAY NEED TO BE UPDATED */
+	/**
+	 * NOTE: DO NOT USE
+	 */
+	@Override protected void a() {}
+
+	/**
+	 * NOTE: DO NOT USE
+	 */
+	@Override protected void a(NBTTagCompound arg0) {}
+
+	/**
+	 * NOTE: DO NOT USE
+	 */
+	@Override protected void b(NBTTagCompound arg0) {}
 }

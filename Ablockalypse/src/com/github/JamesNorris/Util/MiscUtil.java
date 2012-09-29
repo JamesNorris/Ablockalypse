@@ -7,10 +7,14 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Interface.ZAPlayer;
 
-public class Util {
+/**
+ * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
+ */
+public class MiscUtil {
 	public enum PowerupType {
 		ATOM_BOMB, BARRIER_FIX, WEAPON_FIX;
 	}
@@ -35,8 +39,11 @@ public class Util {
 	 * @return Whether or not the item is a weapon
 	 */
 	public static boolean isWeapon(ItemStack i) {
-		Material t = i.getType();
-		return (t == Material.WOOD_SWORD || t == Material.STONE_SWORD || t == Material.IRON_SWORD || t == Material.DIAMOND_SWORD || t == Material.GOLD_SWORD);
+		if (i != null) {
+			Material t = i.getType();
+			return (i != null && (t == Material.WOOD_SWORD || t == Material.STONE_SWORD || t == Material.IRON_SWORD || t == Material.DIAMOND_SWORD || t == Material.GOLD_SWORD));
+		}
+		return false;
 	}
 
 	/**

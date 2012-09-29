@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.GameMysteryChest;
@@ -18,7 +19,6 @@ import com.github.JamesNorris.Implementation.GameWallSign;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
-import com.github.JamesNorris.Util.External;
 
 public class PlayerInteract implements Listener {
 	private ConfigurationData cd;
@@ -57,12 +57,18 @@ public class PlayerInteract implements Listener {
 					p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
 					new TeleportThread(zap, 5, true);
 					return;
-				} else if (b instanceof Chest && zap.getPoints() >= cd.mccost) {
-					Chest c = (Chest) b;
-					GameMysteryChest mb = new GameMysteryChest(c);
-					mb.randomize();
-					zap.subtractPoints(cd.mccost);
-					return;
+				} else if (b.getType() == Material.CHEST) {
+					if (zap.getPoints() >= cd.mccost) {
+						Chest c = (Chest) b.getState();
+						GameMysteryChest mb = new GameMysteryChest(c);
+						mb.randomize();
+						zap.subtractPoints(cd.mccost);
+						return;
+					} else {
+						p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " points out of the " + cd.mccost + " points to buy this");
+						event.setCancelled(true);
+						return;
+					}
 				}
 			}
 		}

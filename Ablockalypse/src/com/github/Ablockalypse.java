@@ -2,13 +2,13 @@ package com.github;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.RegistrationManager;
+import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Threading.MainThreading;
-import com.github.JamesNorris.Util.External;
-import com.github.JamesNorris.Util.Update;
 
 public class Ablockalypse extends JavaPlugin {
 	private static Data d;
@@ -50,7 +50,7 @@ public class Ablockalypse extends JavaPlugin {
 		} else {
 			RegistrationManager.register(this);
 			External.loadBinaries();
-			mt = new MainThreading(this, true, true, true);
+			mt = new MainThreading(this, true, true, true, true);
 			pm.addData(d, mt);
 		}
 	}

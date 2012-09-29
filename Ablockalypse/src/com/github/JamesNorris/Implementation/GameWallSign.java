@@ -18,7 +18,7 @@ import com.github.JamesNorris.Interface.WallSign;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
-import com.github.JamesNorris.Util.Util;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class GameWallSign implements WallSign {
 	private ConfigurationData cd;
@@ -145,7 +145,7 @@ public class GameWallSign implements WallSign {
 							return;
 						}
 						/* ENCHANTMENTS */
-					} else if (l2.equalsIgnoreCase(ld.enchstring) && Util.isWeapon(player.getItemInHand())) {
+					} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isWeapon(player.getItemInHand())) {
 						if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
 							if (l3.equalsIgnoreCase(ld.enchrandstring)) {
 								player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);

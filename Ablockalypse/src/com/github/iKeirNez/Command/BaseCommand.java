@@ -6,13 +6,13 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Util.External;
 import com.github.iKeirNez.Util.CommandUtil;
 import com.github.iKeirNez.Util.CommonMsg;
 import com.github.iKeirNez.Util.StringFunctions;

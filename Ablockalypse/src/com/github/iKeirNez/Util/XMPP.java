@@ -1,7 +1,7 @@
 package com.github.iKeirNez.Util;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Util.External;
 import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 
 public class XMPP {

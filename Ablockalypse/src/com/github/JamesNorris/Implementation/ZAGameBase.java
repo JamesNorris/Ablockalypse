@@ -28,7 +28,7 @@ public class ZAGameBase implements ZAGame {
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
 	private Random rand;
 	private Location spawn;
-	private boolean wolfRound, spawning;
+	private boolean wolfRound;
 
 	/**
 	 * Creates a new instance of a game.
@@ -42,8 +42,7 @@ public class ZAGameBase implements ZAGame {
 		this.cd = cd;
 		rand = new Random();
 		Data.games.put(name, this);
-		this.spawning = false;
-		XMPP.sendMessage("A new game of Zombie Ablockalypse, called: " + name + " has been started", XMPPType.ZA_GAME_START);
+		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started", XMPPType.ZA_GAME_START);
 	}
 
 	/**
@@ -60,7 +59,7 @@ public class ZAGameBase implements ZAGame {
 		for (String name : getPlayers()) {
 			Player player = Bukkit.getServer().getPlayer(name);
 			ZAPlayerBase zap = Data.players.get(player);
-			player.sendMessage(ChatColor.GRAY + "The game has ended. You made it to level: " + level);
+			player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
 			zap.getSoundManager().generateSound(ZASound.END);
 			removePlayer(player);
 		}
@@ -158,6 +157,7 @@ public class ZAGameBase implements ZAGame {
 	 * Starts the next level for the game, and adds a level to all players in this game.
 	 */
 	@Override public void nextLevel() {
+		int prev = level;
 		level = level + 1;
 		if (Data.gameLevels.containsKey(getName()))
 			Data.gameLevels.remove(getName());
@@ -165,7 +165,8 @@ public class ZAGameBase implements ZAGame {
 		for (String s : players.keySet()) {
 			Player p = Bukkit.getServer().getPlayer(s);
 			p.setLevel(level);
-			p.sendMessage(ChatColor.GRAY + "You now have: " + Data.players.get(p).getPoints());
+			p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + prev + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + level);
+			p.sendMessage(ChatColor.GRAY + "You now have " + ChatColor.RED + Data.players.get(p).getPoints() + ChatColor.RESET + ChatColor.GRAY + " points.");
 			if (cd.effects)
 				p.getWorld().playEffect(p.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
 		}
@@ -224,18 +225,6 @@ public class ZAGameBase implements ZAGame {
 			spawn = location.add(0, 1, 0);
 			Data.mainframes.put(getName(), location);
 		}
-	}
-
-	/**
-	 * Starts spawning mobs for the game.
-	 */
-	@Override public void startSpawning() {
-		spawning = true;
-		new MobSpawnThread(this, true);
-	}
-
-	@Override public boolean isSpawning() {
-		return spawning;
 	}
 
 	/**

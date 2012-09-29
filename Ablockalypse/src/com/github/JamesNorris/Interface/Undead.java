@@ -46,7 +46,14 @@ public interface Undead {
 	public void setHealth(int amt);
 
 	/**
-	 * Toggles whether or not the zombie should be immune to fire.
+	 * Changes whether or not the zombie should be immune to fire.
 	 */
-	public void toggleFireImmunity();
+	public void setFireProof(boolean tf);
+
+	/**
+	 * Gets the game this zombie is in.
+	 * 
+	 * @return The game the zombie is in.
+	 */
+	public ZAGame getGame();
 }

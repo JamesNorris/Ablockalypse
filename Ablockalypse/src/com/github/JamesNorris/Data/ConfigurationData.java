@@ -23,7 +23,7 @@ public class ConfigurationData {
 	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
 	public int packapunchlevel;
 	public int powerchance, atompoints;
-	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, speedLevel;
+	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, doubleSpeedLevel;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
 	public int woodSwordCost, stoneSwordCost, ironSwordCost, diamondSwordCost, goldSwordCost, grenadeCost;
 
@@ -78,7 +78,7 @@ public class ConfigurationData {
 		losePerksLastStand = cf.getBoolean("losePerksOnLastStand");
 		mccost = cf.getInt("mysteryChestCost");
 		helppoints = cf.getInt("pointsGivenOnHelp");
-		speedLevel = cf.getInt("doubleSpeedLevel");
+		doubleSpeedLevel = cf.getInt("doubleSpeedLevel");
 		wolfLevels = cf.getIntegerList("wolfLevels");
 		effects = cf.getBoolean("addedEffects");
 		powerrad = cf.getInt("powerupRadius");

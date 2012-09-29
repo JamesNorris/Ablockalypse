@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
-import com.github.JamesNorris.Util.External;
+import com.github.JamesNorris.External;
 
 public class LocalizationData {
 	public String enchrandstring, weaponstring, weaponwoodstring, weaponstonestring, weaponironstring, weapondiamondstring;

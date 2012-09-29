@@ -6,10 +6,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
-import com.github.JamesNorris.Util.External;
 
 public class PlayerInteractEntity implements Listener {
 	private ConfigurationData cd;

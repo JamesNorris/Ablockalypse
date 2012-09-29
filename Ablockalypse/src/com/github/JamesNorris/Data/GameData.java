@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
-import com.github.JamesNorris.Util.External;
+import com.github.JamesNorris.External;
 
 public class GameData {
 	private List<String> games;

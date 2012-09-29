@@ -8,7 +8,6 @@ import org.bukkit.World;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,7 +20,7 @@ import com.github.JamesNorris.Data.Data;
 public class ProjectileHit implements Listener {
 	private int yield = 2;// Can be changed to make a larger explosion.
 	public static ArrayList<UUID> uuids;
-	
+
 	public ProjectileHit() {
 		ProjectileHit.uuids = new ArrayList<UUID>();
 	}
@@ -39,16 +38,14 @@ public class ProjectileHit implements Listener {
 				Location loc = ep.getLocation();
 				World w = loc.getWorld();
 				Entity ent = w.spawnEntity(loc, EntityType.FIREBALL);
-				Explosive ex = (Explosive) ent;
-				uuids.add(ex.getUniqueId());
 				Fireball f = (Fireball) ent;
+				uuids.add(f.getUniqueId());
 				f.setDirection(new Vector(0, -(w.getHighestBlockYAt(loc)), 0));
 				ep.setBounce(true);
 				ep.remove();
-				ex.setYield(yield);
-				ex.setIsIncendiary(true);
-				ex.setTicksLived(1);
-				//ep.getWorld().createExplosion(loc, (float) yield);
+				f.setYield(yield);
+				f.setIsIncendiary(true);
+				f.setTicksLived(1);
 			}
 		}
 	}

@@ -9,9 +9,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Interface.MysteryChest;
-import com.github.JamesNorris.Util.External;
 
 public class GameMysteryChest implements MysteryChest {
 	private ConfigurationData cd;

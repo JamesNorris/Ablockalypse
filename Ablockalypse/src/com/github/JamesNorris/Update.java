@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Util;
+package com.github.JamesNorris;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -10,7 +10,6 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.PluginMaster;
 
 public class Update {
 	private Ablockalypse plugin;

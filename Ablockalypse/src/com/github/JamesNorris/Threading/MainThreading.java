@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -16,7 +18,7 @@ import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Util.Square;
 
 public class MainThreading {
-	private int id1, id2, id3;
+	private int id1, id2, id3, id4, id5;
 	private Ablockalypse instance;
 
 	/**
@@ -26,7 +28,7 @@ public class MainThreading {
 	 * @param wolf Whether or not to run the wolfFlames thread
 	 * @param barrier Whether or not to run the barrier thread
 	 */
-	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier, boolean exp) {
+	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier, boolean exp, boolean slime) {
 		this.instance = instance;
 		if (wolf)
 			wolfFlames();
@@ -34,6 +36,8 @@ public class MainThreading {
 			barrier();
 		if (exp)
 			exp();
+		if (slime)
+			slime();
 	}
 
 	/**
@@ -43,11 +47,31 @@ public class MainThreading {
 		id3 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				for (Player p : Data.players.keySet()) {
-					if (p.getExp() != 0)
+					if (p.getExp() != 0) {
+						int prev = p.getLevel();// TODO just cancel an item event?
 						p.setExp(0);
+						p.setLevel(prev);
+					}
 				}
 			}
 		}, 60, 60);
+	}
+
+	/**
+	 * Starts a thread that prevents slimes from going near players without dying.
+	 */
+	public void slime() {
+		id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
+			public void run() {
+				for (Player p : Data.players.keySet()) {
+					for (Entity e : p.getNearbyEntities(15, 15, 15)) {
+						if (e.getType() == EntityType.SLIME || !Data.isZAMob(e)) {
+							e.remove();
+						}
+					}
+				}
+			}
+		}, 40, 40);
 	}
 
 	/**
@@ -80,6 +104,14 @@ public class MainThreading {
 		bgs.cancelTask(id1);
 		bgs.cancelTask(id2);
 		bgs.cancelTask(id3);
+		bgs.cancelTask(id4);
+	}
+
+	/**
+	 * Cancels the slime protects task.
+	 */
+	public void cancelSlime() {
+		Bukkit.getScheduler().cancelTask(id4);
 	}
 
 	/**

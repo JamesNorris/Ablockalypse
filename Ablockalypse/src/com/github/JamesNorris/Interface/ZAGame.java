@@ -39,8 +39,4 @@ public interface ZAGame {
 	public void setRemainingMobs(int i);
 
 	public void setSpawn(Location location);
-
-	public void startSpawning();
-
-	public boolean isSpawning();
 }

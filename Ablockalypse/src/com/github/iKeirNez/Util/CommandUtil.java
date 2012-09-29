@@ -3,9 +3,9 @@ package com.github.iKeirNez.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
-import com.github.JamesNorris.Util.External;
 
 public class CommandUtil {
 	/**

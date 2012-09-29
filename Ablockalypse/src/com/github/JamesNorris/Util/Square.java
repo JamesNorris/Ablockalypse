@@ -1,6 +1,6 @@
 package com.github.JamesNorris.Util;
 
-import java.util.List;
+import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -12,7 +12,7 @@ public class Square {
 	private int j;
 	private int k;
 	private Location loc;
-	private List<Location> locs;
+	private ArrayList<Location> locs;
 	private World world;
 	private int x, y, z, radius;
 
@@ -27,6 +27,7 @@ public class Square {
 		x = centerLocation.getBlockX();
 		y = centerLocation.getBlockY();
 		z = centerLocation.getBlockZ();
+		locs = new ArrayList<Location>();
 		this.radius = radius;
 		world = centerLocation.getWorld();
 		for (i = -radius; i <= radius; i++) {
@@ -86,7 +87,7 @@ public class Square {
 	 * 
 	 * @return A list of locations within the square
 	 */
-	public List<Location> getLocations() {
+	public ArrayList<Location> getLocations() {
 		return locs;
 	}
 

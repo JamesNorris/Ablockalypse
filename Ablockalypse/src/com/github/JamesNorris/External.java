@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Util;
+package com.github.JamesNorris;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,6 +29,7 @@ import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
+import com.github.JamesNorris.Util.SerializableLocation;
 
 public class External {
 	private static HashMap<SerializableLocation, Boolean> areaSavings = new HashMap<SerializableLocation, Boolean>();
@@ -39,7 +40,7 @@ public class External {
 	public static Ablockalypse instance;
 	public static File l, g, f;
 	private static List<String> loadedGames;
-	public static String local = "local.yml", games = "games.yml", mainframes = "mainframes.bin", config = "config.yml", points = "points.bin", levels = "levels.bin", barriers = "barriers.bin", areas = "areas.bin";
+	public static String local = "local.yml", players = "players.bin", games = "games.yml", mainframes = "mainframes.bin", config = "config.yml", points = "points.bin", levels = "levels.bin", barriers = "barriers.bin", areas = "areas.bin";
 	private static HashMap<String, SerializableLocation> mainframeSavings = new HashMap<String, SerializableLocation>();
 	public static YamlManager ym;
 
@@ -97,6 +98,16 @@ public class External {
 					}
 				}
 			}
+			/* players.bin */
+			HashMap<String, String> save2 = External.load(players);
+			if (save2 != null) {
+				for (String s : save2.keySet()) {
+					if (Data.gameExists(s)) {
+						ZAGame zag = Data.findGame(s);
+						zag.addPlayer(Bukkit.getServer().getPlayer(save2.get(s)));
+					}
+				}
+			}
 			/* barriers.bin */
 			ArrayList<SerializableLocation> save3 = External.load(barriers);
 			if (save3 != null) {
@@ -150,7 +161,8 @@ public class External {
 			/* CLEARING */
 			if (save != null)
 				save.clear();
-			/* save2 removed */
+			if (save2 != null)
+				save2.clear();
 			if (save3 != null)
 				save3.clear();
 			if (save4 != null)
@@ -219,6 +231,8 @@ public class External {
 			}
 			/* mainframes.bin */
 			loadResource(mainframes);
+			/* players.bin */
+			loadResource(players);
 			/* barriers.bin */
 			loadResource(barriers);
 			/* areas.bin */
@@ -256,6 +270,7 @@ public class External {
 	 */
 	public static void saveBinaries() {
 		try {
+			Data.refresh();
 			/* mainframes.bin */
 			if (Data.mainframes != null) {
 				HashMap<String, Location> save = Data.mainframes;
@@ -268,6 +283,9 @@ public class External {
 					External.save(mainframeSavings, mainframes);// TODO figure out a way to NOT save anything that has already been saved.
 				}
 			}
+			/* players.bin */
+			if (Data.playergames != null)
+				External.save(Data.playergames, players);
 			/* barriers.bin */
 			if (Data.barriers != null) {
 				ArrayList<Location> save3 = Data.barriers;

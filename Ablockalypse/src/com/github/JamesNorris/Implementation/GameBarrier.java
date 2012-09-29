@@ -8,11 +8,11 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Util.ControlledEffect;
-import com.github.JamesNorris.Util.External;
 
 public class GameBarrier implements Barrier {
 	private List<Block> blocks;

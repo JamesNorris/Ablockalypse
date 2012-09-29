@@ -3,7 +3,7 @@ package com.github.JamesNorris.Interface;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Manager.SoundManager;
-import com.github.JamesNorris.Util.Util.PowerupType;
+import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 
 public interface ZAPlayer {
 	public void addPoints(int i);
@@ -28,7 +28,7 @@ public interface ZAPlayer {
 
 	public void removeFromGame();
 
-	public void sendToMainframe();
+	public void sendToMainframe(String reason);
 
 	public void subtractPoints(int i);
 

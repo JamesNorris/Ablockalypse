@@ -21,6 +21,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -29,10 +30,9 @@ import com.github.JamesNorris.Manager.SoundManager;
 import com.github.JamesNorris.Manager.SoundManager.ZASound;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.ControlledEffect;
-import com.github.JamesNorris.Util.External;
 import com.github.JamesNorris.Util.Square;
-import com.github.JamesNorris.Util.Util;
-import com.github.JamesNorris.Util.Util.PowerupType;
+import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 import com.github.iKeirNez.Util.StartingItems;
 
 public class ZAPlayerBase implements ZAPlayer {
@@ -67,8 +67,8 @@ public class ZAPlayerBase implements ZAPlayer {
 		this.point = new HashMap<String, Integer>();
 		this.sound = new SoundManager(player);
 		Data.players.put(player, this);
-		if (!game.isSpawning())
-			game.startSpawning();
+		if (game.getLevel() == 0)
+			game.nextLevel();
 	}
 
 	/**
@@ -155,7 +155,10 @@ public class ZAPlayerBase implements ZAPlayer {
 				for (GameUndead gz : Data.zombies) {
 					Zombie z = gz.getZombie();
 					if (locs.contains(z.getLocation())) {
+						int prev = game.getRemainingMobs();
 						z.remove();
+						if (prev < game.getRemainingMobs())
+							game.subtractMobCount();
 						for (String s2 : game.getPlayers()) {
 							Player p = Bukkit.getPlayer(s2);
 							ZAPlayer zap = Data.findZAPlayer(p, game.getName());
@@ -181,7 +184,7 @@ public class ZAPlayerBase implements ZAPlayer {
 					Player p = Bukkit.getPlayer(s3);
 					Inventory i = p.getInventory();
 					for (ItemStack it : i.getContents()) {
-						if (Util.isWeapon(it)) {
+						if (MiscUtil.isWeapon(it)) {
 							it.setDurability((short) 0);
 							p.getWorld().playEffect(p.getLocation(), Effect.EXTINGUISH, 1);
 						}
@@ -224,29 +227,30 @@ public class ZAPlayerBase implements ZAPlayer {
 				zag.addPlayer(player);
 				saveStatus();
 				prepForGame();
-				sendToMainframe();
+				sendToMainframe("Loading player to a game");
 				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 				return;
 			} else {
 				player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
 			}
 			/* Create a new game, and put the player in that game */
-		} else {
+		}/* else {//unused because this is already compensated for with the commands
 			ZAGameBase zag = new ZAGameBase(name, cd);
 			zag.setSpawn(Data.mainframes.get(name));
 			zag.addPlayer(player);
 			saveStatus();
 			prepForGame();
-			sendToMainframe();
+			sendToMainframe("Loading NEW game");
 			player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 			return;
-		}
+			}*/
 	}
 
 	/*
 	 * Clearing the player status to allow the player to be put in the game without carrying over items.
 	 */
 	private void prepForGame() {
+		player.setGameMode(GameMode.SURVIVAL);
 		player.getInventory().clear();
 		player.setLevel(0);
 		player.setExp(0);
@@ -259,7 +263,6 @@ public class ZAPlayerBase implements ZAPlayer {
 		player.setFireTicks(0);
 		player.setFallDistance(0F);
 		player.setExhaustion(0F);
-		player.setGameMode(GameMode.SURVIVAL);
 		// try {//TODO fix this
 		// for (String s : cd.inventory) {
 		// player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
@@ -284,6 +287,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * Restoring the player status to the last saved status before the game.
 	 */
 	private void restoreStatus() {
+		player.setGameMode(gm);
 		player.teleport(before);
 		player.getInventory().clear();
 		player.getInventory().setContents(inventory);
@@ -298,7 +302,6 @@ public class ZAPlayerBase implements ZAPlayer {
 		player.setFireTicks(fire);
 		player.setFallDistance(fall);
 		player.setExhaustion(exhaust);
-		player.setGameMode(gm);
 		if (laststand)
 			toggleLastStand();
 	}
@@ -327,7 +330,8 @@ public class ZAPlayerBase implements ZAPlayer {
 	/**
 	 * Teleports the player to the mainframe of the game.
 	 */
-	@Override public void sendToMainframe() {
+	@Override public void sendToMainframe(String reason) {
+		player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
 		Location loc = game.getSpawn();
 		Chunk c = loc.getChunk();
 		if (!c.isLoaded())
@@ -339,6 +343,8 @@ public class ZAPlayerBase implements ZAPlayer {
 		} else {
 			sound.generateSound(ZASound.TELEPORT);
 		}
+		if (cd.DEBUG)
+			System.out.println("[Ablockalypse] [DEBUG] Teleport reason: (" + game.getName() + ") " + reason);// TODO remove TEST
 	}
 
 	/**

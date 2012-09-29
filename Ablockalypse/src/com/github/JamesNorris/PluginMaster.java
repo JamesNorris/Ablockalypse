@@ -33,7 +33,6 @@ public class PluginMaster {
 	 * 
 	 * @param d The Data instance
 	 * @param mt The MainThreading instance
-	 * @param tm The TickManager instance
 	 */
 	public void addData(Data d, MainThreading mt) {
 		this.d = d;
