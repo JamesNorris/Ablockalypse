@@ -5,6 +5,8 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.JamesNorris.Manager.SpawnManager;
+
 public interface ZAGame {
 	public void addPlayer(Player player);
 
@@ -39,4 +41,8 @@ public interface ZAGame {
 	public void setRemainingMobs(int i);
 
 	public void setSpawn(Location location);
+
+	public SpawnManager getSpawnManager();
+
+	public Player getRandomLivingPlayer();
 }

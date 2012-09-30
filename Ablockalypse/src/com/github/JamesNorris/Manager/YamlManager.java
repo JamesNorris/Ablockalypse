@@ -4,12 +4,10 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GameData;
 import com.github.JamesNorris.Data.LocalizationData;
@@ -36,11 +34,7 @@ public class YamlManager {
 		this.cd = cd;
 		this.ld = ld;
 		this.gd = gd;
-		Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
-				initSignRequirements();
-			}
-		}, 40);
+		initSignRequirements();
 	}
 
 	/**
@@ -80,10 +74,10 @@ public class YamlManager {
 		return ld;
 	}
 
-	/**
+	/*
 	 * Used to clean up the amount of code required to add all different perks/enchantments/weapons.
 	 */
-	public void initSignRequirements() {
+	private void initSignRequirements() {
 		// levelmap
 		levelmap.put(ld.healstring, cd.heallevel);
 		levelmap.put(ld.speedstring, cd.speedlevel);

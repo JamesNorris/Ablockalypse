@@ -9,7 +9,6 @@ import org.bukkit.entity.Wolf;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Util.Breakable;
 
 public class GameHellHound implements HellHound {
 	private int health;
@@ -72,7 +71,7 @@ public class GameHellHound implements HellHound {
 	 * Increases the speed of the wolf.
 	 */
 	@Override public void increaseSpeed() {
-		Breakable.increaseWolfSpeed(wolf);
+		// TODO this doesnt work. Find a way to improve wolf speed.
 	}
 
 	/**

@@ -28,26 +28,23 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 			String alias = cmd.getLabel();
 			if (args.length == 0 || args[0].equalsIgnoreCase("help") || (args.length == 2 && args[1].equalsIgnoreCase("sign"))) {
 				showHelp(sender, args, alias);
+				return true;
 			} else if (args[0].equalsIgnoreCase("list")) {
 				list(sender);
+				return true;
 			} else if (args[0].equalsIgnoreCase("join")) {
 				if (args.length == 2 && sender.hasPermission("za.join")) {
 					if (sender instanceof Player) {
 						Player player = (Player) sender;
 						String gameName = args[1];
-						/* TODO change this to a new command - /za create */
-						if (!Data.gameExists(gameName)) {
-							if (!player.hasPermission("za.create")) {
-								sender.sendMessage(ChatColor.RED + "That game was not found");
-								return true;
-							} else {
-								new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
-								sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called: " + gameName);
-								return true;
-							}
+						if (Data.gameExists(gameName)) {
+							ZAPlayer zap = (ZAPlayer) Data.findZAPlayer(player, gameName);
+							zap.loadPlayerToGame(gameName);
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+							return true;
 						}
-						ZAPlayer zap = (ZAPlayer) Data.findZAPlayer(player, gameName);// TODO make sure the interface cast works!
-						zap.loadPlayerToGame(gameName);
 					} else {
 						sender.sendMessage(CommonMsg.notPlayer);
 						return true;
@@ -77,6 +74,24 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					sender.sendMessage(CommonMsg.notPlayer);
 					return true;
 				}
+			} else if (args[0].equalsIgnoreCase("create")) {
+				String gameName = args[1];
+				if (!Data.gameExists(gameName)) {
+					if (!sender.hasPermission("za.create")) {
+						sender.sendMessage(ChatColor.RED + "You don't have permission to create games!");
+						return true;
+					} else {
+						new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
+						sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
+						return true;
+					}
+				} else {
+					sender.sendMessage(ChatColor.RED + "That game already exists!");
+					return true;
+				}
+			} else if (args[0].equalsIgnoreCase("barrier")) {
+				// TODO use a playerinteractevent to create a barrier
+				return true;
 			}
 			return true;
 		}

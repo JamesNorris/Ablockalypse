@@ -28,7 +28,7 @@ public class LastStandThread {
 	}
 
 	/**
-	 * Cancels the thread.
+	 * Cancels the dying thread.
 	 */
 	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
@@ -41,7 +41,7 @@ public class LastStandThread {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			public void run() {
 				if (zap.isInLastStand() && !player.isDead()) {
-					player.setHealth(player.getHealth() - 1);
+					player.damage(1);
 				} else {
 					cancel();
 				}

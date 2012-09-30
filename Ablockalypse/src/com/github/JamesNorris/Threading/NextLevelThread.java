@@ -13,8 +13,9 @@ import com.github.JamesNorris.Manager.SoundManager.ZASound;
 
 public class NextLevelThread {
 	private ZAGame game;
-	private int id, counter, original;
+	private int id, counter;
 	private Ablockalypse instance;
+	private boolean played;
 
 	/**
 	 * The thread for checking for next level, depending on remaining mobs.
@@ -25,8 +26,8 @@ public class NextLevelThread {
 	public NextLevelThread(ZAGame game, boolean nextlevel) {
 		this.game = game;
 		this.instance = Ablockalypse.instance;
+		this.played = false;
 		this.counter = 10;
-		this.original = counter;
 		if (nextlevel)
 			waitForNextLevel();
 	}
@@ -56,13 +57,15 @@ public class NextLevelThread {
 			@Override public void run() {
 				if (game.getRemainingMobs() <= 0) {
 					--counter;
-					if (counter == original - 1) {
+					if (!played) {
+						played = true;
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
 							zap.getSoundManager().generateSound(ZASound.PREV_LEVEL);
 						}
 					}
 					if (counter == 0) {
+						played = false;
 						game.nextLevel();
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());

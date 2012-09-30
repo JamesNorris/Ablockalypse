@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import com.github.JamesNorris.Data.Data;
 
 public class PlayerMove implements Listener {
-	private int time;
+	private int timer = 5;
 
 	/*
 	 * Called whenever a player moves.
@@ -18,11 +18,16 @@ public class PlayerMove implements Listener {
 	 */
 	@EventHandler public void PME(PlayerMoveEvent event) {
 		Player p = event.getPlayer();
-		if (++time <= 5 && Data.players.containsKey(p)) {
-			time = 0;
+		if (Data.players.containsKey(p)) {
+			if (Data.players.get(p).isInLastStand() && p.getFallDistance() <= 0 && ((event.getFrom().getPitch() - event.getTo().getPitch()) == 0) && ((event.getFrom().getYaw() - event.getTo().getYaw()) == 0))
+				event.setCancelled(true);
 			for (Location l : Data.barrierpanels.values()) {
 				if (l == p.getLocation()) {
-					p.sendMessage(ChatColor.GRAY + "To replace a barrier, hold SHIFT when nearby.");
+					--timer;
+					if (timer <= 0) {
+						p.sendMessage(ChatColor.GRAY + "To replace a barrier, hold SHIFT when nearby.");
+						timer = 5;
+					}
 					event.setCancelled(true);
 				}
 			}

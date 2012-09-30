@@ -36,6 +36,8 @@ public class EntityDeath implements Listener {
 		Entity e = event.getEntity();
 		Player p = event.getEntity().getKiller();
 		if (Data.isZAMob(e)) {
+			event.getDrops().clear();
+			event.setDroppedExp(0);
 			if (e instanceof Zombie) {
 				Undead u = Data.getUndead(e);
 				GameUndead gu = (GameUndead) u;
@@ -50,9 +52,9 @@ public class EntityDeath implements Listener {
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);
 				zap.addPoints(cd.pointincrease);
-				int food = p.getFoodLevel() + 5;
-				if (food <= 20) {
-					p.setFoodLevel(p.getFoodLevel() + 5);
+				int food = p.getFoodLevel();
+				if (food < 20) {
+					p.setFoodLevel(20);
 				}
 				MiscUtil.randomPowerup(zap);
 			}

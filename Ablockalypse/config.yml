@@ -26,6 +26,10 @@ damagePoints: 2000
 regenPoints: 3000
 # Sets the points required to buy the corresponding perks.
 
+enchDamageCost: 400
+enchRandomCost: 300
+# The amount of points it costs to get an enchantment on your weapon.
+
 mysteryChestCost: 1500
 # The amount it costs to buy a mystery item from the mystery box.
 # This should be lower than the diamond sword cost from below.

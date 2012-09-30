@@ -4,10 +4,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.PluginMaster;
-import com.github.JamesNorris.RegistrationManager;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
 public class Ablockalypse extends JavaPlugin {

@@ -42,7 +42,6 @@ public class SoundManager {
 		Location l = player.getLocation();
 		switch (sound) {
 			case TELEPORT:
-				player.playSound(l, Sound.PORTAL, 1, 1);
 				player.playSound(l, Sound.PORTAL_TRIGGER, 1, 1);
 			break;
 			case LAST_STAND:
@@ -56,8 +55,8 @@ public class SoundManager {
 				player.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
 			break;
 			case END:
-				player.playSound(l, Sound.CREEPER_HISS, 1, 1);
-				player.playSound(l, Sound.EXPLODE, 1, 1);
+				player.playSound(l, Sound.AMBIENCE_RAIN, 7, 1);
+				player.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
 			break;
 			case ACHIEVEMENT:
 				player.playSound(l, Sound.LEVEL_UP, 1, 1);

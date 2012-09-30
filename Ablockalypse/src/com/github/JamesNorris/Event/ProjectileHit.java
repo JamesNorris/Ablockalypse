@@ -33,7 +33,7 @@ public class ProjectileHit implements Listener {
 		Entity e = event.getEntity();
 		if (e instanceof EnderPearl) {
 			EnderPearl ep = (EnderPearl) e;
-			Player p = (Player) ep.getShooter();// TODO add a cooldown for each player, so less lag is created
+			Player p = (Player) ep.getShooter();
 			if (Data.players.containsKey(p)) {
 				Location loc = ep.getLocation();
 				World w = loc.getWorld();

@@ -3,6 +3,7 @@ package com.github.JamesNorris.Implementation;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
@@ -102,7 +103,7 @@ public class GameWallSign implements WallSign {
 	 * 
 	 * @param player The player to affect if the lines are run through
 	 */
-	@Override public void runLines(Player player) {// TODO i think this could be simplified dramatically
+	@Override public void runLines(Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
 		if (l1.equalsIgnoreCase(ld.first)) {
 			/* Attempts to add the player to a game if the second line has the join string */
@@ -165,7 +166,11 @@ public class GameWallSign implements WallSign {
 						/* WEAPONS */
 					} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
 						if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
-							player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+							if (ym.wepmap.get(l3) != Material.ENDER_PEARL) {
+								player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+							} else {
+								player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
+							}
 							int cost = ym.wepsignline3.get(l3);
 							zap.subtractPoints(cost);
 							player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");

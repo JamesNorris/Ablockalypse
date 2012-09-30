@@ -16,6 +16,7 @@ import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.SoundManager.ZASound;
+import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.MobSpawnThread;
 import com.github.JamesNorris.Threading.NextLevelThread;
 import com.github.iKeirNez.Util.XMPP;
@@ -29,6 +30,7 @@ public class ZAGameBase implements ZAGame {
 	private Random rand;
 	private Location spawn;
 	private boolean wolfRound;
+	private SpawnManager spawnManager;
 
 	/**
 	 * Creates a new instance of a game.
@@ -43,6 +45,15 @@ public class ZAGameBase implements ZAGame {
 		rand = new Random();
 		Data.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started", XMPPType.ZA_GAME_START);
+	}
+
+	/**
+	 * Gets the manager that affects spawn for this game.
+	 * 
+	 * @return The SpawnManager instance associated with this game
+	 */
+	@Override public SpawnManager getSpawnManager() {
+		return spawnManager;
 	}
 
 	/**
@@ -117,6 +128,21 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
+	 * Gets a random living player.
+	 * Living is considered as not in limbo, last stand, respawn thread, or death.
+	 * 
+	 * @return The random living player
+	 */
+	@Override public Player getRandomLivingPlayer() {
+		int i = rand.nextInt(getRemainingPlayers()) + 1;
+		Player p = null;
+		for (int j = 0; j <= i; j++) {
+			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
+		}
+		return p;
+	}
+
+	/**
 	 * Gets the remaining custom mobs in the game.
 	 * 
 	 * @return The amount of remaining mobs in this game
@@ -129,7 +155,7 @@ public class ZAGameBase implements ZAGame {
 		int i = 0;
 		for (String s : getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			if (!p.isDead() && !Data.players.get(p).isInLimbo())
+			if (!p.isDead() && !Data.players.get(p).isInLimbo() && !Data.players.get(p).isInLastStand())
 				++i;
 		}
 		return i;
@@ -224,7 +250,12 @@ public class ZAGameBase implements ZAGame {
 		if (!Data.mainframes.containsValue(location)) {
 			spawn = location.add(0, 1, 0);
 			Data.mainframes.put(getName(), location);
+		} else {
+			Data.mainframes.remove(location);
+			spawn = location.add(0, 1, 0);
+			Data.mainframes.put(getName(), location);
 		}
+		this.spawnManager = new SpawnManager(this, location.getWorld());
 	}
 
 	/**

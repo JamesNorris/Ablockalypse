@@ -50,7 +50,7 @@ public class PluginMaster {
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(getIssuesURL());
 		System.err.println("--------------------------[ERROR REPORT]--------------------------");
-		// System.err.println("VERSION: " + Data.version);//TODO see Data.java
+		System.err.println("VERSION: " + Data.version);
 		System.err.println("BREAK REASON: " + reason);
 		System.err.println("---------------------------[END REPORT]---------------------------");
 		if (!disable)

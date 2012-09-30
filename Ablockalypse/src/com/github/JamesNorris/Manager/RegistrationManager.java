@@ -1,4 +1,4 @@
-package com.github.JamesNorris;
+package com.github.JamesNorris.Manager;
 
 import org.bukkit.plugin.PluginManager;
 
@@ -6,6 +6,7 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.Event.BlockPlace;
 import com.github.JamesNorris.Event.EntityBreakDoor;
 import com.github.JamesNorris.Event.EntityDamage;
+import com.github.JamesNorris.Event.EntityDamageByEntity;
 import com.github.JamesNorris.Event.EntityDeath;
 import com.github.JamesNorris.Event.EntityExplode;
 import com.github.JamesNorris.Event.EntityTarget;
@@ -46,6 +47,7 @@ public class RegistrationManager {
 		pm.registerEvents(new EntityTarget(), instance);
 		pm.registerEvents(new PlayerRespawn(), instance);
 		pm.registerEvents(new EntityExplode(), instance);
+		pm.registerEvents(new EntityDamageByEntity(), instance);
 		/* COMMANDS */
 		instance.getCommand("za").setExecutor(new BaseCommand());
 	}

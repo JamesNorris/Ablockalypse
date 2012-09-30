@@ -18,6 +18,8 @@ public class PlayerToggleSneak implements Listener {
 	@EventHandler public void PTSE(PlayerToggleSneakEvent event) {
 		Player p = event.getPlayer();
 		if (Data.players.containsKey(p)) {
+			if (Data.players.get(p).isInLastStand())
+				event.setCancelled(true);
 			for (GameBarrier b : Data.barrierpanels.keySet()) {
 				Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
 				for (Location l : s.getLocations()) {

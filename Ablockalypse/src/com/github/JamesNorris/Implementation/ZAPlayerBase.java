@@ -12,9 +12,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.Inventory;
@@ -29,6 +27,7 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SoundManager;
 import com.github.JamesNorris.Manager.SoundManager.ZASound;
 import com.github.JamesNorris.Threading.LastStandThread;
+import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.ControlledEffect;
 import com.github.JamesNorris.Util.Square;
 import com.github.JamesNorris.Util.MiscUtil;
@@ -48,7 +47,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
 	private SoundManager sound;
-	private Item i;
 	private Location before;
 
 	/**
@@ -67,6 +65,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		this.point = new HashMap<String, Integer>();
 		this.sound = new SoundManager(player);
 		Data.players.put(player, this);
+		player.setLevel(1);
 		if (game.getLevel() == 0)
 			game.nextLevel();
 	}
@@ -150,21 +149,20 @@ public class ZAPlayerBase implements ZAPlayer {
 		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				Square s = new Square(loc, radius);
-				List<Location> locs = s.getLocations();
 				for (GameUndead gz : Data.zombies) {
-					Zombie z = gz.getZombie();
-					if (locs.contains(z.getLocation())) {
+					if (gz.getGame() == this.getGame()) {
+						Zombie z = gz.getZombie();
 						int prev = game.getRemainingMobs();
+						z.getWorld().playEffect(z.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
 						z.remove();
 						if (prev < game.getRemainingMobs())
 							game.subtractMobCount();
-						for (String s2 : game.getPlayers()) {
-							Player p = Bukkit.getPlayer(s2);
-							ZAPlayer zap = Data.findZAPlayer(p, game.getName());
-							zap.addPoints(cd.atompoints);
-						}
 					}
+				}
+				for (String s2 : game.getPlayers()) {
+					Player p = Bukkit.getPlayer(s2);
+					ZAPlayer zap = Data.findZAPlayer(p, game.getName());
+					zap.addPoints(cd.atompoints);
 				}
 				if (cd.effects)
 					new ControlledEffect(player.getWorld(), Effect.MOBSPAWNER_FLAMES, radius, 1, loc, true);
@@ -287,6 +285,8 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * Restoring the player status to the last saved status before the game.
 	 */
 	private void restoreStatus() {
+		if (laststand)
+			toggleLastStand();
 		player.setGameMode(gm);
 		player.teleport(before);
 		player.getInventory().clear();
@@ -302,8 +302,6 @@ public class ZAPlayerBase implements ZAPlayer {
 		player.setFireTicks(fire);
 		player.setFallDistance(fall);
 		player.setExhaustion(exhaust);
-		if (laststand)
-			toggleLastStand();
 	}
 
 	/*
@@ -344,7 +342,7 @@ public class ZAPlayerBase implements ZAPlayer {
 			sound.generateSound(ZASound.TELEPORT);
 		}
 		if (cd.DEBUG)
-			System.out.println("[Ablockalypse] [DEBUG] Teleport reason: (" + game.getName() + ") " + reason);// TODO remove TEST
+			System.out.println("[Ablockalypse] [DEBUG] Teleport reason: (" + game.getName() + ") " + reason);
 	}
 
 	/**
@@ -365,18 +363,18 @@ public class ZAPlayerBase implements ZAPlayer {
 			Entity v = player.getVehicle();
 			if (v != null)
 				v.remove();
-			i = player.getWorld().dropItemNaturally(player.getLocation(), new ItemStack(Material.PUMPKIN_STEM, 1));
-			i.setPickupDelay(Integer.MAX_VALUE);
-			i.setPassenger(player);
-			player.setFoodLevel(10);
+			player.setFoodLevel(5);
 			sound.generateSound(ZASound.LAST_STAND);
+			Breakable.setSitting(player, true);
 			new LastStandThread((ZAPlayer) this, true);
 			if (cd.losePerksLastStand)
 				player.getActivePotionEffects().clear();
 		} else {
 			laststand = false;
-			i.remove();
-			player.setFoodLevel(6);
+			Breakable.setSitting(player, false);
+			if (player.getVehicle() != null)
+				player.getVehicle().remove();
+			player.setFoodLevel(5);
 			Entity v = player.getVehicle();
 			if (v != null)
 				v.remove();

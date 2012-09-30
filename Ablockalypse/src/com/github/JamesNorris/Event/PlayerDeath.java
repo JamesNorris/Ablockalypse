@@ -18,6 +18,7 @@ public class PlayerDeath implements Listener {
 	@EventHandler public void PDE(PlayerDeathEvent event) {
 		Player p = event.getEntity();
 		if (Data.players.containsKey(p)) {
+			event.getDrops().clear();
 			ZAPlayerBase zap = Data.players.get(p);
 			if (!zap.isInLimbo())
 				zap.toggleLimbo();

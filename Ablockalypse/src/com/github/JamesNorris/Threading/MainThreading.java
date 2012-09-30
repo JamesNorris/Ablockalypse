@@ -18,7 +18,7 @@ import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Util.Square;
 
 public class MainThreading {
-	private int id1, id2, id3, id4, id5;
+	private int id1, id2, id3, id4;
 	private Ablockalypse instance;
 
 	/**
@@ -64,14 +64,14 @@ public class MainThreading {
 		id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			public void run() {
 				for (Player p : Data.players.keySet()) {
-					for (Entity e : p.getNearbyEntities(15, 15, 15)) {
+					for (Entity e : p.getNearbyEntities(32, 32, 32)) {
 						if (e.getType() == EntityType.SLIME || !Data.isZAMob(e)) {
 							e.remove();
 						}
 					}
 				}
 			}
-		}, 40, 40);
+		}, 60, 60);
 	}
 
 	/**

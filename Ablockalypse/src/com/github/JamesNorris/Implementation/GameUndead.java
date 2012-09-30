@@ -13,10 +13,10 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Util.Breakable;
 
 public class GameUndead extends Entity implements Undead {
-	private boolean fire;
 	private Player target;
 	private Zombie zombie;
 	private ZAGame game;
+	private int healthupdate;
 	public boolean killed;
 
 	/**
@@ -28,6 +28,7 @@ public class GameUndead extends Entity implements Undead {
 		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
 		this.game = game;
+		this.healthupdate = game.getLevel();
 		if (this.fireProof == false)
 			setFireProof(true);
 		if (!Data.zombies.contains(this))
@@ -65,16 +66,7 @@ public class GameUndead extends Entity implements Undead {
 	 * @category breakable This is subject to break
 	 */
 	@Override public void increaseSpeed() {
-		this.setSprinting(true);// TODO this doesn't work. Find a way to improve zombie speed.
-	}
-
-	/**
-	 * Checks if the zombie in this instance is on fire or not.
-	 * 
-	 * @return Whether or not the zombie is on fire
-	 */
-	@Override public boolean isOnFire() {
-		return fire;
+		// TODO this doesn't work. Find a way to improve zombie speed.
 	}
 
 	/**
@@ -112,6 +104,16 @@ public class GameUndead extends Entity implements Undead {
 	@Override public void finalize() {
 		if (!killed) {
 			game.subtractMobCount();
+		}
+	}
+
+	/**
+	 * Attempts to increase the mob health depending on the level the zombie is on.
+	 */
+	@Override public void attemptHealthIncrease() {
+		if (healthupdate > 0 && zombie.getHealth() <= 15) {
+			--healthupdate;
+			zombie.setHealth(20);
 		}
 	}
 

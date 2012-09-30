@@ -32,13 +32,6 @@ public interface Undead {
 	public void increaseSpeed();
 
 	/**
-	 * Checks if the zombie in this instance is on fire or not.
-	 * 
-	 * @return Whether or not the zombie is on fire
-	 */
-	public boolean isOnFire();
-
-	/**
 	 * Sets the zombie health. Mostly used for increasing health through the levels.
 	 * 
 	 * @param amt The amount of health to give to the zombie
@@ -56,4 +49,9 @@ public interface Undead {
 	 * @return The game the zombie is in.
 	 */
 	public ZAGame getGame();
+
+	/**
+	 * Attempts to increase the mob health depending on the level the zombie is on.
+	 */
+	public void attemptHealthIncrease();
 }
