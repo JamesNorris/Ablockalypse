@@ -14,7 +14,7 @@ public class GameData {
 	 */
 	public GameData() {
 		FileConfiguration g = External.getConfig(External.g, External.games);
-		games = g.getStringList("Current ZA Games");
+		games = g.getStringList("Current_ZA_Games");
 	}
 
 	/**

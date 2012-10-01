@@ -15,6 +15,10 @@ import com.github.JamesNorris.Interface.ZAPlayer;
  * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
  */
 public class MiscUtil {
+	public enum GameEntityType {
+		HELLHOUND, UNDEAD;
+	}
+
 	public enum PowerupType {
 		ATOM_BOMB, BARRIER_FIX, WEAPON_FIX;
 	}

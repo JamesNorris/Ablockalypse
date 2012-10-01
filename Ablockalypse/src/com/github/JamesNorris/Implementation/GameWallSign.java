@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Implementation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -15,6 +16,7 @@ import org.bukkit.potion.PotionEffectType;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Interface.WallSign;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -109,12 +111,12 @@ public class GameWallSign implements WallSign {
 			/* Attempts to add the player to a game if the second line has the join string */
 			if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
 				if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
-					setupPlayerWithGame(l3, player);
+					setupPlayerWithGame(l3, player, true);
 					if (cd.effects)
 						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 					return;
 				} else if (Data.games.containsKey(l3)) {
-					setupPlayerWithGame(l3, player);
+					setupPlayerWithGame(l3, player, false);
 					if (cd.effects)
 						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
 					return;
@@ -225,10 +227,18 @@ public class GameWallSign implements WallSign {
 	/*
 	 * Checks for the game and player to create a new game instance and player instance.
 	 */
-	private void setupPlayerWithGame(String name, Player player) {
+	private void setupPlayerWithGame(String name, Player player, boolean created) {
 		ZAGame zag = Data.findGame(l3);
-		zag.setSpawn(player.getLocation());// TODO remove this when we have a proper spawn-setting system
+		if (created) {
+			zag.setSpawn(player.getLocation());// TODO remove this when we have a proper spawn-setting system
+		}
 		ZAPlayer zap = Data.findZAPlayer(player, l3);
-		zap.loadPlayerToGame(l3);
+		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
+		Bukkit.getServer().getPluginManager().callEvent(gce);
+		if (!gce.isCancelled()) {
+			zap.loadPlayerToGame(l3);
+		} else {
+			zag.endGame();
+		}
 	}
 }

@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 public class SoundManager {
 	public enum ZASound {
-		ACHIEVEMENT, DEATH, END, LAST_STAND, START, TELEPORT, NEXT_LEVEL, PREV_LEVEL;
+		ACHIEVEMENT, DEATH, END, LAST_STAND, NEXT_LEVEL, PREV_LEVEL, START, TELEPORT;
 	}
 
 	private Player player;

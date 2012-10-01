@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import com.github.JamesNorris.Manager.SpawnManager;
 
 public interface ZAGame {
+	public void addMobCount();
+
 	public void addPlayer(Player player);
 
 	public void endGame();
@@ -18,6 +20,8 @@ public interface ZAGame {
 
 	public Set<String> getPlayers();
 
+	public Player getRandomLivingPlayer();
+
 	public Player getRandomPlayer();
 
 	public int getRemainingMobs();
@@ -26,13 +30,11 @@ public interface ZAGame {
 
 	public Location getSpawn();
 
+	public SpawnManager getSpawnManager();
+
 	public boolean isWolfRound();
 
 	public void nextLevel();
-
-	public void addMobCount();
-
-	public void subtractMobCount();
 
 	public void removePlayer(Player player);
 
@@ -42,7 +44,5 @@ public interface ZAGame {
 
 	public void setSpawn(Location location);
 
-	public SpawnManager getSpawnManager();
-
-	public Player getRandomLivingPlayer();
+	public void subtractMobCount();
 }

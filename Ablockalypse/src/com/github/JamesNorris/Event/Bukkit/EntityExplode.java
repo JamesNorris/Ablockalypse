@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;

@@ -6,13 +6,13 @@ import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Util.ControlledEffect;
+import com.github.JamesNorris.Util.Square;
 
 public class GameBarrier implements Barrier {
 	private List<Block> blocks;
@@ -32,11 +32,11 @@ public class GameBarrier implements Barrier {
 			Data.barriers.add(center.getLocation());
 		if (!Data.gamebarriers.contains(this))
 			Data.gamebarriers.add(this);
-		for (BlockFace bf : new BlockFace[] {BlockFace.DOWN, BlockFace.UP, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH_EAST, BlockFace.SOUTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_WEST}) {
-			Block b = center.getRelative(bf);
+		Square s = new Square(center.getLocation(), 1);
+		for (Location loc : s.getLocations()) {
+			Block b = loc.getBlock();
 			if (b.getType() == Material.FENCE) {
 				blocks.add(b);
-				Data.barrierpanels.put(this, b.getLocation());
 			}
 		}
 	}

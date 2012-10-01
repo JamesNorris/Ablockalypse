@@ -98,6 +98,6 @@ public class MobSpawnThread {
 					}
 				}
 			}
-		}, 60, 60);
+		}, 120, 120);
 	}
 }

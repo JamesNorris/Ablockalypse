@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
 
 import java.util.Random;
 
@@ -16,8 +16,7 @@ import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
-import com.github.JamesNorris.Interface.HellHound;
-import com.github.JamesNorris.Interface.Undead;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Util.MiscUtil;
 
 public class EntityDeath implements Listener {
@@ -39,12 +38,12 @@ public class EntityDeath implements Listener {
 			event.getDrops().clear();
 			event.setDroppedExp(0);
 			if (e instanceof Zombie) {
-				Undead u = Data.getUndead(e);
+				ZAMob u = Data.getZAMob(e);
 				GameUndead gu = (GameUndead) u;
 				gu.killed = true;
 				u.getGame().subtractMobCount();
 			} else if (e instanceof Wolf) {
-				HellHound h = Data.getHellHound(e);
+				ZAMob h = Data.getZAMob(e);
 				GameHellHound gh = (GameHellHound) h;
 				gh.killed = true;
 				h.getGame().subtractMobCount();

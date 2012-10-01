@@ -22,6 +22,7 @@ import org.bukkit.potion.PotionEffect;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SoundManager;
@@ -32,9 +33,9 @@ import com.github.JamesNorris.Util.ControlledEffect;
 import com.github.JamesNorris.Util.Square;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
-import com.github.iKeirNez.Util.StartingItems;
 
 public class ZAPlayerBase implements ZAPlayer {
+	private Location before;
 	private ConfigurationData cd;
 	private float exp, saturation, fall, exhaust;
 	private ZAGame game;
@@ -47,7 +48,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
 	private SoundManager sound;
-	private Location before;
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -149,7 +149,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				for (GameUndead gz : Data.zombies) {
+				for (GameUndead gz : Data.undead) {
 					if (gz.getGame() == this.getGame()) {
 						Zombie z = gz.getZombie();
 						int prev = game.getRemainingMobs();
@@ -359,25 +359,33 @@ public class ZAPlayerBase implements ZAPlayer {
 	 */
 	@Override public void toggleLastStand() {
 		if (!laststand) {
-			laststand = true;
-			Entity v = player.getVehicle();
-			if (v != null)
-				v.remove();
-			player.setFoodLevel(5);
-			sound.generateSound(ZASound.LAST_STAND);
-			Breakable.setSitting(player, true);
-			new LastStandThread((ZAPlayer) this, true);
-			if (cd.losePerksLastStand)
-				player.getActivePotionEffects().clear();
+			LastStandEvent lse = new LastStandEvent(player, this, true);
+			Bukkit.getServer().getPluginManager().callEvent(lse);
+			if (!lse.isCancelled()) {
+				laststand = true;
+				Entity v = player.getVehicle();
+				if (v != null)
+					v.remove();
+				player.setFoodLevel(5);
+				sound.generateSound(ZASound.LAST_STAND);
+				Breakable.setSitting(player, true);
+				new LastStandThread((ZAPlayer) this, true);
+				if (cd.losePerksLastStand)
+					player.getActivePotionEffects().clear();
+			}
 		} else {
-			laststand = false;
-			Breakable.setSitting(player, false);
-			if (player.getVehicle() != null)
-				player.getVehicle().remove();
-			player.setFoodLevel(5);
-			Entity v = player.getVehicle();
-			if (v != null)
-				v.remove();
+			LastStandEvent lse = new LastStandEvent(player, this, false);
+			Bukkit.getServer().getPluginManager().callEvent(lse);
+			if (!lse.isCancelled()) {
+				laststand = false;
+				Breakable.setSitting(player, false);
+				if (player.getVehicle() != null)
+					player.getVehicle().remove();
+				player.setFoodLevel(5);
+				Entity v = player.getVehicle();
+				if (v != null)
+					v.remove();
+			}
 		}
 	}
 

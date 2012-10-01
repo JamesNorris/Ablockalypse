@@ -17,10 +17,10 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 public class TeleportThread {
 	private ConfigurationData cd;
 	private Ablockalypse instance;
+	private Location loc;
 	private Player player;
 	private int time, id;
 	private ZAPlayer zaplayer;
-	private Location loc;
 
 	/**
 	 * Creates an instance of the thread for teleporting a player.
@@ -45,16 +45,6 @@ public class TeleportThread {
 	 */
 	protected void cancel() {
 		Bukkit.getScheduler().cancelTask(id);
-	}
-
-	/*
-	 * Checks if the player is in roughly the same location as they were when they started the thread.
-	 */
-	private boolean sameLocation() {
-		if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ()) {
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -90,5 +80,15 @@ public class TeleportThread {
 			m = null;
 		for (Field f : this.getClass().getDeclaredFields())
 			f = null;
+	}
+
+	/*
+	 * Checks if the player is in roughly the same location as they were when they started the thread.
+	 */
+	private boolean sameLocation() {
+		if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ()) {
+			return true;
+		}
+		return false;
 	}
 }

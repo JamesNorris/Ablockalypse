@@ -29,8 +29,8 @@ public class ZAGameBase implements ZAGame {
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
 	private Random rand;
 	private Location spawn;
-	private boolean wolfRound;
 	private SpawnManager spawnManager;
+	private boolean wolfRound;
 
 	/**
 	 * Creates a new instance of a game.
@@ -44,16 +44,14 @@ public class ZAGameBase implements ZAGame {
 		this.cd = cd;
 		rand = new Random();
 		Data.games.put(name, this);
-		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started", XMPPType.ZA_GAME_START);
+		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
 	/**
-	 * Gets the manager that affects spawn for this game.
-	 * 
-	 * @return The SpawnManager instance associated with this game
+	 * Adds one to the mob count.
 	 */
-	@Override public SpawnManager getSpawnManager() {
-		return spawnManager;
+	@Override public void addMobCount() {
+		++mobs;
 	}
 
 	/**
@@ -66,6 +64,9 @@ public class ZAGameBase implements ZAGame {
 		players.put(player.getName(), cd.startpoints);
 	}
 
+	/**
+	 * Ends the game, removes all attached instances, and finalizes this instance.
+	 */
 	@Override public void endGame() {
 		for (String name : getPlayers()) {
 			Player player = Bukkit.getServer().getPlayer(name);
@@ -73,6 +74,16 @@ public class ZAGameBase implements ZAGame {
 			player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
 			zap.getSoundManager().generateSound(ZASound.END);
 			removePlayer(player);
+		}
+		for (GameUndead gu : Data.undead) {
+			if (gu.getGame() == this) {
+				gu.kill();
+			}
+		}
+		for (GameHellHound ghh : Data.hellhounds) {
+			if (ghh.getGame() == this) {
+				ghh.kill();
+			}
 		}
 		Data.games.remove(getName());
 		finalize();
@@ -114,12 +125,13 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Returns a random player from this game.
+	 * Gets a random living player.
+	 * Living is considered as not in limbo, last stand, respawn thread, or death.
 	 * 
-	 * @return The random player from this game
+	 * @return The random living player
 	 */
-	@Override public Player getRandomPlayer() {
-		int i = rand.nextInt(players.size()) + 1;
+	@Override public Player getRandomLivingPlayer() {
+		int i = rand.nextInt(getRemainingPlayers()) + 1;
 		Player p = null;
 		for (int j = 0; j <= i; j++) {
 			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
@@ -128,13 +140,12 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Gets a random living player.
-	 * Living is considered as not in limbo, last stand, respawn thread, or death.
+	 * Returns a random player from this game.
 	 * 
-	 * @return The random living player
+	 * @return The random player from this game
 	 */
-	@Override public Player getRandomLivingPlayer() {
-		int i = rand.nextInt(getRemainingPlayers()) + 1;
+	@Override public Player getRandomPlayer() {
+		int i = rand.nextInt(players.size()) + 1;
 		Player p = null;
 		for (int j = 0; j <= i; j++) {
 			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
@@ -171,6 +182,15 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
+	 * Gets the manager that affects spawn for this game.
+	 * 
+	 * @return The SpawnManager instance associated with this game
+	 */
+	@Override public SpawnManager getSpawnManager() {
+		return spawnManager;
+	}
+
+	/**
 	 * Returns true if the current round is a wolf round.
 	 * 
 	 * @return Whether or not the current round is a wolf round
@@ -200,13 +220,6 @@ public class ZAGameBase implements ZAGame {
 			wolfRound = true;
 		new NextLevelThread(this, true);
 		new MobSpawnThread(this, true);
-	}
-
-	/**
-	 * Removes one from the mob count.
-	 */
-	@Override public void subtractMobCount() {
-		--mobs;
 	}
 
 	/**
@@ -259,9 +272,9 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Adds one to the mob count.
+	 * Removes one from the mob count.
 	 */
-	@Override public void addMobCount() {
-		++mobs;
+	@Override public void subtractMobCount() {
+		--mobs;
 	}
 }

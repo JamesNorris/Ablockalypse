@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

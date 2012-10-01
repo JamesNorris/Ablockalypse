@@ -27,7 +27,7 @@ public class NextLevelThread {
 		this.game = game;
 		this.instance = Ablockalypse.instance;
 		this.played = false;
-		this.counter = 10;
+		this.counter = 2;
 		if (nextlevel)
 			waitForNextLevel();
 	}
@@ -75,6 +75,6 @@ public class NextLevelThread {
 					}
 				}
 			}
-		}, 20, 20);
+		}, 80, 80);
 	}
 }

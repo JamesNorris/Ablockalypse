@@ -1,5 +1,6 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
 
+import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,9 @@ public class EntityDamage implements Listener {
 	 */
 	@EventHandler public void EDE(EntityDamageEvent event) {
 		Entity e = event.getEntity();
-		if (Data.isZAMob(e) && e instanceof Zombie) {
+		if (e != null && e instanceof CraftZombie)
+			e = (Zombie) e;
+		if (e != null && Data.isZAMob(e) && e instanceof Zombie) {
 			GameUndead u = (GameUndead) Data.getUndead(e);
 			u.attemptHealthIncrease();
 			if (event.getCause() == DamageCause.ENTITY_EXPLOSION)

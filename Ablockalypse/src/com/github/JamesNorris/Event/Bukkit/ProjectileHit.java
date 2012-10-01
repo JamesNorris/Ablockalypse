@@ -1,4 +1,4 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -18,8 +18,8 @@ import org.bukkit.util.Vector;
 import com.github.JamesNorris.Data.Data;
 
 public class ProjectileHit implements Listener {
-	private int yield = 2;// Can be changed to make a larger explosion.
 	public static ArrayList<UUID> uuids;
+	private int yield = 2;// Can be changed to make a larger explosion.
 
 	public ProjectileHit() {
 		ProjectileHit.uuids = new ArrayList<UUID>();

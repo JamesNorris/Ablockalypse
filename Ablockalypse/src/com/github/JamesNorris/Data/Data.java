@@ -8,6 +8,8 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.entity.CraftWolf;
+import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
@@ -25,28 +27,30 @@ import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.Square;
 
 public class Data {
 	public static HashMap<Block, GameArea> areas = new HashMap<Block, GameArea>();;
-	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
 	public static List<String> authors;
+	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
 	public static ArrayList<Location> barriers = new ArrayList<Location>();
 	public static String description;
 	public static ArrayList<GameBarrier> gamebarriers = new ArrayList<GameBarrier>();
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
 	public static HashMap<String, ZAGameBase> games = new HashMap<String, ZAGameBase>();
+	public static ArrayList<GameHellHound> hellhounds = new ArrayList<GameHellHound>();
 	public static HashMap<Location, Boolean> loadedareas = new HashMap<Location, Boolean>();
 	public static HashMap<String, Location> mainframes = new HashMap<String, Location>();
+	public static ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
+	public static HashMap<String, String> playergames = new HashMap<String, String>();
 	public static HashMap<String, HashMap<String, Integer>> playerPoints = new HashMap<String, HashMap<String, Integer>>();
 	public static HashMap<Player, ZAPlayerBase> players = new HashMap<Player, ZAPlayerBase>();
-	public static HashMap<String, String> playergames = new HashMap<String, String>();
 	public static Ablockalypse plugin;
 	public static HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
+	public static ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
 	public static String version;
-	public static ArrayList<GameHellHound> wolves = new ArrayList<GameHellHound>();
-	public static ArrayList<GameUndead> zombies = new ArrayList<GameUndead>();
 
 	/**
 	 * Checks if the square exists, if not, creates a new square with the specified location and radius.
@@ -65,67 +69,6 @@ public class Data {
 			Data.squares.put((GameBarrier) b, s);
 		}
 		return s;
-	}
-
-	/**
-	 * Checks if the specified entity is a ZA entity
-	 * 
-	 * @param e The entity to check for
-	 * @return Whether or not the entity is a ZA entity
-	 */
-	public static boolean isZAMob(Entity e) {
-		if (e instanceof Wolf) {
-			for (GameHellHound gh : Data.wolves) {
-				if (gh.getWolf().getEntityId() == e.getEntityId())
-					return true;
-			}
-		} else if (e instanceof Zombie) {
-			for (GameUndead gu : Data.zombies) {
-				if (gu.getZombie().getEntityId() == e.getEntityId())
-					return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Gets a GameUndead instance associated with the provided entity.
-	 * 
-	 * @param e The entity to check for
-	 * @return The GameUndead instance of the entity
-	 */
-	public static Undead getUndead(Entity e) {
-		for (GameUndead gu : Data.zombies) {
-			if (gu.getZombie().getEntityId() == e.getEntityId())
-				return (Undead) gu;
-		}
-		return null;
-	}
-
-	/**
-	 * Gets a HellHound instance associated with the provided entity.
-	 * 
-	 * @param e The entity to check for
-	 * @return The HellHound instance of the entity
-	 */
-	public static HellHound getHellHound(Entity e) {
-		for (HellHound hh : Data.wolves) {
-			if (hh.getWolf().getEntityId() == e.getEntityId())
-				return (HellHound) hh;
-		}
-		return null;
-	}
-
-	/**
-	 * Refreshes the data in the Data class.
-	 */
-	public static void refresh() {
-		for (ZAPlayerBase zap : Data.players.values()) {
-			String s1 = zap.getGame().getName();
-			String s2 = zap.getName();
-			if (!playergames.containsValue(s2))
-				playergames.put(s1, s2);
-		}
 	}
 
 	/**
@@ -171,6 +114,81 @@ public class Data {
 	}
 
 	/**
+	 * Gets a HellHound instance associated with the provided entity.
+	 * 
+	 * @param e The entity to check for
+	 * @return The HellHound instance of the entity
+	 */
+	public static HellHound getHellHound(Entity e) {
+		for (HellHound hh : Data.hellhounds) {
+			if (hh.getWolf().getEntityId() == e.getEntityId())
+				return (HellHound) hh;
+		}
+		return null;
+	}
+
+	/**
+	 * Gets a GameUndead instance associated with the provided entity.
+	 * 
+	 * @param e The entity to check for
+	 * @return The GameUndead instance of the entity
+	 */
+	public static Undead getUndead(Entity e) {
+		for (GameUndead gu : Data.undead) {
+			if (gu.getZombie().getEntityId() == e.getEntityId())
+				return (Undead) gu;
+		}
+		return null;
+	}
+
+	public static ZAMob getZAMob(Entity e) {
+		if (e instanceof Zombie) {
+			for (GameUndead gu : Data.undead) {
+				if (gu.getZombie().getEntityId() == e.getEntityId())
+					return (ZAMob) gu;
+			}
+		} else if (e instanceof Wolf) {
+			for (GameHellHound ghh : Data.hellhounds) {
+				if (ghh.getWolf().getEntityId() == e.getEntityId())
+					return (ZAMob) ghh;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the mobs currently alive on the server.
+	 * 
+	 * @return All ZA mobs
+	 */
+	public static ArrayList<ZAMob> getZAMobs() {
+		return mobs;
+	}
+
+	/**
+	 * Checks if the specified entity is a ZA entity
+	 * 
+	 * @param e The entity to check for
+	 * @return Whether or not the entity is a ZA entity
+	 */
+	public static boolean isZAMob(Entity e) {
+		if (e != null) {
+			if ((e instanceof Wolf || e instanceof CraftWolf) && Data.hellhounds != null) {
+				for (GameHellHound gh : Data.hellhounds) {
+					if (gh.getWolf().getEntityId() == e.getEntityId())
+						return true;
+				}
+			} else if ((e instanceof Zombie || e instanceof CraftZombie) && Data.undead != null) {
+				for (GameUndead gu : Data.undead) {
+					if (gu.getZombie().getEntityId() == e.getEntityId())
+						return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Checks if the specified player exists.
 	 * 
 	 * @param player The player to check for
@@ -180,6 +198,18 @@ public class Data {
 		if (Data.players.containsKey(player))
 			return true;
 		return false;
+	}
+
+	/**
+	 * Refreshes the data in the Data class.
+	 */
+	public static void refresh() {
+		for (ZAPlayerBase zap : Data.players.values()) {
+			String s1 = zap.getGame().getName();
+			String s2 = zap.getName();
+			if (!playergames.containsValue(s2))
+				playergames.put(s1, s2);
+		}
 	}
 
 	/**

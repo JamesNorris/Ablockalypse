@@ -1,4 +1,7 @@
-package com.github.JamesNorris.Event;
+package com.github.JamesNorris.Event.Bukkit;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,6 +24,7 @@ import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
 
 public class PlayerInteract implements Listener {
+	public static List<String> barrierPlayers = new ArrayList<String>();
 	private ConfigurationData cd;
 	private YamlManager ym;
 
@@ -39,7 +43,36 @@ public class PlayerInteract implements Listener {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if (b != null) {
-			if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
+			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName())) {
+				// TODO all you really have to do is create a new barrier instance... see GameBarrier.java
+				// Square s = new Square(b.getLocation(), 1);
+				// List<Integer> xs = new ArrayList<Integer>();
+				// List<Integer> zs = new ArrayList<Integer>();
+				// for (Location l : s.getLocations()) {
+				// if (l.getBlock().getType() == Material.FENCE) {
+				// xs.add(l.getBlockX());
+				// zs.add(l.getBlockZ());
+				// }
+				// }
+				// HashMap<Integer, Integer> x = new HashMap<Integer, Integer>();
+				// for (int i : xs) {
+				// int origCount = 1;
+				// if (x.containsKey(i)) {
+				// origCount = x.get(i);
+				// x.remove(i);
+				// }
+				// x.put(i, origCount);
+				// }
+				// HashMap<Integer, Integer> z = new HashMap<Integer, Integer>();
+				// for (int i : zs) {
+				// int origCount = 1;
+				// if (z.containsKey(i)) {
+				// origCount = z.get(i);
+				// z.remove(i);
+				// }
+				// z.put(i, origCount);
+				// }
+			} else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
 				event.setUseInteractedBlock(Result.DENY);
 				Sign s = (Sign) b.getState();
 				GameWallSign zas;

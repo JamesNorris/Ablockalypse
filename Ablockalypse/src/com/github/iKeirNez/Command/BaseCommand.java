@@ -1,5 +1,6 @@
 package com.github.iKeirNez.Command;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -9,6 +10,7 @@ import org.bukkit.entity.Player;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -67,7 +69,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						zag.removePlayer(player);
 						return true;
 					} else {
-						sender.sendMessage(ChatColor.RED + "You must be in an Ablockalypse game to do that!");
+						sender.sendMessage(ChatColor.RED + "You must be in a game to do that!");
 						return true;
 					}
 				} else {
@@ -81,8 +83,14 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						sender.sendMessage(ChatColor.RED + "You don't have permission to create games!");
 						return true;
 					} else {
-						new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
-						sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
+						ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
+						GameCreateEvent gce = new GameCreateEvent(zag, sender, null);
+						Bukkit.getServer().getPluginManager().callEvent(gce);
+						if (!gce.isCancelled()) {
+							sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
+						} else {
+							zag.endGame();
+						}
 						return true;
 					}
 				} else {
