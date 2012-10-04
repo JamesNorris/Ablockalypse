@@ -17,6 +17,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.GameWallSign;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
@@ -27,10 +29,12 @@ public class PlayerInteract implements Listener {
 	public static List<String> barrierPlayers = new ArrayList<String>();
 	private ConfigurationData cd;
 	private YamlManager ym;
+	private LocalizationData ld;
 
 	public PlayerInteract() {
-		ym = External.getYamlManager();
-		cd = ym.getConfigurationData();
+		this.ym = External.getYamlManager();
+		this.cd = ym.getConfigurationData();
+		this.ld = ym.getLocalizationData();
 	}
 
 	/*
@@ -44,44 +48,20 @@ public class PlayerInteract implements Listener {
 		Player p = event.getPlayer();
 		if (b != null) {
 			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName())) {
-				// TODO all you really have to do is create a new barrier instance... see GameBarrier.java
-				// Square s = new Square(b.getLocation(), 1);
-				// List<Integer> xs = new ArrayList<Integer>();
-				// List<Integer> zs = new ArrayList<Integer>();
-				// for (Location l : s.getLocations()) {
-				// if (l.getBlock().getType() == Material.FENCE) {
-				// xs.add(l.getBlockX());
-				// zs.add(l.getBlockZ());
-				// }
-				// }
-				// HashMap<Integer, Integer> x = new HashMap<Integer, Integer>();
-				// for (int i : xs) {
-				// int origCount = 1;
-				// if (x.containsKey(i)) {
-				// origCount = x.get(i);
-				// x.remove(i);
-				// }
-				// x.put(i, origCount);
-				// }
-				// HashMap<Integer, Integer> z = new HashMap<Integer, Integer>();
-				// for (int i : zs) {
-				// int origCount = 1;
-				// if (z.containsKey(i)) {
-				// origCount = z.get(i);
-				// z.remove(i);
-				// }
-				// z.put(i, origCount);
-				// }
+				new GameBarrier(b);
 			} else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
 				event.setUseInteractedBlock(Result.DENY);
 				Sign s = (Sign) b.getState();
-				GameWallSign zas;
-				if (!(s instanceof GameWallSign)) {
-					zas = new GameWallSign(s, ym);
-				} else {
-					zas = (GameWallSign) s;
+				if (s.getLine(0).equalsIgnoreCase(ld.first)) {
+					GameWallSign zas;
+					if (!(s instanceof GameWallSign)) {
+						zas = new GameWallSign(s, ym);
+					} else {
+						zas = (GameWallSign) s;
+					}
+					zas.runLines(p);
+					return;
 				}
-				zas.runLines(p);
 				return;
 			} else if (Data.players.containsKey(p)) {
 				event.setUseInteractedBlock(Result.DENY);

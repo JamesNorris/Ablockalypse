@@ -2,7 +2,6 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.Random;
 
-import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
@@ -12,9 +11,11 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.MysteryChest;
-import com.github.JamesNorris.Manager.SoundManager.ZASound;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
 public class GameMysteryChest implements MysteryChest {
 	private ConfigurationData cd;
@@ -63,9 +64,9 @@ public class GameMysteryChest implements MysteryChest {
 			inv.addItem(new ItemStack(Material.WOOD_SWORD, 1));
 		else
 			inv.addItem(new ItemStack(Material.ENDER_PEARL, 10));
-		if (cd.effects) {
-			Data.players.get(p).getSoundManager().generateSound(ZASound.ACHIEVEMENT);
-			chest.getWorld().playEffect(chest.getLocation(), Effect.POTION_BREAK, 1);
+		if (cd.extraEffects) {
+			SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
+			EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 		}
 	}
 }

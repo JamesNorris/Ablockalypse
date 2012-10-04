@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 
-import com.github.JamesNorris.External;
 import com.github.JamesNorris.Event.GameMobSpawnEvent;
 import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
@@ -95,19 +94,13 @@ public class SpawnManager {
 			GameMobSpawnEvent gmse = new GameMobSpawnEvent(e, game, GameEntityType.UNDEAD);
 			Bukkit.getServer().getPluginManager().callEvent(gmse);
 			if (!gmse.isCancelled()) {
-				GameUndead gu = new GameUndead((Zombie) e, game);
-				if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-					gu.setSpeed(.055);
-				game.addMobCount();
+				new GameUndead((Zombie) e, game);
 			}
 		} else if (et == EntityType.WOLF) {
 			GameMobSpawnEvent gmse = new GameMobSpawnEvent(e, game, GameEntityType.HELLHOUND);
 			Bukkit.getServer().getPluginManager().callEvent(gmse);
 			if (!gmse.isCancelled()) {
-				GameHellHound ghh = new GameHellHound((Wolf) e, game);
-				if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-					ghh.setSpeed(.065);
-				game.addMobCount();
+				new GameHellHound((Wolf) e, game);
 			}
 		}
 	}

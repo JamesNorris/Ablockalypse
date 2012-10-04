@@ -1,9 +1,10 @@
 package com.github.JamesNorris.Interface;
 
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.MobTargetter;
+import com.github.JamesNorris.Threading.MobTargettingThread;
 
 public interface ZAMob {
 	/**
@@ -37,7 +38,7 @@ public interface ZAMob {
 	 * 
 	 * @return The targetter attached to this instance
 	 */
-	public MobTargetter getTargetter();
+	public MobTargettingThread getTargetter();
 
 	/**
 	 * Gets the world this mob is located in.
@@ -72,4 +73,11 @@ public interface ZAMob {
 	 * @param p The player to target
 	 */
 	public void setTarget(Player p);
+
+	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	public Entity getEntity();
 }

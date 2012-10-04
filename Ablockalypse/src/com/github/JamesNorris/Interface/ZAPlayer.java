@@ -2,7 +2,6 @@ package com.github.JamesNorris.Interface;
 
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.Manager.SoundManager;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 
 public interface ZAPlayer {
@@ -15,8 +14,6 @@ public interface ZAPlayer {
 	public Player getPlayer();
 
 	public int getPoints();
-
-	public SoundManager getSoundManager();
 
 	public void givePowerup(PowerupType type);
 

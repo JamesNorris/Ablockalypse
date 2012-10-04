@@ -14,7 +14,7 @@ import com.github.Ablockalypse;
 public class ConfigurationData {
 	public int buyLevel, woodSwordLevel, stoneSwordLevel, ironSwordLevel, diamondSwordLevel, goldSwordLevel, grenadeLevel;
 	public int cost, enchDamageCost, enchRandomCost, powerrad;
-	public boolean DEBUG, ENABLE_AUTO_UPDATE, effects;
+	public boolean DEBUG, ENABLE_AUTO_UPDATE, extraEffects;
 	public Enchantment enchant;
 	public int heallevel, speedlevel, damagelevel, regenlevel;
 	public int healPoints, speedPoints, damagePoints, regenPoints;
@@ -80,7 +80,7 @@ public class ConfigurationData {
 		helppoints = cf.getInt("pointsGivenOnHelp");
 		doubleSpeedLevel = cf.getInt("doubleSpeedLevel");
 		wolfLevels = cf.getIntegerList("wolfLevels");
-		effects = cf.getBoolean("addedEffects");
+		extraEffects = cf.getBoolean("addedEffects");
 		powerrad = cf.getInt("powerupRadius");
 		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");

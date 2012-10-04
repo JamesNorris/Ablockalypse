@@ -5,17 +5,15 @@ import java.lang.reflect.Method;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 
 public class TeleportThread {
-	private ConfigurationData cd;
 	private Ablockalypse instance;
 	private Location loc;
 	private Player player;
@@ -34,7 +32,6 @@ public class TeleportThread {
 		this.time = time;
 		player = zaplayer.getPlayer();
 		instance = Ablockalypse.instance;
-		cd = External.ym.getConfigurationData();
 		this.loc = zaplayer.getPlayer().getLocation();
 		if (countdown)
 			countdown();
@@ -54,18 +51,17 @@ public class TeleportThread {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				if (time != 0) {
-					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
 					if (!sameLocation()) {
 						cancel();
 						player.sendMessage(ChatColor.GRAY + "Teleportation cancelled!");
 					}
-					if (time == 1 && cd.effects)
-						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
+					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
+					if (time == 1)
+						EffectUtil.generateEffect(zaplayer.getPlayer(), ZAEffect.SMOKE);
 					--time;
 				} else if (time <= 0) {
 					zaplayer.sendToMainframe("Teleport");
-					if (cd.effects)
-						zaplayer.getPlayer().getWorld().playEffect(zaplayer.getPlayer().getLocation(), Effect.SMOKE, 1);
+					EffectUtil.generateEffect(zaplayer.getPlayer(), ZAEffect.SMOKE);
 					cancel();
 				}
 			}

@@ -44,7 +44,7 @@ public class MainThreading {
 	}
 
 	/**
-	 * Checks for GameZombie instances, and checks if they are in a Barrier area. If they are, the Barrier is broken.
+	 * Checks for zombie instances, and checks if they are in a Barrier area. If they are, the Barrier is broken.
 	 */
 	public void barrier() {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
@@ -140,7 +140,7 @@ public class MainThreading {
 	}
 
 	/**
-	 * Changes targets for
+	 * Changes targets for mobs
 	 */
 	public void retarget() {
 		id5 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {

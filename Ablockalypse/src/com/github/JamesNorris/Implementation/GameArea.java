@@ -2,20 +2,16 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.List;
 
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Area;
 
 public class GameArea implements Area {
 	private Block block;
-	private ConfigurationData cd;
 	private Location location;
 	private List<Location> locs;
 	private boolean wood, opened;
@@ -27,7 +23,6 @@ public class GameArea implements Area {
 	 */
 	public GameArea(Block block) {
 		this.block = block;
-		cd = External.ym.getConfigurationData();
 		opened = false;
 		location = block.getLocation();
 		for (BlockFace bf : new BlockFace[] {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST}) {
@@ -88,8 +83,6 @@ public class GameArea implements Area {
 			b.setType(Material.AIR);
 			opened = true;
 			toggleOpenedStatus();
-			if (cd.effects)
-				b.getWorld().playEffect(b.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
 		}
 	}
 

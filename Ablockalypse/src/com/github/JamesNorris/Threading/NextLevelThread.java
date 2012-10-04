@@ -9,7 +9,8 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Manager.SoundManager.ZASound;
+import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
 public class NextLevelThread {
 	private ZAGame game;
@@ -61,7 +62,7 @@ public class NextLevelThread {
 						played = true;
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
-							zap.getSoundManager().generateSound(ZASound.PREV_LEVEL);
+							SoundUtil.generateSound(zap.getPlayer(), ZASound.PREV_LEVEL);
 						}
 					}
 					if (counter == 0) {
@@ -69,7 +70,7 @@ public class NextLevelThread {
 						game.nextLevel();
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
-							zap.getSoundManager().generateSound(ZASound.NEXT_LEVEL);
+							SoundUtil.generateSound(zap.getPlayer(), ZASound.NEXT_LEVEL);
 						}
 						cancel();
 					}

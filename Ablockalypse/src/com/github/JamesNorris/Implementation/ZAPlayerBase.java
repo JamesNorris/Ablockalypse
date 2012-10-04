@@ -9,7 +9,6 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
-import org.bukkit.Effect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
@@ -25,14 +24,15 @@ import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Manager.SoundManager;
-import com.github.JamesNorris.Manager.SoundManager.ZASound;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
-import com.github.JamesNorris.Util.ControlledEffect;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.Square;
 import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
 public class ZAPlayerBase implements ZAPlayer {
 	private Location before;
@@ -47,7 +47,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	private Player player;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
-	private SoundManager sound;
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -63,7 +62,6 @@ public class ZAPlayerBase implements ZAPlayer {
 		this.name = player.getName();
 		this.game = game;
 		this.point = new HashMap<String, Integer>();
-		this.sound = new SoundManager(player);
 		Data.players.put(player, this);
 		player.setLevel(1);
 		if (game.getLevel() == 0)
@@ -133,15 +131,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
-	 * Gets the SoundManager instance associated with this instance.
-	 * 
-	 * @return The SoundManager associated with this instance
-	 */
-	@Override public SoundManager getSoundManager() {
-		return sound;
-	}
-
-	/**
 	 * Gives the player the specified powerup.
 	 */
 	@Override public void givePowerup(PowerupType type) {
@@ -153,7 +142,7 @@ public class ZAPlayerBase implements ZAPlayer {
 					if (gz.getGame() == this.getGame()) {
 						Zombie z = gz.getZombie();
 						int prev = game.getRemainingMobs();
-						z.getWorld().playEffect(z.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
+						EffectUtil.generateEffect(player, z.getLocation(), ZAEffect.FLAMES);
 						z.remove();
 						if (prev < game.getRemainingMobs())
 							game.subtractMobCount();
@@ -164,8 +153,7 @@ public class ZAPlayerBase implements ZAPlayer {
 					ZAPlayer zap = Data.findZAPlayer(p, game.getName());
 					zap.addPoints(cd.atompoints);
 				}
-				if (cd.effects)
-					new ControlledEffect(player.getWorld(), Effect.MOBSPAWNER_FLAMES, radius, 1, loc, true);
+				EffectUtil.generateEffect(player, loc, ZAEffect.FLAMES);
 			break;
 			case BARRIER_FIX:
 				if (Data.gamebarriers.size() >= 1) {
@@ -184,7 +172,7 @@ public class ZAPlayerBase implements ZAPlayer {
 					for (ItemStack it : i.getContents()) {
 						if (MiscUtil.isWeapon(it)) {
 							it.setDurability((short) 0);
-							p.getWorld().playEffect(p.getLocation(), Effect.EXTINGUISH, 1);
+							EffectUtil.generateEffect(p, ZAEffect.EXTINGUISH);
 						}
 					}
 				}
@@ -322,7 +310,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		fall = player.getFallDistance();
 		exhaust = player.getExhaustion();
 		gm = player.getGameMode();
-		sound.generateSound(ZASound.START);
+		SoundUtil.generateSound(player, ZASound.START);
 	}
 
 	/**
@@ -336,10 +324,10 @@ public class ZAPlayerBase implements ZAPlayer {
 			c.load();
 		player.teleport(loc);
 		if (sent) {
-			sound.generateSound(ZASound.START);
+			SoundUtil.generateSound(player, ZASound.START);
 			sent = true;
 		} else {
-			sound.generateSound(ZASound.TELEPORT);
+			SoundUtil.generateSound(player, ZASound.TELEPORT);
 		}
 		if (cd.DEBUG)
 			System.out.println("[Ablockalypse] [DEBUG] Teleport reason: (" + game.getName() + ") " + reason);
@@ -367,7 +355,7 @@ public class ZAPlayerBase implements ZAPlayer {
 				if (v != null)
 					v.remove();
 				player.setFoodLevel(5);
-				sound.generateSound(ZASound.LAST_STAND);
+				SoundUtil.generateSound(player, ZASound.LAST_STAND);
 				Breakable.setSitting(player, true);
 				new LastStandThread((ZAPlayer) this, true);
 				if (cd.losePerksLastStand)

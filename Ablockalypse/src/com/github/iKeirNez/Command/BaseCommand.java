@@ -98,7 +98,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("barrier")) {
-				// TODO use a playerinteractevent to create a barrier
+				// TODO already made playerinteract create a barrier... you just have to connect this to playerinteract
 				return true;
 			}
 			return true;

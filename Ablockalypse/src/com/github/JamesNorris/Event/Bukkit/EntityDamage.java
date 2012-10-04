@@ -9,7 +9,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.github.JamesNorris.Data.Data;
-import com.github.JamesNorris.Implementation.GameUndead;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Util.Breakable;
 
 public class EntityDamage implements Listener {
@@ -21,16 +21,16 @@ public class EntityDamage implements Listener {
 		Entity e = event.getEntity();
 		if (e != null && e instanceof CraftZombie)
 			e = (Zombie) e;
-		if (e != null && Data.isZAMob(e) && e instanceof Zombie) {
-			GameUndead u = (GameUndead) Data.getUndead(e);
-			u.attemptHealthIncrease();
+		if (e != null && Data.isZAMob(e)) {
+			ZAMob zam = (ZAMob) Data.getUndead(e);
+			zam.attemptHealthIncrease();
 			if (event.getCause() == DamageCause.ENTITY_EXPLOSION)
-				u.setHealth(2);
-			else if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK)) {
-				if (u.isFireproof()) {
-					Breakable.getNMSEntity(e).extinguish();
-					event.setCancelled(true);
-				}
+				zam.setHealth(2);
+			else if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof Zombie) {
+				Breakable.getNMSEntity(e).extinguish();
+				event.setCancelled(true);
+			} else if (event.getCause() == DamageCause.SUFFOCATION || event.getCause() == DamageCause.FALL) {
+				event.setCancelled(true);
 			}
 		}
 	}

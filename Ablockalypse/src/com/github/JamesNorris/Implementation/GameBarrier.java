@@ -50,7 +50,7 @@ public class GameBarrier implements Barrier {
 			block.setType(Material.AIR);
 			blocks.add(block);
 		}
-		if (cd.effects)
+		if (cd.extraEffects)
 			new ControlledEffect(center.getWorld(), Effect.SMOKE, 3, 1, center, true);
 	}
 

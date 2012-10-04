@@ -1,6 +1,7 @@
 package com.github.JamesNorris.Implementation;
 
 import net.minecraft.server.Entity;
+import net.minecraft.server.EntityHuman;
 import net.minecraft.server.NBTTagCompound;
 
 import org.bukkit.Effect;
@@ -8,18 +9,19 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
-import com.github.JamesNorris.MobTargetter;
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.Breakable;
 
 public class GameUndead extends Entity implements Undead, ZAMob {
 	private ZAGame game;
 	private int healthupdate;
-	public boolean killed;
-	private MobTargetter mt;
+	public boolean killed, fireproof;
+	private MobTargettingThread mt;
 	private double speed;
 	private Player target;
 	private Zombie zombie;
@@ -34,16 +36,16 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 		this.zombie = zombie;
 		this.game = game;
 		this.speed = .04;
-		this.mt = new MobTargetter(this);
+		this.mt = new MobTargettingThread(this);
+		game.addMobCount();
 		mt.target((org.bukkit.entity.Entity) zombie, game.getRandomLivingPlayer(), speed);
 		this.healthupdate = game.getLevel();
-		if (this.fireProof == false)
-			setFireProof(true);
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
+		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
+			setSpeed(getSpeed() * 1.5);
 	}
 
-	/* BREAKABLE CODE BELOW, THIS MAY NEED TO BE UPDATED */
 	/**
 	 * NOTE: DO NOT USE
 	 */
@@ -90,7 +92,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @return The speed of the entity as a double
 	 */
-	public double getSpeed() {
+	@Override public double getSpeed() {
 		return speed;
 	}
 
@@ -108,7 +110,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @return The targetter attached to this instance
 	 */
-	public MobTargetter getTargetter() {
+	@Override public MobTargettingThread getTargetter() {
 		return mt;
 	}
 
@@ -131,23 +133,12 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	/**
 	 * Kills the undead and finalizes the instance.
 	 */
-	public void kill() {
-		zombie.getWorld().playEffect(zombie.getLocation(), Effect.EXTINGUISH, 1);
-		zombie.remove();
-		finalize();
-	}
-
-	/**
-	 * Toggles whether or not the zombie should be immune to fire.
-	 */
-	@Override public void setFireProof(boolean tf) {
-		if (tf) {
-			this.fireProof = true;
-			zombie.setFireTicks(0);
-		} else {
-			zombie.setFireTicks((zombie.getHealth() * 2));
-			this.fireProof = false;
+	@Override public void kill() {
+		if (zombie != null) {
+			zombie.getWorld().playEffect(zombie.getLocation(), Effect.EXTINGUISH, 1);
+			zombie.remove();
 		}
+		finalize();
 	}
 
 	/**
@@ -161,12 +152,11 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 
 	/**
 	 * Sets the speed of the entity.
-	 * Default is .03.
 	 * This only updates the next time the target is set.
 	 * 
 	 * @param speed The speed to set the entity to
 	 */
-	public void setSpeed(double speed) {
+	@Override public void setSpeed(double speed) {
 		this.speed = speed;
 	}
 
@@ -175,9 +165,22 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @param p The player to target
 	 */
-	public void setTarget(Player p) {
+	@Override public void setTarget(Player p) {
 		this.target = p;
+		Entity e = (Entity) Breakable.getNMSEntity(zombie);
+		Entity p2 = (Entity) Breakable.getNMSPlayer(p);
+		EntityHuman eh = e.world.findNearbyPlayer(p2, 1000);
+		Player p3 = (Player) eh.getBukkitEntity();
 		if (p != null)
-			mt.target((org.bukkit.entity.Entity) zombie, p, speed);
+			mt.target((org.bukkit.entity.Entity) zombie, p3, speed);
+	}
+
+	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	@Override public org.bukkit.entity.Entity getEntity() {
+		return (org.bukkit.entity.Entity) zombie;
 	}
 }

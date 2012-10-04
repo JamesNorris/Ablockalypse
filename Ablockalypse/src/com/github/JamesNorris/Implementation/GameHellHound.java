@@ -6,16 +6,19 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
-import com.github.JamesNorris.MobTargetter;
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Threading.MobTargettingThread;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 
 public class GameHellHound implements HellHound, ZAMob {
 	private ZAGame game;
 	public boolean killed;
-	private MobTargetter mt;
+	private MobTargettingThread mt;
 	private double speed;
 	private Player target;
 	private Wolf wolf;
@@ -31,18 +34,21 @@ public class GameHellHound implements HellHound, ZAMob {
 		this.game = game;
 		world = wolf.getWorld();
 		this.speed = .05;
-		this.mt = new MobTargetter(this);
+		this.mt = new MobTargettingThread(this);
+		game.addMobCount();
 		mt.target((Entity) wolf, game.getRandomLivingPlayer(), speed);
 		setAggressive(true);
 		if (!Data.hellhounds.contains(this))
 			Data.hellhounds.add(this);
+		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
+			setSpeed(getSpeed() * 1.5);
 	}
 
 	/**
 	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
 	 */
 	@Override public void addEffect() {
-		world.playEffect(wolf.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
+		EffectUtil.generateEffect(game.getRandomLivingPlayer(), wolf.getLocation(), ZAEffect.FLAMES);
 	}
 
 	/**
@@ -91,7 +97,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * 
 	 * @return The targetter attached to this instance
 	 */
-	public MobTargetter getTargetter() {
+	public MobTargettingThread getTargetter() {
 		return mt;
 	}
 
@@ -118,8 +124,10 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * Kills the wolf and finalizes the instance.
 	 */
 	public void kill() {
-		wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
-		wolf.remove();
+		if (wolf != null) {
+			wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
+			wolf.remove();
+		}
 		finalize();
 	}
 
@@ -160,5 +168,14 @@ public class GameHellHound implements HellHound, ZAMob {
 		this.target = player;
 		if (player != null)
 			mt.target((Entity) wolf, player, speed);
+	}
+
+	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	@Override public Entity getEntity() {
+		return (Entity) wolf;
 	}
 }

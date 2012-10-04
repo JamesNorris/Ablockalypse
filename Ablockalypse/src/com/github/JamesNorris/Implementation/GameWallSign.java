@@ -2,7 +2,6 @@ package com.github.JamesNorris.Implementation;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -17,11 +16,14 @@ import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Event.GameCreateEvent;
+import com.github.JamesNorris.Event.GameSignClickEvent;
 import com.github.JamesNorris.Interface.WallSign;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
+import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 
 public class GameWallSign implements WallSign {
 	private ConfigurationData cd;
@@ -108,118 +110,115 @@ public class GameWallSign implements WallSign {
 	@Override public void runLines(Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
 		if (l1.equalsIgnoreCase(ld.first)) {
-			/* Attempts to add the player to a game if the second line has the join string */
-			if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
-				if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
-					setupPlayerWithGame(l3, player, true);
-					if (cd.effects)
-						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
-					return;
-				} else if (Data.games.containsKey(l3)) {
-					setupPlayerWithGame(l3, player, false);
-					if (cd.effects)
-						sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
-					return;
-				} else {
-					player.sendMessage(ChatColor.RED + "That game does not exist!");
-					return;
-				}
-				/* Otherwise, checks for enough points, then attempts to purchase something for the player */
-			} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap.get(l3) != null && ym.levelmap != null && Data.players != null && Data.players.containsKey(player)) {
-				ZAPlayerBase zap = Data.players.get(player);
-				int n = zap.getPoints();
-				if (player.getLevel() >= ym.levelmap.get(l3)) {
-					/* PERKS */
-					if (l2.equalsIgnoreCase(ld.perkstring)) {
-						if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
-							if (ym.perkmap.get(l3) == PotionEffectType.HEAL) {
-								player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 5, 5));
+			GameSignClickEvent gsce = new GameSignClickEvent(sign);
+			Bukkit.getPluginManager().callEvent(gsce);
+			if (!gsce.isCancelled()) {
+				/* Attempts to add the player to a game if the second line has the join string */
+				if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
+					if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
+						setupPlayerWithGame(l3, player, true);
+						return;
+					} else if (Data.games.containsKey(l3)) {
+						setupPlayerWithGame(l3, player, false);
+						EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+						return;
+					} else {
+						player.sendMessage(ChatColor.RED + "That game does not exist!");
+						return;
+					}
+					/* Otherwise, checks for enough points, then attempts to purchase something for the player */
+				} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap.get(l3) != null && ym.levelmap != null && Data.players != null && Data.players.containsKey(player)) {
+					ZAPlayerBase zap = Data.players.get(player);
+					int n = zap.getPoints();
+					if (player.getLevel() >= ym.levelmap.get(l3)) {
+						/* PERKS */
+						if (l2.equalsIgnoreCase(ld.perkstring)) {
+							if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
+								if (ym.perkmap.get(l3) == PotionEffectType.HEAL) {
+									player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 5, 5));
+								} else {
+									player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
+								}
+								int cost = ym.perksignline3.get(l3);
+								zap.subtractPoints(cost);
+								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cost + " points!");
+								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								return;
 							} else {
-								player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
+								player.sendMessage(ChatColor.RED + "You need " + ym.perksignline3.get(l3) + " points to buy this. You currently have " + n);
+								return;
 							}
-							int cost = ym.perksignline3.get(l3);
-							zap.subtractPoints(cost);
-							player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cost + " points!");
-							if (cd.effects)
-								sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
-							return;
-						} else {
-							player.sendMessage(ChatColor.RED + "You need " + ym.perksignline3.get(l3) + " points to buy this. You currently have " + n);
-							return;
-						}
-						/* ENCHANTMENTS */
-					} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isWeapon(player.getItemInHand())) {
-						if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
-							if (l3.equalsIgnoreCase(ld.enchrandstring)) {
-								player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
+							/* ENCHANTMENTS */
+						} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isWeapon(player.getItemInHand())) {
+							if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
+								if (l3.equalsIgnoreCase(ld.enchrandstring)) {
+									player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
+								} else {
+									player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
+								}
+								int cost = ym.enchsignline3.get(l3);
+								zap.subtractPoints(cost);
+								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cost + " points!");
+								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								return;
 							} else {
-								player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
+								player.sendMessage(ChatColor.RED + "You need " + ym.enchsignline3.get(l3) + " points to buy this. You currently have " + n);
+								return;
 							}
-							int cost = ym.enchsignline3.get(l3);
-							zap.subtractPoints(cost);
-							player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cost + " points!");
-							if (cd.effects)
-								sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
-							return;
-						} else {
-							player.sendMessage(ChatColor.RED + "You need " + ym.enchsignline3.get(l3) + " points to buy this. You currently have " + n);
-							return;
-						}
-						/* WEAPONS */
-					} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
-						if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
-							if (ym.wepmap.get(l3) != Material.ENDER_PEARL) {
-								player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+							/* WEAPONS */
+						} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
+							if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
+								if (ym.wepmap.get(l3) != Material.ENDER_PEARL) {
+									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+								} else {
+									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
+								}
+								int cost = ym.wepsignline3.get(l3);
+								zap.subtractPoints(cost);
+								player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");
+								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								return;
 							} else {
-								player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
+								player.sendMessage(ChatColor.RED + "You need " + ym.wepsignline3.get(l3) + " points to buy this. You currently have " + n);
+								return;
 							}
-							int cost = ym.wepsignline3.get(l3);
-							zap.subtractPoints(cost);
-							player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");
-							if (cd.effects)
-								sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 1);
-							return;
-						} else {
-							player.sendMessage(ChatColor.RED + "You need " + ym.wepsignline3.get(l3) + " points to buy this. You currently have " + n);
-							return;
-						}
-						/* AREAS */
-					} else if (l2.equalsIgnoreCase(ld.areastring)) {
-						try {
-							int cost = Integer.parseInt(l3);
-							if (zap.getPoints() >= cost) {
-								Block b = sign.getBlock();
-								GameArea a;
-								if (!Data.areas.containsKey(b))
-									a = Data.areas.get(b);
-								else
-									a = new GameArea(b);
-								if (!a.isPurchased()) {
-									a.purchaseArea();
-									if (cd.effects)
-										sign.getWorld().playEffect(sign.getLocation(), Effect.POTION_BREAK, 2);
-									zap.subtractPoints(cost);
-									player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
+							/* AREAS */
+						} else if (l2.equalsIgnoreCase(ld.areastring)) {
+							try {
+								int cost = Integer.parseInt(l3);
+								if (zap.getPoints() >= cost) {
+									Block b = sign.getBlock();
+									GameArea a;
+									if (!Data.areas.containsKey(b))
+										a = Data.areas.get(b);
+									else
+										a = new GameArea(b);
+									if (!a.isPurchased()) {
+										a.purchaseArea();
+										EffectUtil.generateEffect(player, ZAEffect.FLAMES);
+										zap.subtractPoints(cost);
+										player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
+										return;
+									} else
+										player.sendMessage(ChatColor.RED + "This area has already been purchased!");
 									return;
-								} else
-									player.sendMessage(ChatColor.RED + "This area has already been purchased!");
-								return;
-							} else {
-								player.sendMessage(ChatColor.RED + "You need " + cost + " points to buy this. You currently have " + zap.getPoints());
+								} else {
+									player.sendMessage(ChatColor.RED + "You need " + cost + " points to buy this. You currently have " + zap.getPoints());
+									return;
+								}
+							} catch (Exception e) {
 								return;
 							}
-						} catch (Exception e) {
+						} else {
 							return;
 						}
 					} else {
+						player.sendMessage(ChatColor.RED + "Level " + ym.levelmap.get(l3) + " is required to buy that. Your current level is " + player.getLevel());
 						return;
 					}
 				} else {
-					player.sendMessage(ChatColor.RED + "Level " + ym.levelmap.get(l3) + " is required to buy that. Your current level is " + player.getLevel());
 					return;
 				}
-			} else {
-				return;
 			}
 		}
 	}

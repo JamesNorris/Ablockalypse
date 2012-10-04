@@ -8,17 +8,17 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Manager.SoundManager.ZASound;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.MobSpawnThread;
 import com.github.JamesNorris.Threading.NextLevelThread;
+import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 import com.github.iKeirNez.Util.XMPP;
 import com.github.iKeirNez.Util.XMPP.XMPPType;
 
@@ -72,7 +72,7 @@ public class ZAGameBase implements ZAGame {
 			Player player = Bukkit.getServer().getPlayer(name);
 			ZAPlayerBase zap = Data.players.get(player);
 			player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
-			zap.getSoundManager().generateSound(ZASound.END);
+			SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 			removePlayer(player);
 		}
 		for (GameUndead gu : Data.undead) {
@@ -208,13 +208,13 @@ public class ZAGameBase implements ZAGame {
 		if (Data.gameLevels.containsKey(getName()))
 			Data.gameLevels.remove(getName());
 		Data.gameLevels.put(getName(), level);
-		for (String s : players.keySet()) {
-			Player p = Bukkit.getServer().getPlayer(s);
-			p.setLevel(level);
-			p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + prev + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + level);
-			p.sendMessage(ChatColor.GRAY + "You now have " + ChatColor.RED + Data.players.get(p).getPoints() + ChatColor.RESET + ChatColor.GRAY + " points.");
-			if (cd.effects)
-				p.getWorld().playEffect(p.getLocation(), Effect.MOBSPAWNER_FLAMES, 1);
+		if (level != 1) {
+			for (String s : players.keySet()) {
+				Player p = Bukkit.getServer().getPlayer(s);
+				p.setLevel(level);
+				p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + prev + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + level);
+				p.sendMessage(ChatColor.GRAY + "You now have " + ChatColor.RED + Data.players.get(p).getPoints() + ChatColor.RESET + ChatColor.GRAY + " points.");
+			}
 		}
 		if (cd.wolfLevels != null && cd.wolfLevels.contains(level))
 			wolfRound = true;

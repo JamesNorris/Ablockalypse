@@ -1,36 +1,12 @@
-package com.github.JamesNorris.Manager;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
+package com.github.JamesNorris.Util;
 
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-public class SoundManager {
+public class SoundUtil {
 	public enum ZASound {
 		ACHIEVEMENT, DEATH, END, LAST_STAND, NEXT_LEVEL, PREV_LEVEL, START, TELEPORT;
-	}
-
-	private Player player;
-
-	/**
-	 * Creates a new sound manager for a game, that can play specific types of sounds for players.
-	 * 
-	 * @param player The player to follow with this instance
-	 */
-	public SoundManager(Player player) {
-		this.player = player;
-	}
-
-	/**
-	 * Clears all data from this instance.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 
 	/**
@@ -38,7 +14,7 @@ public class SoundManager {
 	 * 
 	 * @param sound The type of sound to be played through this manager
 	 */
-	public void generateSound(ZASound sound) {// TODO allow sounds to be changed from the API
+	public static void generateSound(Player player, ZASound sound) {// TODO allow sounds to be changed from the API
 		Location l = player.getLocation();
 		switch (sound) {
 			case TELEPORT:

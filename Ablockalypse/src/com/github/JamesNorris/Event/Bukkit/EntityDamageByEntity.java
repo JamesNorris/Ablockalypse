@@ -28,11 +28,13 @@ public class EntityDamageByEntity implements Listener {
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);
 				if (damager instanceof Player) {
-					Player p2 = (Player) damager;
+					Player p2 = (Player) damager;// TODO add a friendly fire option
 					if (Data.playerExists(p2)) {
 						if (zap.isInLastStand())
 							zap.toggleLastStand();
-					}// TODO add friendly fire option.
+					} else {
+						event.setCancelled(true);
+					}
 				} else if (p.getHealth() <= cd.lsthresh && !zap.isInLastStand() && !zap.isInLimbo()) {
 					p.setHealth(cd.lsthresh);
 					zap.toggleLastStand();
