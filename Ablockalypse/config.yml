@@ -38,6 +38,7 @@ doubleSpeedLevel: 10
 # The level at which zombies should double their speed.
 
 wolfLevels: {5, 11, 15, 18}
+# The levels to spawn wolves on.
 
 startingItems:
   inventory:
@@ -111,6 +112,12 @@ xmppAnnouncePlayerLeaveGame: true
 xmppAnnounceLastStand: true
 
 #################################################### MAINTENANCE ####################################################
+
+GAME_SAVE_WAIT_TIME: 30
+# The time between auto-saves.
+
+GAME_END_WAIT_TIME: 60
+# The time in seconds before ending a game with no players left.
 
 ENABLE_AUTO_UPDATE: false
 # Enables automatic updating for Ablockalypse.

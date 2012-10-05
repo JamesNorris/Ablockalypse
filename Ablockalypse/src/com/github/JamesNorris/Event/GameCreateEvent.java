@@ -35,9 +35,9 @@ public class GameCreateEvent extends Event {
 	 */
 	public GameCreateEvent(ZAGame game, CommandSender sender, Player player) {
 		this.game = game;
-		this.name = game.getName();
+		name = game.getName();
 		this.sender = sender;
-		this.cancel = false;
+		cancel = false;
 	}
 
 	/**

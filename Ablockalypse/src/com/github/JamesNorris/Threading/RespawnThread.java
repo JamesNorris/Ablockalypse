@@ -51,18 +51,17 @@ public class RespawnThread {
 	 */
 	protected void waitToRespawn() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
+			@Override public void run() {
 				if (time == 0) {
-					ZAPlayer zap = (ZAPlayer) Data.players.get(player);
+					ZAPlayer zap = Data.players.get(player);
 					if (zap.getGame() == null)
 						cancel();
 					zap.sendToMainframe("Respawn");
 					if (zap.isInLimbo())
 						zap.toggleLimbo();
 					cancel();
-				} else {
+				} else
 					player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
-				}
 				--time;
 			}
 		}, 20, 20);

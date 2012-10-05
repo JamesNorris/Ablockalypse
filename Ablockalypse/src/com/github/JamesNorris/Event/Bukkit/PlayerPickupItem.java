@@ -12,8 +12,7 @@ public class PlayerPickupItem implements Listener {
 	 * Used mainly for disabling pickups for players in games.
 	 */
 	@EventHandler public void PPIE(PlayerPickupItemEvent event) {
-		if (Data.players.containsKey(event.getPlayer())) {
+		if (Data.players.containsKey(event.getPlayer()))
 			event.setCancelled(true);
-		}
 	}
 }

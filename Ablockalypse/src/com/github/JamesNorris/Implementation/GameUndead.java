@@ -11,9 +11,9 @@ import org.bukkit.entity.Zombie;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
-import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.Breakable;
 
@@ -35,11 +35,11 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
 		this.game = game;
-		this.speed = .04;
-		this.mt = new MobTargettingThread(this);
+		speed = .04;
+		mt = new MobTargettingThread();
 		game.addMobCount();
-		mt.target((org.bukkit.entity.Entity) zombie, game.getRandomLivingPlayer(), speed);
-		this.healthupdate = game.getLevel();
+		mt.target(zombie, game.getRandomLivingPlayer(), speed);
+		healthupdate = game.getLevel();
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
@@ -75,9 +75,8 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * Clears all data from this instance.
 	 */
 	@Override public void finalize() {
-		if (!killed) {
+		if (!killed)
 			game.subtractMobCount();
-		}
 	}
 
 	/**
@@ -166,13 +165,13 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * @param p The player to target
 	 */
 	@Override public void setTarget(Player p) {
-		this.target = p;
-		Entity e = (Entity) Breakable.getNMSEntity(zombie);
-		Entity p2 = (Entity) Breakable.getNMSPlayer(p);
+		target = p;
+		Entity e = Breakable.getNMSEntity(zombie);
+		Entity p2 = Breakable.getNMSPlayer(p);
 		EntityHuman eh = e.world.findNearbyPlayer(p2, 1000);
 		Player p3 = (Player) eh.getBukkitEntity();
 		if (p != null)
-			mt.target((org.bukkit.entity.Entity) zombie, p3, speed);
+			mt.target(zombie, p3, speed);
 	}
 
 	/**
@@ -181,6 +180,6 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * @return The Entity associated with this instance
 	 */
 	@Override public org.bukkit.entity.Entity getEntity() {
-		return (org.bukkit.entity.Entity) zombie;
+		return zombie;
 	}
 }

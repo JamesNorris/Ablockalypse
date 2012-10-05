@@ -21,7 +21,7 @@ public class ConfigurationData {
 	public String helmet, chestplate, leggings, boots;
 	public List<String> inventory;
 	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
-	public int packapunchlevel;
+	public int packapunchlevel, gameEndWait, gameSaveWait;
 	public int powerchance, atompoints;
 	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, doubleSpeedLevel;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
@@ -82,6 +82,8 @@ public class ConfigurationData {
 		wolfLevels = cf.getIntegerList("wolfLevels");
 		extraEffects = cf.getBoolean("addedEffects");
 		powerrad = cf.getInt("powerupRadius");
+		gameEndWait = cf.getInt("GAME_END_WAIT_TIME") * 20;
+		gameSaveWait = cf.getInt("GAME_SAVE_WAIT_TIME") * 20;
 		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");
 	}

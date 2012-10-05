@@ -22,9 +22,8 @@ public class EntityTarget implements Listener {
 			Player p = (Player) target;
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);
-				if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !Data.isZAMob(entity)) {
+				if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !Data.isZAMob(entity))
 					event.setCancelled(true);
-				}
 			}
 		}
 	}

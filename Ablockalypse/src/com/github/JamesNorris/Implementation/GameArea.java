@@ -58,9 +58,8 @@ public class GameArea implements Area {
 	@Override public boolean isPurchased() {
 		for (Location loc : locs) {
 			Block b = loc.getBlock();
-			if (b.getType() == Material.AIR || b.getType() == null) {
+			if (b.getType() == Material.AIR || b.getType() == null)
 				return true;
-			}
 		}
 		return false;
 	}

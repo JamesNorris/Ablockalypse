@@ -10,15 +10,14 @@ public class XMPP {
 	}
 
 	public static void send(final boolean send, final String message) {
-		if (send) {
+		if (send)
 			XMPPAPI.sendMessage(message);
-		}
 	}
 
 	public static void sendMessage(final String message, final XMPPType type) {
 		final ConfigurationData cd = External.ym.getConfigurationData();
-		if (External.CommandsEXPresent) {
-			if (XMPPAPI.isXMPPEnabled()) {
+		if (External.CommandsEXPresent)
+			if (XMPPAPI.isXMPPEnabled())
 				switch (type) {
 					case PLAYER_JOIN_GAME:
 						send(cd.xmppPlayerJoin, message);
@@ -34,7 +33,5 @@ public class XMPP {
 					case LAST_STAND:
 						send(cd.xmppLastStand, message);
 				}
-			}
-		}
 	}
 }

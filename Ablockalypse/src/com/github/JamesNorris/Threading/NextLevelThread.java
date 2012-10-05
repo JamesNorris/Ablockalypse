@@ -26,9 +26,9 @@ public class NextLevelThread {
 	 */
 	public NextLevelThread(ZAGame game, boolean nextlevel) {
 		this.game = game;
-		this.instance = Ablockalypse.instance;
-		this.played = false;
-		this.counter = 2;
+		instance = Ablockalypse.instance;
+		played = false;
+		counter = 2;
 		if (nextlevel)
 			waitForNextLevel();
 	}

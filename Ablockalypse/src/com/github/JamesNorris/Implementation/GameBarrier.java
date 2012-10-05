@@ -35,9 +35,8 @@ public class GameBarrier implements Barrier {
 		Square s = new Square(center.getLocation(), 1);
 		for (Location loc : s.getLocations()) {
 			Block b = loc.getBlock();
-			if (b.getType() == Material.FENCE) {
+			if (b.getType() == Material.FENCE)
 				blocks.add(b);
-			}
 		}
 	}
 
@@ -78,10 +77,9 @@ public class GameBarrier implements Barrier {
 	 * @return Whether or not the barrier is broken
 	 */
 	@Override public boolean isBroken() {
-		for (Block b : blocks) {
+		for (Block b : blocks)
 			if (b.getType() != Material.FENCE)
 				return true;
-		}
 		return false;
 	}
 
@@ -89,12 +87,11 @@ public class GameBarrier implements Barrier {
 	 * Replaces all holes in the barrier.
 	 */
 	@Override public void replaceBarrier() {
-		for (Block b : blocks) {
+		for (Block b : blocks)
 			if (b.getType() != Material.FENCE) {
 				blocks.remove(b);
 				b.setType(Material.FENCE);
 				blocks.add(b);
 			}
-		}
 	}
 }

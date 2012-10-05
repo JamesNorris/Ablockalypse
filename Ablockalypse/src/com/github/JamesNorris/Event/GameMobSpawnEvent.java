@@ -34,7 +34,7 @@ public class GameMobSpawnEvent extends Event {
 		this.e = e;
 		this.game = game;
 		this.get = get;
-		this.cancel = false;
+		cancel = false;
 	}
 
 	/**

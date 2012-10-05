@@ -37,9 +37,8 @@ public class EntityDeath implements Listener {
 				ZAPlayerBase zap = Data.players.get(p);
 				zap.addPoints(cd.pointincrease);
 				int food = p.getFoodLevel();
-				if (food < 20) {
+				if (food < 20)
 					p.setFoodLevel(20);
-				}
 				MiscUtil.randomPowerup(zap);
 			}
 		}

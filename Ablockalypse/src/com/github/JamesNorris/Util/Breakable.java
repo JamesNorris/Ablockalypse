@@ -70,11 +70,10 @@ public class Breakable {
 	public static void setSitting(Player player, boolean tf) {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			EntityPlayer ep = Breakable.getNMSPlayer(p);
-			if (tf) {
+			if (tf)
 				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04)));
-			} else {
+			else
 				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00)));
-			}
 		}
 	}
 }

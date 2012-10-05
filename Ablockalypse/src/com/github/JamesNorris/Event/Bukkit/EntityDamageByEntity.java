@@ -32,9 +32,8 @@ public class EntityDamageByEntity implements Listener {
 					if (Data.playerExists(p2)) {
 						if (zap.isInLastStand())
 							zap.toggleLastStand();
-					} else {
+					} else
 						event.setCancelled(true);
-					}
 				} else if (p.getHealth() <= cd.lsthresh && !zap.isInLastStand() && !zap.isInLimbo()) {
 					p.setHealth(cd.lsthresh);
 					zap.toggleLastStand();

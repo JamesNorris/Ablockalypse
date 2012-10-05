@@ -88,7 +88,7 @@ public class External {
 			loadedGames = ym.getGameData().getSavedGames();
 			/* mainframes.bin */
 			HashMap<String, SerializableLocation> save = External.load(mainframes);
-			if (save != null) {
+			if (save != null)
 				for (String s : save.keySet()) {
 					SerializableLocation loc = save.get(s);
 					Location l = SerializableLocation.returnLocation(loc);
@@ -97,29 +97,25 @@ public class External {
 						zag.setSpawn(l);
 					}
 				}
-			}
 			/* players.bin */
 			HashMap<String, String> save2 = External.load(players);
-			if (save2 != null) {
-				for (String s : save2.keySet()) {
+			if (save2 != null)
+				for (String s : save2.keySet())
 					if (Data.gameExists(s)) {
 						ZAGame zag = Data.findGame(s);
 						zag.addPlayer(Bukkit.getServer().getPlayer(save2.get(s)));
 					}
-				}
-			}
 			/* barriers.bin */
 			ArrayList<SerializableLocation> save3 = External.load(barriers);
-			if (save3 != null) {
+			if (save3 != null)
 				for (SerializableLocation sl : save3) {
 					Location l = SerializableLocation.returnLocation(sl);
 					if (l.getBlock().getType() == Material.FENCE)
 						new GameBarrier(l.getBlock());
 				}
-			}
 			/* areas.bin */
 			HashMap<SerializableLocation, Boolean> save4 = External.load(areas);
-			if (save4 != null) {
+			if (save4 != null)
 				for (SerializableLocation sl : save4.keySet()) {
 					Location l = SerializableLocation.returnLocation(sl);
 					Block b = l.getBlock();
@@ -129,11 +125,10 @@ public class External {
 							a.purchaseArea();
 					}
 				}
-			}
 			/* points.bin */
 			HashMap<String, HashMap<String, Integer>> save5 = External.load(points);
-			if (save5 != null) {
-				for (String s : save5.keySet()) {
+			if (save5 != null)
+				for (String s : save5.keySet())
 					if (loadedGames.contains(s)) {
 						HashMap<String, Integer> values = save5.get(s);
 						for (String s2 : values.keySet()) {
@@ -145,19 +140,15 @@ public class External {
 							zap.addPoints(i);
 						}
 					}
-				}
-			}
 			/* levels.bin */
 			HashMap<String, Integer> save6 = External.load(levels);
-			if (save6 != null) {
-				for (String s : save6.keySet()) {
+			if (save6 != null)
+				for (String s : save6.keySet())
 					if (loadedGames.contains(s)) {
 						int i = save6.get(s);
 						ZAGame zag = Data.findGame(s);
 						zag.setLevel(i);
 					}
-				}
-			}
 			/* CLEARING */
 			if (save != null)
 				save.clear();
@@ -177,9 +168,20 @@ public class External {
 	}
 
 	/*
+	 * Gets/Saves the defined configuration.
+	 * NOTE: This does not work for the default config.
+	 */
+	protected static void loadConfig(File f, String path) {
+		if (!f.exists()) {
+			FileConfiguration l2 = getConfig(f, path);
+			saveConfig(f, l2, path);
+		}
+	}
+
+	/*
 	 * Gets/Saves the defined resource.
 	 */
-	private static void loadResource(String path) {
+	protected static void loadResource(String path) {
 		File a = new File(instance.getDataFolder(), path);
 		if (!a.exists())
 			instance.saveResource(path, true);
@@ -214,21 +216,14 @@ public class External {
 			/* GET THE FILES */
 			/* config.yml */
 			f = new File(instance.getDataFolder(), config);
-			if (!f.exists()) {
+			if (!f.exists())
 				instance.saveDefaultConfig();
-			}
 			/* local.yml */
 			l = new File(instance.getDataFolder(), local);
-			if (!l.exists()) {
-				FileConfiguration l2 = getConfig(l, local);
-				saveConfig(l, l2, local);
-			}
+			loadConfig(l, local);
 			/* games.yml */
 			g = new File(instance.getDataFolder(), games);
-			if (!g.exists()) {
-				FileConfiguration g2 = getConfig(g, games);
-				saveConfig(g, g2, games);
-			}
+			loadConfig(g, games);
 			/* mainframes.bin */
 			loadResource(mainframes);
 			/* players.bin */
@@ -267,8 +262,10 @@ public class External {
 
 	/**
 	 * Saves all of the information to the .bin files.
+	 * 
+	 * @param restore Whether or not to reset everything to make it save for server stop/restart.
 	 */
-	public static void saveBinaries() {
+	public static void saveBinaries(boolean restore) {
 		try {
 			Data.refresh();
 			/* mainframes.bin */
@@ -300,13 +297,12 @@ public class External {
 			/* areas.bin */
 			if (Data.loadedareas != null) {
 				HashMap<Location, Boolean> save4 = Data.loadedareas;
-				if (save4 != null) {
+				if (save4 != null)
 					for (Location l : save4.keySet()) {
 						boolean tf = save4.get(l);
 						SerializableLocation loc = new SerializableLocation(l);
 						areaSavings.put(loc, tf);
 					}
-				}
 			}
 			/* points.bin */
 			if (Data.playerPoints != null)
@@ -315,14 +311,14 @@ public class External {
 			if (Data.gameLevels != null)
 				External.save(Data.gameLevels, levels);
 			/* Make all physical data safe, by replacing all broken game items */
-			if (Data.areas != null) {
+			if (Data.areas != null)
 				for (GameArea a : Data.areas.values())
-					a.safeReplace();
-			}
-			if (Data.gamebarriers != null) {
+					if (restore)
+						a.safeReplace();
+			if (Data.gamebarriers != null)
 				for (GameBarrier b : Data.gamebarriers)
-					b.replaceBarrier();
-			}
+					if (restore)
+						b.replaceBarrier();
 			if (areaSavings != null && areas != null)
 				External.save(areaSavings, areas);
 		} catch (Exception e) {
@@ -338,9 +334,8 @@ public class External {
 	 * @param path The path of the file
 	 */
 	public static void saveConfig(File f, FileConfiguration fc, String path) {
-		if (fc == null || f == null) {
+		if (fc == null || f == null)
 			return;
-		}
 		try {
 			getConfig(f, path).save(f);
 		} catch (IOException ex) {

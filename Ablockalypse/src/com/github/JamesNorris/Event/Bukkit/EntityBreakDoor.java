@@ -14,10 +14,9 @@ public class EntityBreakDoor implements Listener {
 		LivingEntity e = event.getEntity();
 		if (e instanceof Zombie) {
 			Zombie z = (Zombie) e;
-			for (GameUndead gz : Data.undead) {
+			for (GameUndead gz : Data.undead)
 				if (gz.getZombie() == z)
 					event.setCancelled(true);
-			}
 		}
 	}
 }

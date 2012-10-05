@@ -32,9 +32,9 @@ public class PlayerInteract implements Listener {
 	private LocalizationData ld;
 
 	public PlayerInteract() {
-		this.ym = External.getYamlManager();
-		this.cd = ym.getConfigurationData();
-		this.ld = ym.getLocalizationData();
+		ym = External.getYamlManager();
+		cd = ym.getConfigurationData();
+		ld = ym.getLocalizationData();
 	}
 
 	/*
@@ -46,19 +46,18 @@ public class PlayerInteract implements Listener {
 	@EventHandler public void PIE(PlayerInteractEvent event) {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
-		if (b != null) {
-			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName())) {
+		if (b != null)
+			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName()))
 				new GameBarrier(b);
-			} else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
+			else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
 				event.setUseInteractedBlock(Result.DENY);
 				Sign s = (Sign) b.getState();
 				if (s.getLine(0).equalsIgnoreCase(ld.first)) {
 					GameWallSign zas;
-					if (!(s instanceof GameWallSign)) {
+					if (!(s instanceof GameWallSign))
 						zas = new GameWallSign(s, ym);
-					} else {
+					else
 						zas = (GameWallSign) s;
-					}
 					zas.runLines(p);
 					return;
 				}
@@ -70,7 +69,7 @@ public class PlayerInteract implements Listener {
 					p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
 					new TeleportThread(zap, 5, true);
 					return;
-				} else if (b.getType() == Material.CHEST) {
+				} else if (b.getType() == Material.CHEST)
 					if (zap.getPoints() >= cd.mccost) {
 						Chest c = (Chest) b.getState();
 						GameMysteryChest mb = new GameMysteryChest(c);
@@ -82,8 +81,6 @@ public class PlayerInteract implements Listener {
 						event.setCancelled(true);
 						return;
 					}
-				}
 			}
-		}
 	}
 }

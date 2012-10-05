@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -27,12 +28,12 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.SoundUtil;
-import com.github.JamesNorris.Util.Square;
-import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
+import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.SoundUtil.ZASound;
+import com.github.JamesNorris.Util.Square;
 
 public class ZAPlayerBase implements ZAPlayer {
 	private Location before;
@@ -57,11 +58,11 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @param game The game this player should be in
 	 */
 	public ZAPlayerBase(Player player, ZAGame game) {
-		this.cd = External.ym.getConfigurationData();
+		cd = External.ym.getConfigurationData();
 		this.player = player;
-		this.name = player.getName();
+		name = player.getName();
 		this.game = game;
-		this.point = new HashMap<String, Integer>();
+		point = new HashMap<String, Integer>();
 		Data.players.put(player, this);
 		player.setLevel(1);
 		if (game.getLevel() == 0)
@@ -100,7 +101,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @return The game the player is in
 	 */
 	@Override public ZAGame getGame() {
-		return (ZAGame) game;
+		return game;
 	}
 
 	/**
@@ -132,13 +133,15 @@ public class ZAPlayerBase implements ZAPlayer {
 
 	/**
 	 * Gives the player the specified powerup.
+	 * 
+	 * @param type The type of powerup to give the player
 	 */
 	@Override public void givePowerup(PowerupType type) {
 		Location loc = player.getLocation();
 		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				for (GameUndead gz : Data.undead) {
+				for (GameUndead gz : Data.undead)
 					if (gz.getGame() == this.getGame()) {
 						Zombie z = gz.getZombie();
 						int prev = game.getRemainingMobs();
@@ -147,7 +150,6 @@ public class ZAPlayerBase implements ZAPlayer {
 						if (prev < game.getRemainingMobs())
 							game.subtractMobCount();
 					}
-				}
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
 					ZAPlayer zap = Data.findZAPlayer(p, game.getName());
@@ -159,22 +161,20 @@ public class ZAPlayerBase implements ZAPlayer {
 				if (Data.gamebarriers.size() >= 1) {
 					Square s2 = new Square(loc, radius);
 					List<Location> locs2 = s2.getLocations();
-					for (GameBarrier b : Data.gamebarriers) {
+					for (GameBarrier b : Data.gamebarriers)
 						if (locs2.contains(b.getCenter()))
 							b.replaceBarrier();
-					}
 				}
 			break;
 			case WEAPON_FIX:
 				for (String s3 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s3);
 					Inventory i = p.getInventory();
-					for (ItemStack it : i.getContents()) {
+					for (ItemStack it : i.getContents())
 						if (MiscUtil.isWeapon(it)) {
 							it.setDurability((short) 0);
 							EffectUtil.generateEffect(p, ZAEffect.EXTINGUISH);
 						}
-					}
 				}
 			break;
 		}
@@ -216,10 +216,8 @@ public class ZAPlayerBase implements ZAPlayer {
 				sendToMainframe("Loading player to a game");
 				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 				return;
-			} else {
+			} else
 				player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
-			}
-			/* Create a new game, and put the player in that game */
 		}/* else {//unused because this is already compensated for with the commands
 			ZAGameBase zag = new ZAGameBase(name, cd);
 			zag.setSpawn(Data.mainframes.get(name));
@@ -315,6 +313,8 @@ public class ZAPlayerBase implements ZAPlayer {
 
 	/**
 	 * Teleports the player to the mainframe of the game.
+	 * 
+	 * @param reason The reason for teleportation for the debug mode
 	 */
 	@Override public void sendToMainframe(String reason) {
 		player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
@@ -326,11 +326,10 @@ public class ZAPlayerBase implements ZAPlayer {
 		if (sent) {
 			SoundUtil.generateSound(player, ZASound.START);
 			sent = true;
-		} else {
+		} else
 			SoundUtil.generateSound(player, ZASound.TELEPORT);
-		}
 		if (cd.DEBUG)
-			System.out.println("[Ablockalypse] [DEBUG] Teleport reason: (" + game.getName() + ") " + reason);
+			System.out.println("[Ablockalypse] [DEBUG] Mainframe TP reason: (" + game.getName() + ") " + reason);
 	}
 
 	/**
@@ -340,6 +339,34 @@ public class ZAPlayerBase implements ZAPlayer {
 	 */
 	@Override public void subtractPoints(int i) {
 		points = points - i;
+	}
+
+	/**
+	 * Teleport the player to the specified location, with the specified reason for the debug mode.
+	 * 
+	 * @param location The location to teleport to
+	 * @param reason The reason for teleportation
+	 */
+	@Override public void teleport(Location location, String reason) {
+		player.teleport(location);
+		if (cd.DEBUG)
+			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
+	}
+
+	/**
+	 * Teleports the player to the specified location,
+	 * with the specified arguments, and the specified reason for the debug mode.
+	 * 
+	 * @param world The world to teleport in
+	 * @param x The x coord to teleport to
+	 * @param y The y coord to teleport to
+	 * @param z The z coord to teleport to
+	 * @param reason The reason for teleportation
+	 */
+	@Override public void teleport(World world, int x, int y, int z, String reason) {
+		player.teleport(world.getBlockAt(x, y, z).getLocation());
+		if (cd.DEBUG)
+			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
 	}
 
 	/**
@@ -357,7 +384,7 @@ public class ZAPlayerBase implements ZAPlayer {
 				player.setFoodLevel(5);
 				SoundUtil.generateSound(player, ZASound.LAST_STAND);
 				Breakable.setSitting(player, true);
-				new LastStandThread((ZAPlayer) this, true);
+				new LastStandThread(this, true);
 				if (cd.losePerksLastStand)
 					player.getActivePotionEffects().clear();
 			}

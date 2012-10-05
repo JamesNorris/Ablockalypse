@@ -22,7 +22,7 @@ public class LastStandThread {
 	 */
 	public LastStandThread(ZAPlayer zap, boolean autorun) {
 		this.zap = zap;
-		this.player = zap.getPlayer();
+		player = zap.getPlayer();
 		if (autorun)
 			die();
 	}
@@ -39,12 +39,11 @@ public class LastStandThread {
 	 */
 	protected void die() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
-				if (zap.isInLastStand() && !player.isDead()) {
+			@Override public void run() {
+				if (zap.isInLastStand() && !player.isDead())
 					player.damage(1);
-				} else {
+				else
 					cancel();
-				}
 			}
 		}, 100, 100);
 	}

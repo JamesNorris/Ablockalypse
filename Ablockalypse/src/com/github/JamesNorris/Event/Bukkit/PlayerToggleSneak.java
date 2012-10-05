@@ -22,10 +22,9 @@ public class PlayerToggleSneak implements Listener {
 				event.setCancelled(true);
 			for (GameBarrier b : Data.barrierpanels.keySet()) {
 				Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
-				for (Location l : s.getLocations()) {
+				for (Location l : s.getLocations())
 					if (p.getLocation() == l)
 						b.replaceBarrier();
-				}
 			}
 		}
 	}

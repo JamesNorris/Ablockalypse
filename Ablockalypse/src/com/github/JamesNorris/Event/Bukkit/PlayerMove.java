@@ -21,7 +21,7 @@ public class PlayerMove implements Listener {
 		if (Data.players.containsKey(p)) {
 			if (Data.players.get(p).isInLastStand() && p.getFallDistance() <= 0 && ((event.getFrom().getPitch() - event.getTo().getPitch()) == 0) && ((event.getFrom().getYaw() - event.getTo().getYaw()) == 0))
 				event.setCancelled(true);
-			for (Location l : Data.barrierpanels.values()) {
+			for (Location l : Data.barrierpanels.values())
 				if (l == p.getLocation()) {
 					--timer;
 					if (timer <= 0) {
@@ -30,7 +30,6 @@ public class PlayerMove implements Listener {
 					}
 					event.setCancelled(true);
 				}
-			}
 		}
 	}
 }

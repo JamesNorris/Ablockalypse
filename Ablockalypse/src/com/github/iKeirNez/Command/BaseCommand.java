@@ -40,7 +40,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						Player player = (Player) sender;
 						String gameName = args[1];
 						if (Data.gameExists(gameName)) {
-							ZAPlayer zap = (ZAPlayer) Data.findZAPlayer(player, gameName);
+							ZAPlayer zap = Data.findZAPlayer(player, gameName);
 							zap.loadPlayerToGame(gameName);
 							return true;
 						} else {
@@ -86,21 +86,19 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
 						GameCreateEvent gce = new GameCreateEvent(zag, sender, null);
 						Bukkit.getServer().getPluginManager().callEvent(gce);
-						if (!gce.isCancelled()) {
+						if (!gce.isCancelled())
 							sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
-						} else {
+						else
 							zag.endGame();
-						}
 						return true;
 					}
 				} else {
 					sender.sendMessage(ChatColor.RED + "That game already exists!");
 					return true;
 				}
-			} else if (args[0].equalsIgnoreCase("barrier")) {
+			} else if (args[0].equalsIgnoreCase("barrier"))
 				// TODO already made playerinteract create a barrier... you just have to connect this to playerinteract
 				return true;
-			}
 			return true;
 		}
 		return true;

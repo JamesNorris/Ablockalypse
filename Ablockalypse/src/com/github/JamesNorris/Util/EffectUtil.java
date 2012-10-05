@@ -22,7 +22,7 @@ public class EffectUtil {
 	 * @param effect The type of effect to be played through this manager
 	 */
 	public static void generateEffect(Player player, Location l, ZAEffect effect) {
-		if (cd.extraEffects) {
+		if (cd.extraEffects)
 			switch (effect) {
 				case SMOKE:
 					player.playEffect(l, Effect.SMOKE, 1);
@@ -37,7 +37,6 @@ public class EffectUtil {
 					player.playEffect(l, Effect.EXTINGUISH, 1);
 				break;
 			}
-		}
 	}
 
 	/**
@@ -59,7 +58,7 @@ public class EffectUtil {
 	 * @param radius The radius to play the effect
 	 */
 	public static void generateControlledEffect(Location loc, ZAEffect effect, int radius) {
-		if (cd.extraEffects) {
+		if (cd.extraEffects)
 			switch (effect) {
 				case SMOKE:
 					new ControlledEffect(loc.getWorld(), Effect.SMOKE, radius, 1, loc, true);
@@ -74,6 +73,5 @@ public class EffectUtil {
 					new ControlledEffect(loc.getWorld(), Effect.EXTINGUISH, radius, 1, loc, true);
 				break;
 			}
-		}
 	}
 }

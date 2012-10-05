@@ -8,9 +8,9 @@ import org.bukkit.entity.Wolf;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
-import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
@@ -33,10 +33,10 @@ public class GameHellHound implements HellHound, ZAMob {
 		this.wolf = wolf;
 		this.game = game;
 		world = wolf.getWorld();
-		this.speed = .05;
-		this.mt = new MobTargettingThread(this);
+		speed = .05;
+		mt = new MobTargettingThread();
 		game.addMobCount();
-		mt.target((Entity) wolf, game.getRandomLivingPlayer(), speed);
+		mt.target(wolf, game.getRandomLivingPlayer(), speed);
 		setAggressive(true);
 		if (!Data.hellhounds.contains(this))
 			Data.hellhounds.add(this);
@@ -54,15 +54,14 @@ public class GameHellHound implements HellHound, ZAMob {
 	/**
 	 * Attempts to increase the mob health depending on the level the mob is on.
 	 */
-	public void attemptHealthIncrease() {}
+	@Override public void attemptHealthIncrease() {}
 
 	/**
 	 * Clears all data from this instance.
 	 */
 	@Override public void finalize() {
-		if (!killed) {
+		if (!killed)
 			game.subtractMobCount();
-		}
 	}
 
 	/**
@@ -79,7 +78,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * 
 	 * @return The speed of the entity as a double
 	 */
-	public double getSpeed() {
+	@Override public double getSpeed() {
 		return speed;
 	}
 
@@ -88,7 +87,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * 
 	 * @return The mobs' target
 	 */
-	public Player getTarget() {
+	@Override public Player getTarget() {
 		return target;
 	}
 
@@ -97,7 +96,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * 
 	 * @return The targetter attached to this instance
 	 */
-	public MobTargettingThread getTargetter() {
+	@Override public MobTargettingThread getTargetter() {
 		return mt;
 	}
 
@@ -123,7 +122,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	/**
 	 * Kills the wolf and finalizes the instance.
 	 */
-	public void kill() {
+	@Override public void kill() {
 		if (wolf != null) {
 			wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
 			wolf.remove();
@@ -155,7 +154,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * 
 	 * @param speed The speed to set the entity to
 	 */
-	public void setSpeed(double speed) {
+	@Override public void setSpeed(double speed) {
 		this.speed = speed;
 	}
 
@@ -165,9 +164,9 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * @param player The player to be made into the target
 	 */
 	@Override public void setTarget(Player player) {
-		this.target = player;
+		target = player;
 		if (player != null)
-			mt.target((Entity) wolf, player, speed);
+			mt.target(wolf, player, speed);
 	}
 
 	/**
@@ -176,6 +175,6 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * @return The Entity associated with this instance
 	 */
 	@Override public Entity getEntity() {
-		return (Entity) wolf;
+		return wolf;
 	}
 }

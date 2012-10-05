@@ -15,6 +15,7 @@ import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.SpawnManager;
+import com.github.JamesNorris.Threading.GameEndThread;
 import com.github.JamesNorris.Threading.MobSpawnThread;
 import com.github.JamesNorris.Threading.NextLevelThread;
 import com.github.JamesNorris.Util.SoundUtil;
@@ -75,16 +76,12 @@ public class ZAGameBase implements ZAGame {
 			SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 			removePlayer(player);
 		}
-		for (GameUndead gu : Data.undead) {
-			if (gu.getGame() == this) {
+		for (GameUndead gu : Data.undead)
+			if (gu.getGame() == this)
 				gu.kill();
-			}
-		}
-		for (GameHellHound ghh : Data.hellhounds) {
-			if (ghh.getGame() == this) {
+		for (GameHellHound ghh : Data.hellhounds)
+			if (ghh.getGame() == this)
 				ghh.kill();
-			}
-		}
 		Data.games.remove(getName());
 		finalize();
 	}
@@ -133,9 +130,8 @@ public class ZAGameBase implements ZAGame {
 	@Override public Player getRandomLivingPlayer() {
 		int i = rand.nextInt(getRemainingPlayers()) + 1;
 		Player p = null;
-		for (int j = 0; j <= i; j++) {
+		for (int j = 0; j <= i; j++)
 			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
-		}
 		return p;
 	}
 
@@ -147,9 +143,8 @@ public class ZAGameBase implements ZAGame {
 	@Override public Player getRandomPlayer() {
 		int i = rand.nextInt(players.size()) + 1;
 		Player p = null;
-		for (int j = 0; j <= i; j++) {
+		for (int j = 0; j <= i; j++)
 			p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
-		}
 		return p;
 	}
 
@@ -208,14 +203,13 @@ public class ZAGameBase implements ZAGame {
 		if (Data.gameLevels.containsKey(getName()))
 			Data.gameLevels.remove(getName());
 		Data.gameLevels.put(getName(), level);
-		if (level != 1) {
+		if (level != 1)
 			for (String s : players.keySet()) {
 				Player p = Bukkit.getServer().getPlayer(s);
 				p.setLevel(level);
 				p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + prev + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + level);
 				p.sendMessage(ChatColor.GRAY + "You now have " + ChatColor.RED + Data.players.get(p).getPoints() + ChatColor.RESET + ChatColor.GRAY + " points.");
 			}
-		}
 		if (cd.wolfLevels != null && cd.wolfLevels.contains(level))
 			wolfRound = true;
 		new NextLevelThread(this, true);
@@ -232,7 +226,7 @@ public class ZAGameBase implements ZAGame {
 		Data.players.get(player).removeFromGame();
 		Data.players.remove(player);
 		if (players.size() == 0)
-			endGame();
+			new GameEndThread(this, cd.gameEndWait, true);
 	}
 
 	/**
@@ -268,7 +262,7 @@ public class ZAGameBase implements ZAGame {
 			spawn = location.add(0, 1, 0);
 			Data.mainframes.put(getName(), location);
 		}
-		this.spawnManager = new SpawnManager(this, location.getWorld());
+		spawnManager = new SpawnManager(this, location.getWorld());
 	}
 
 	/**

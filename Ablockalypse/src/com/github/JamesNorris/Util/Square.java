@@ -30,14 +30,12 @@ public class Square {
 		locs = new ArrayList<Location>();
 		this.radius = radius;
 		world = centerLocation.getWorld();
-		for (i = -radius; i <= radius; i++) {
-			for (j = -radius; j <= radius; j++) {
+		for (i = -radius; i <= radius; i++)
+			for (j = -radius; j <= radius; j++)
 				for (k = -radius; k <= radius; k++) {
 					loc = world.getBlockAt(x + i, y + j, z + k).getLocation();
 					locs.add(loc);
 				}
-			}
-		}
 	}
 
 	/**
@@ -50,9 +48,8 @@ public class Square {
 	public void changeFromToType(Material fromMaterial, Material toMaterial) {
 		for (Location l : locs) {
 			Block b = l.getBlock();
-			if (b.getType() == fromMaterial) {
+			if (b.getType() == fromMaterial)
 				b.setType(toMaterial);
-			}
 		}
 	}
 
@@ -62,9 +59,8 @@ public class Square {
 	 * @param material The type to change the blocks to
 	 */
 	public void changeType(Material material) {
-		for (Location l : locs) {
+		for (Location l : locs)
 			l.getBlock().setType(material);
-		}
 	}
 
 	/**
@@ -74,11 +70,9 @@ public class Square {
 	 * @return Whether or not the material is in the square
 	 */
 	public boolean contains(Material material) {
-		for (Location l : locs) {
-			if (l.getBlock().getType() == material) {
+		for (Location l : locs)
+			if (l.getBlock().getType() == material)
 				return true;
-			}
-		}
 		return false;
 	}
 

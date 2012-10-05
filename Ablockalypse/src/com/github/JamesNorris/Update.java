@@ -24,7 +24,7 @@ public class Update {
 	 */
 	public Update(Ablockalypse instance) {
 		plugin = instance;
-		this.pm = Ablockalypse.getMaster();
+		pm = Ablockalypse.getMaster();
 	}
 
 	/*
@@ -50,12 +50,10 @@ public class Update {
 			e.printStackTrace();
 		} finally {
 			try {
-				if (in != null) {
+				if (in != null)
 					in.close();
-				}
-				if (out != null) {
+				if (out != null)
 					out.close();
-				}
 				System.out.println("[Ablockalypse] Update completed, please restart the server!");
 			} catch (IOException ioe) {
 				ioe.printStackTrace();

@@ -14,11 +14,10 @@ public class StringFunctions {
 			final StringBuilder sb = new StringBuilder();
 			sb.append(inputArray[0]);
 			for (int i = 1; i < inputArray.length; i++) {
-				if (i != inputArray.length - 1) {
+				if (i != inputArray.length - 1)
 					sb.append(glueString);
-				} else {
+				else
 					sb.append(finalGlueString);
-				}
 				sb.append(inputArray[i]);
 			}
 			output = sb.toString();

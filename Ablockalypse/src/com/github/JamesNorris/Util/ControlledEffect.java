@@ -85,16 +85,14 @@ public class ControlledEffect {
 	 * Creates a single effect using this ControlledEffect instance.
 	 */
 	protected void effect() {
-		if (radius > 1) {
-			for (int x = -radius; x <= radius; ++x) {
-				for (int y = -radius; y <= radius; ++x) {
+		if (radius > 1)
+			for (int x = -radius; x <= radius; ++x)
+				for (int y = -radius; y <= radius; ++x)
 					for (int z = -radius; z <= radius; ++z) {
 						Location loc = world.getBlockAt(X + x, Y + y, Z + z).getLocation();
 						world.playEffect(loc, effect, direction);
 					}
-				}
-			}
-		} else
+		else
 			world.playEffect(center, effect, direction);
 	}
 

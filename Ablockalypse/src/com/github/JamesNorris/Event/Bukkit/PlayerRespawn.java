@@ -15,8 +15,7 @@ public class PlayerRespawn implements Listener {
 	 */
 	@EventHandler public void PRE(PlayerRespawnEvent event) {
 		Player p = event.getPlayer();
-		if (Data.players.containsKey(p)) {
+		if (Data.players.containsKey(p))
 			new RespawnThread(p, 5, true);
-		}
 	}
 }

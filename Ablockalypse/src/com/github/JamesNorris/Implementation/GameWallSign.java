@@ -22,8 +22,8 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class GameWallSign implements WallSign {
 	private ConfigurationData cd;
@@ -42,17 +42,17 @@ public class GameWallSign implements WallSign {
 	 */
 	public GameWallSign(Sign sign, YamlManager ym) {
 		this.sign = sign;
-		this.ld = ym.getLocalizationData();
-		this.cd = ym.getConfigurationData();
+		ld = ym.getLocalizationData();
+		cd = ym.getConfigurationData();
 		this.ym = ym;
-		this.l1 = sign.getLine(0);
-		this.l2 = sign.getLine(1);
-		this.l3 = sign.getLine(2);
-		this.l4 = sign.getLine(3);
-		this.x = sign.getX();
-		this.y = sign.getY();
-		this.z = sign.getZ();
-		this.world = sign.getWorld();
+		l1 = sign.getLine(0);
+		l2 = sign.getLine(1);
+		l3 = sign.getLine(2);
+		l4 = sign.getLine(3);
+		x = sign.getX();
+		y = sign.getY();
+		z = sign.getZ();
+		world = sign.getWorld();
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class GameWallSign implements WallSign {
 		if (l1.equalsIgnoreCase(ld.first)) {
 			GameSignClickEvent gsce = new GameSignClickEvent(sign);
 			Bukkit.getPluginManager().callEvent(gsce);
-			if (!gsce.isCancelled()) {
+			if (!gsce.isCancelled())
 				/* Attempts to add the player to a game if the second line has the join string */
 				if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
 					if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
@@ -134,11 +134,10 @@ public class GameWallSign implements WallSign {
 						/* PERKS */
 						if (l2.equalsIgnoreCase(ld.perkstring)) {
 							if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
-								if (ym.perkmap.get(l3) == PotionEffectType.HEAL) {
+								if (ym.perkmap.get(l3) == PotionEffectType.HEAL)
 									player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 5, 5));
-								} else {
+								else
 									player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
-								}
 								int cost = ym.perksignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cost + " points!");
@@ -151,11 +150,10 @@ public class GameWallSign implements WallSign {
 							/* ENCHANTMENTS */
 						} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isWeapon(player.getItemInHand())) {
 							if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
-								if (l3.equalsIgnoreCase(ld.enchrandstring)) {
+								if (l3.equalsIgnoreCase(ld.enchrandstring))
 									player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
-								} else {
+								else
 									player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
-								}
 								int cost = ym.enchsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cost + " points!");
@@ -168,11 +166,10 @@ public class GameWallSign implements WallSign {
 							/* WEAPONS */
 						} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
 							if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
-								if (ym.wepmap.get(l3) != Material.ENDER_PEARL) {
+								if (ym.wepmap.get(l3) != Material.ENDER_PEARL)
 									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
-								} else {
+								else
 									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
-								}
 								int cost = ym.wepsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");
@@ -183,7 +180,7 @@ public class GameWallSign implements WallSign {
 								return;
 							}
 							/* AREAS */
-						} else if (l2.equalsIgnoreCase(ld.areastring)) {
+						} else if (l2.equalsIgnoreCase(ld.areastring))
 							try {
 								int cost = Integer.parseInt(l3);
 								if (zap.getPoints() >= cost) {
@@ -209,17 +206,14 @@ public class GameWallSign implements WallSign {
 							} catch (Exception e) {
 								return;
 							}
-						} else {
+						else
 							return;
-						}
 					} else {
 						player.sendMessage(ChatColor.RED + "Level " + ym.levelmap.get(l3) + " is required to buy that. Your current level is " + player.getLevel());
 						return;
 					}
-				} else {
+				} else
 					return;
-				}
-			}
 		}
 	}
 
@@ -228,16 +222,14 @@ public class GameWallSign implements WallSign {
 	 */
 	private void setupPlayerWithGame(String name, Player player, boolean created) {
 		ZAGame zag = Data.findGame(l3);
-		if (created) {
+		if (created)
 			zag.setSpawn(player.getLocation());// TODO remove this when we have a proper spawn-setting system
-		}
 		ZAPlayer zap = Data.findZAPlayer(player, l3);
 		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
 		Bukkit.getServer().getPluginManager().callEvent(gce);
-		if (!gce.isCancelled()) {
+		if (!gce.isCancelled())
 			zap.loadPlayerToGame(l3);
-		} else {
+		else
 			zag.endGame();
-		}
 	}
 }

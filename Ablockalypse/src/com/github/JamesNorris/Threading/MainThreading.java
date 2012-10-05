@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.External;
+import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
@@ -19,8 +21,9 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Util.Square;
 
 public class MainThreading {
-	private int id1, id2, id3, id4, id5;
+	private int id1, id2, id3, id4, id5, id6;
 	private Ablockalypse instance;
+	private ConfigurationData cd;
 
 	/**
 	 * The instance with all threads that should be run constantly while the plugin is running.
@@ -29,8 +32,9 @@ public class MainThreading {
 	 * @param wolf Whether or not to run the wolfFlames thread
 	 * @param barrier Whether or not to run the barrier thread
 	 */
-	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier, boolean exp, boolean slime, boolean retarget) {
+	public MainThreading(Ablockalypse instance, boolean wolf, boolean barrier, boolean exp, boolean slime, boolean retarget, boolean gamesave) {
 		this.instance = instance;
+		this.cd = External.getYamlManager().getConfigurationData();
 		if (wolf)
 			wolfFlames();
 		if (barrier)
@@ -41,6 +45,19 @@ public class MainThreading {
 			slime();
 		if (retarget)
 			retarget();
+		if (gamesave)
+			gameSave();
+	}
+	
+	/**
+	 * Saves the games and all attachments at intervals.
+	 */
+	public void gameSave() {
+		id6 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
+			public void run() {
+				External.saveBinaries(false);
+			}
+		}, cd.gameSaveWait, cd.gameSaveWait);
 	}
 
 	/**
@@ -49,18 +66,14 @@ public class MainThreading {
 	public void barrier() {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				if (Data.undead != null && Data.barrierpanels != null) {
-					for (GameUndead gz : Data.undead) {
+				if (Data.undead != null && Data.barrierpanels != null)
+					for (GameUndead gz : Data.undead)
 						for (GameBarrier b : Data.barrierpanels.keySet()) {
 							Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
-							for (Location l : s.getLocations()) {
-								if (gz.getZombie().getLocation() == l) {
+							for (Location l : s.getLocations())
+								if (gz.getZombie().getLocation() == l)
 									b.breakBarrier();
-								}
-							}
 						}
-					}
-				}
 			}
 		}, 60, 60);
 	}
@@ -75,6 +88,7 @@ public class MainThreading {
 		bgs.cancelTask(id3);
 		bgs.cancelTask(id4);
 		bgs.cancelTask(id5);
+		bgs.cancelTask(id6);
 	}
 
 	/**
@@ -111,20 +125,26 @@ public class MainThreading {
 	public void cancelRetarget() {
 		Bukkit.getScheduler().cancelTask(id5);
 	}
+	
+	/**
+	 * Cancels the game save task.
+	 */
+	public void cancelGameSave() {
+		Bukkit.getScheduler().cancelTask(id6);
+	}
 
 	/**
 	 * Checks if players have gained exp, and if so, removes the exp.
 	 */
 	public void exp() {
 		id3 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
-				for (Player p : Data.players.keySet()) {
+			@Override public void run() {
+				for (Player p : Data.players.keySet())
 					if (p.getExp() != 0) {
 						int prev = p.getLevel();// TODO just cancel an item event?
 						p.setExp(0);
 						p.setLevel(prev);
 					}
-				}
 			}
 		}, 60, 60);
 	}
@@ -144,12 +164,10 @@ public class MainThreading {
 	 */
 	public void retarget() {
 		id5 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
-				for (ZAMob zam : Data.getZAMobs()) {
-					if (zam.getTarget() == null) {
+			@Override public void run() {
+				for (ZAMob zam : Data.getZAMobs())
+					if (zam.getTarget() == null)
 						zam.setTarget(zam.getGame().getRandomPlayer());
-					}
-				}
 			}
 		}, 60, 60);
 	}
@@ -159,14 +177,11 @@ public class MainThreading {
 	 */
 	public void slime() {
 		id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
-			public void run() {
-				for (Player p : Data.players.keySet()) {
-					for (Entity e : p.getNearbyEntities(32, 32, 32)) {
-						if (e != null && (e.getType() == EntityType.SLIME || !Data.isZAMob(e)) && !(e instanceof Player)) {
+			@Override public void run() {
+				for (Player p : Data.players.keySet())
+					for (Entity e : p.getNearbyEntities(32, 32, 32))
+						if (e != null && (e.getType() == EntityType.SLIME || !Data.isZAMob(e)) && !(e instanceof Player))
 							e.remove();
-						}
-					}
-				}
 			}
 		}, 60, 60);
 	}
@@ -177,12 +192,10 @@ public class MainThreading {
 	public void wolfFlames() {
 		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				if (Data.hellhounds != null) {
-					for (GameHellHound f : Data.hellhounds) {
+				if (Data.hellhounds != null)
+					for (GameHellHound f : Data.hellhounds)
 						if (!f.getWolf().isDead())
 							f.addEffect();
-					}
-				}
 			}
 		}, 20, 20);
 	}

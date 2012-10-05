@@ -22,9 +22,8 @@ public class StartingItems {
 			String[] itemInfo = data[0].split(":");
 			item = Material.getMaterial(itemInfo[0]);
 			damage = Short.valueOf(itemInfo[1]);
-		} else {
+		} else
 			item = Material.getMaterial(data[0]);
-		}
 		amount = Integer.valueOf(data[1]);
 		if (data.length == 4) {
 			String[] enchInfo = {data[2], data[3]};
@@ -37,9 +36,8 @@ public class StartingItems {
 			enchLevel = Integer.valueOf(enchInfo[1]);
 		}
 		ItemStack toReturn = new ItemStack(item, amount, damage);
-		if (ench != null) {
+		if (ench != null)
 			toReturn.addUnsafeEnchantment(ench, enchLevel);
-		}
 		return toReturn;
 	}
 }

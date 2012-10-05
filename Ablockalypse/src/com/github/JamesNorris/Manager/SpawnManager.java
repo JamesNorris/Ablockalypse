@@ -32,7 +32,7 @@ public class SpawnManager {
 	public SpawnManager(ZAGame game, World world) {
 		this.game = game;
 		this.world = world;
-		this.rand = new Random();
+		rand = new Random();
 	}
 
 	/*
@@ -93,15 +93,13 @@ public class SpawnManager {
 		if (et == EntityType.ZOMBIE) {
 			GameMobSpawnEvent gmse = new GameMobSpawnEvent(e, game, GameEntityType.UNDEAD);
 			Bukkit.getServer().getPluginManager().callEvent(gmse);
-			if (!gmse.isCancelled()) {
+			if (!gmse.isCancelled())
 				new GameUndead((Zombie) e, game);
-			}
 		} else if (et == EntityType.WOLF) {
 			GameMobSpawnEvent gmse = new GameMobSpawnEvent(e, game, GameEntityType.HELLHOUND);
 			Bukkit.getServer().getPluginManager().callEvent(gmse);
-			if (!gmse.isCancelled()) {
+			if (!gmse.isCancelled())
 				new GameHellHound((Wolf) e, game);
-			}
 		}
 	}
 }

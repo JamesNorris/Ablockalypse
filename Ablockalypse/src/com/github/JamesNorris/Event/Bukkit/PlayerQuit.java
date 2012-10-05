@@ -14,7 +14,7 @@ public class PlayerQuit implements Listener {
 	 * Called when a player leaves the server.
 	 * Used for removing a player from the ZAGame when they leave.
 	 */
-	@EventHandler public void PPQE(PlayerQuitEvent event) {
+	@EventHandler public void PQE(PlayerQuitEvent event) {
 		Player p = event.getPlayer();
 		if (Data.players.containsKey(p)) {
 			ZAPlayerBase zap = Data.players.get(p);

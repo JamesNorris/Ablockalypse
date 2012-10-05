@@ -84,7 +84,7 @@ public class Data {
 			zag = Data.games.get(name);
 		else
 			zag = new ZAGameBase(name, External.ym.getConfigurationData());
-		return (ZAGame) zag;
+		return zag;
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class Data {
 			zap = new ZAPlayerBase(player, Data.games.get(gamename));
 		else
 			zap = new ZAPlayerBase(player, new ZAGameBase(gamename, External.ym.getConfigurationData()));
-		return (ZAPlayer) zap;
+		return zap;
 	}
 
 	/**
@@ -120,10 +120,9 @@ public class Data {
 	 * @return The HellHound instance of the entity
 	 */
 	public static HellHound getHellHound(Entity e) {
-		for (HellHound hh : Data.hellhounds) {
+		for (HellHound hh : Data.hellhounds)
 			if (hh.getWolf().getEntityId() == e.getEntityId())
-				return (HellHound) hh;
-		}
+				return hh;
 		return null;
 	}
 
@@ -134,25 +133,21 @@ public class Data {
 	 * @return The GameUndead instance of the entity
 	 */
 	public static Undead getUndead(Entity e) {
-		for (GameUndead gu : Data.undead) {
+		for (GameUndead gu : Data.undead)
 			if (gu.getZombie().getEntityId() == e.getEntityId())
-				return (Undead) gu;
-		}
+				return gu;
 		return null;
 	}
 
 	public static ZAMob getZAMob(Entity e) {
 		if (e instanceof Zombie) {
-			for (GameUndead gu : Data.undead) {
+			for (GameUndead gu : Data.undead)
 				if (gu.getZombie().getEntityId() == e.getEntityId())
-					return (ZAMob) gu;
-			}
-		} else if (e instanceof Wolf) {
-			for (GameHellHound ghh : Data.hellhounds) {
+					return gu;
+		} else if (e instanceof Wolf)
+			for (GameHellHound ghh : Data.hellhounds)
 				if (ghh.getWolf().getEntityId() == e.getEntityId())
-					return (ZAMob) ghh;
-			}
-		}
+					return ghh;
 		return null;
 	}
 
@@ -172,19 +167,15 @@ public class Data {
 	 * @return Whether or not the entity is a ZA entity
 	 */
 	public static boolean isZAMob(Entity e) {
-		if (e != null) {
+		if (e != null)
 			if ((e instanceof Wolf || e instanceof CraftWolf) && Data.hellhounds != null) {
-				for (GameHellHound gh : Data.hellhounds) {
+				for (GameHellHound gh : Data.hellhounds)
 					if (gh.getWolf().getEntityId() == e.getEntityId())
 						return true;
-				}
-			} else if ((e instanceof Zombie || e instanceof CraftZombie) && Data.undead != null) {
-				for (GameUndead gu : Data.undead) {
+			} else if ((e instanceof Zombie || e instanceof CraftZombie) && Data.undead != null)
+				for (GameUndead gu : Data.undead)
 					if (gu.getZombie().getEntityId() == e.getEntityId())
 						return true;
-				}
-			}
-		}
 		return false;
 	}
 

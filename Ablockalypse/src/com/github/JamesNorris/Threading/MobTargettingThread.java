@@ -8,10 +8,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Interface.ZAMob;
 
 public class MobTargettingThread {
-	private ZAMob ge;
 	private net.minecraft.server.Entity ec;
 	private int id;
 	private Entity e;
@@ -20,14 +18,8 @@ public class MobTargettingThread {
 
 	/**
 	 * An instance used in targetting players, that also solves mob speed improvement.
-	 * 
-	 * @param e The entity that is doing the targetting
-	 * @param p The player to target
-	 * @param autorun Whether or not to autorun the thread attached to this instance, that targets the player
 	 */
-	public MobTargettingThread(ZAMob ge) {
-		this.ge = ge;
-	}
+	public MobTargettingThread() {}
 
 	/**
 	 * Cancels the thread.
@@ -44,12 +36,12 @@ public class MobTargettingThread {
 	 * @param speed The speed to set the entity to
 	 */
 	public void target(Entity entity, Player player, double speedPerTick) {
-		this.e = entity;
-		this.p = player;
-		this.speed = speedPerTick;
-		this.ec = ((CraftEntity) e).getHandle();
+		e = entity;
+		p = player;
+		speed = speedPerTick;
+		ec = ((CraftEntity) e).getHandle();
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
+			@Override public void run() {
 				if (!(e.isDead() || p.isDead())) {
 					Location l = p.getLocation();
 					World w = e.getWorld();
@@ -67,16 +59,13 @@ public class MobTargettingThread {
 					if ((eZ - pZ) < 0)
 						movZ = eZ + speed;
 					if (!w.getBlockAt((int) movX, (int) movY, (int) movZ).isEmpty()) {// TODO this needs to be more precise
-						if (w.getBlockAt((int) movX, (int) movY + 1, (int) movZ).isEmpty()) {
+						if (w.getBlockAt((int) movX, (int) movY + 1, (int) movZ).isEmpty())
 							ec.setPosition(movX, ++movY, movZ);
-						}
 					} else {
 						ec.setPosition(movX, movY, movZ);
-						((org.bukkit.entity.Creature) ge.getEntity()).setTarget(p);
 					}
-				} else {
+				} else
 					cancel();
-				}
 			}
 		}, 1, 1);
 	}

@@ -26,9 +26,8 @@ public class PlayerDeath implements Listener {
 			if (zag.getRemainingPlayers() > 0) {
 				if (zap.isInLastStand())
 					zap.toggleLastStand();
-			} else {
+			} else
 				zag.endGame();
-			}
 		}
 	}
 }

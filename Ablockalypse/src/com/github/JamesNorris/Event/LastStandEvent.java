@@ -35,8 +35,8 @@ public class LastStandEvent extends Event {
 		this.p = p;
 		this.zap = zap;
 		this.sitting = sitting;
-		this.game = zap.getGame();
-		this.cancel = false;
+		game = zap.getGame();
+		cancel = false;
 	}
 
 	@Override public HandlerList getHandlers() {

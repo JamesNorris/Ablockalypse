@@ -32,7 +32,7 @@ public class TeleportThread {
 		this.time = time;
 		player = zaplayer.getPlayer();
 		instance = Ablockalypse.instance;
-		this.loc = zaplayer.getPlayer().getLocation();
+		loc = zaplayer.getPlayer().getLocation();
 		if (countdown)
 			countdown();
 	}
@@ -61,7 +61,7 @@ public class TeleportThread {
 					--time;
 				} else if (time <= 0) {
 					zaplayer.sendToMainframe("Teleport");
-					EffectUtil.generateEffect(zaplayer.getPlayer(), ZAEffect.SMOKE);
+					EffectUtil.generateEffect(player, ZAEffect.SMOKE);
 					cancel();
 				}
 			}
@@ -82,9 +82,8 @@ public class TeleportThread {
 	 * Checks if the player is in roughly the same location as they were when they started the thread.
 	 */
 	private boolean sameLocation() {
-		if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ()) {
+		if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ())
 			return true;
-		}
 		return false;
 	}
 }
