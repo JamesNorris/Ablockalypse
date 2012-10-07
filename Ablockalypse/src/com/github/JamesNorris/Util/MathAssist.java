@@ -21,12 +21,12 @@ public class MathAssist {
 	 * The method for creating a line with a supplied x, m, and b.
 	 * The general equation is y = mx + b.
 	 * 
-	 * @param x The x value for the line (x-intercept)
 	 * @param m The m value for the line (slope)
+	 * @param x The x value for the line (x-intercept)
 	 * @param b The b value for the line (y-intercept)
 	 * @return The current value for the y variable
 	 */
-	public static double line(double x, double m, double b) {
+	public static double line(double m, double x, double b) {
 		return (m * x) + b;
 	}
 }

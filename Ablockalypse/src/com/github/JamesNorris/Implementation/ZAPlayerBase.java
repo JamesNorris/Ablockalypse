@@ -14,7 +14,6 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -24,6 +23,7 @@ import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
@@ -141,21 +141,16 @@ public class ZAPlayerBase implements ZAPlayer {
 		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
-				for (GameUndead gz : Data.undead)
-					if (gz.getGame() == this.getGame()) {
-						Zombie z = gz.getZombie();
-						int prev = game.getRemainingMobs();
-						EffectUtil.generateEffect(player, z.getLocation(), ZAEffect.FLAMES);
-						z.remove();
-						if (prev < game.getRemainingMobs())
-							game.subtractMobCount();
-					}
+				for (ZAMob zam : Data.getZAMobs()) {
+					SoundUtil.generateSound(zam.getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
+					EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
+					zam.kill();
+				}
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
 					ZAPlayer zap = Data.findZAPlayer(p, game.getName());
 					zap.addPoints(cd.atompoints);
 				}
-				EffectUtil.generateEffect(player, loc, ZAEffect.FLAMES);
 			break;
 			case BARRIER_FIX:
 				if (Data.gamebarriers.size() >= 1) {
@@ -218,16 +213,7 @@ public class ZAPlayerBase implements ZAPlayer {
 				return;
 			} else
 				player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
-		}/* else {//unused because this is already compensated for with the commands
-			ZAGameBase zag = new ZAGameBase(name, cd);
-			zag.setSpawn(Data.mainframes.get(name));
-			zag.addPlayer(player);
-			saveStatus();
-			prepForGame();
-			sendToMainframe("Loading NEW game");
-			player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
-			return;
-			}*/
+		}
 	}
 
 	/*
@@ -377,21 +363,28 @@ public class ZAPlayerBase implements ZAPlayer {
 			LastStandEvent lse = new LastStandEvent(player, this, true);
 			Bukkit.getServer().getPluginManager().callEvent(lse);
 			if (!lse.isCancelled()) {
-				laststand = true;
-				Entity v = player.getVehicle();
-				if (v != null)
-					v.remove();
-				player.setFoodLevel(5);
-				SoundUtil.generateSound(player, ZASound.LAST_STAND);
-				Breakable.setSitting(player, true);
-				new LastStandThread(this, true);
-				if (cd.losePerksLastStand)
-					player.getActivePotionEffects().clear();
+				if (!(getGame().getRemainingPlayers() <= 1)) {
+					player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
+					laststand = true;
+					Entity v = player.getVehicle();
+					if (v != null)
+						v.remove();
+					player.setFoodLevel(5);
+					player.setHealth(5);
+					SoundUtil.generateSound(player, ZASound.LAST_STAND);
+					Breakable.setSitting(player, true);
+					new LastStandThread(this, true);
+					if (cd.losePerksLastStand)
+						player.getActivePotionEffects().clear();
+				} else {
+					removeFromGame();
+				}
 			}
 		} else {
 			LastStandEvent lse = new LastStandEvent(player, this, false);
 			Bukkit.getServer().getPluginManager().callEvent(lse);
 			if (!lse.isCancelled()) {
+				player.sendMessage(ChatColor.GRAY + "You have been picked up!");
 				laststand = false;
 				Breakable.setSitting(player, false);
 				if (player.getVehicle() != null)

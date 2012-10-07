@@ -45,13 +45,14 @@ public class GameMysteryChest implements MysteryChest {
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	@Override public void randomize(Player p) {
+	@SuppressWarnings("deprecation") @Override public void randomize(Player p) {
 		Inventory inv = p.getInventory();
 		int i = rand.nextInt(1000) + 1;
 		if (i >= 950) {
 			ItemStack it = new ItemStack(Material.BOW, 1);
 			it.addEnchantment(Enchantment.ARROW_INFINITE, 1);
 			inv.addItem(it);
+			inv.addItem(new ItemStack(Material.ARROW, 1));
 		} else if (i >= 920)
 			inv.addItem(new ItemStack(Material.GOLD_SWORD, 1));
 		else if (i >= 670)
@@ -68,5 +69,6 @@ public class GameMysteryChest implements MysteryChest {
 			SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
 			EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 		}
+		p.updateInventory();
 	}
 }

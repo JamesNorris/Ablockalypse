@@ -113,9 +113,6 @@ xmppAnnounceLastStand: true
 
 #################################################### MAINTENANCE ####################################################
 
-GAME_SAVE_WAIT_TIME: 30
-# The time between auto-saves.
-
 GAME_END_WAIT_TIME: 60
 # The time in seconds before ending a game with no players left.
 

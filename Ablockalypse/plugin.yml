@@ -1,6 +1,6 @@
-name: Zombie_Ablockalypse
+name: Ablockalypse
 authors: [JamesNorris, iKeirNez]
-version: 1.0.7
+version: 1.0.9
 main: com.github.Ablockalypse
 description: Extreme Zombie Ablockalypse plugin for bukkit servers.
 prefix: Ablockalypse

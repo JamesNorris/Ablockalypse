@@ -1,72 +1,110 @@
 package com.github.JamesNorris.Threading;
 
-import org.bukkit.Bukkit;
+import net.minecraft.server.EntityCreature;
+import net.minecraft.server.PathEntity;
+
 import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.craftbukkit.entity.CraftEntity;
-import org.bukkit.entity.Entity;
+import org.bukkit.craftbukkit.entity.CraftCreature;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 
 public class MobTargettingThread {
-	private net.minecraft.server.Entity ec;
-	private int id;
-	private Entity e;
+	private final Plugin plugin;
 	private Player p;
-	private double speed;
+	private Creature c;
+	private int id;
+	private boolean hasTarget = false;
+	private float speed = 0.2F;
+	private float radius = 32.0F;
 
 	/**
-	 * An instance used in targetting players, that also solves mob speed improvement.
+	 * Creates a new mobtargetter, that can target specific locations.
+	 * 
+	 * @param plugin The plugin to use to run the thread
+	 * @param c The creature instance to move
+	 * @param loc The location to start targetting
 	 */
-	public MobTargettingThread() {}
+	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
+		this.plugin = plugin;
+		this.c = c;
+		setTarget(p);
+	}
+
+	/**
+	 * Gets the speed of the creature moving.
+	 * 
+	 * @return The creature speed
+	 */
+	public float getSpeed() {
+		return speed;
+	}
+
+	/**
+	 * Changes the target of the mob.
+	 * 
+	 * @param l The new target
+	 */
+	public void setTarget(Player p) {
+		cancel();
+		if (p != null) {
+			this.p = p;
+			target();
+		}
+	}
+
+	/**
+	 * Sets the speed of movement of the mob.
+	 * 
+	 * @param speed How fast the mob should move
+	 */
+	public void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+	/*
+	 * Begins the targetting thread.
+	 */
+	private void target() {
+		hasTarget = true;
+		id = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
+			public void run() {
+				if (!c.isDead() && !p.isDead()) {
+					moveMob();
+				} else {
+					cancel();
+				}
+			}
+		}, 1, 1);
+	}
 
 	/**
 	 * Cancels the thread.
 	 */
 	protected void cancel() {
-		Bukkit.getScheduler().cancelTask(id);
+		hasTarget = false;
+		plugin.getServer().getScheduler().cancelTask(id);
+	}
+
+	/*
+	 * Moves the mob towards the target.
+	 */
+	private void moveMob() {
+		Location loc = p.getLocation();
+		EntityCreature mob = (EntityCreature) ((CraftCreature) c).getHandle();
+		PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
+		mob.setPathEntity(path);
+		mob.getNavigation().a(path, speed);
 	}
 
 	/**
-	 * Starts a per-tick thread that targets the player.
+	 * Checks if the mob has a target.
 	 * 
-	 * @param entity The entity that is doing the targetting
-	 * @param player The player to target
-	 * @param speed The speed to set the entity to
+	 * @return Whether or not the mob has a target
 	 */
-	public void target(Entity entity, Player player, double speedPerTick) {
-		e = entity;
-		p = player;
-		speed = speedPerTick;
-		ec = ((CraftEntity) e).getHandle();
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			@Override public void run() {
-				if (!(e.isDead() || p.isDead())) {
-					Location l = p.getLocation();
-					World w = e.getWorld();
-					double pX = l.getX();
-					double pZ = l.getZ();
-					Location loc = e.getLocation();
-					double eX = loc.getX();
-					double eY = loc.getY();
-					double eZ = loc.getZ();
-					double movX = eX - speed;
-					double movY = eY;
-					double movZ = eZ - speed;
-					if ((eX - pX) < 0)
-						movX = eX + speed;
-					if ((eZ - pZ) < 0)
-						movZ = eZ + speed;
-					if (!w.getBlockAt((int) movX, (int) movY, (int) movZ).isEmpty()) {// TODO this needs to be more precise
-						if (w.getBlockAt((int) movX, (int) movY + 1, (int) movZ).isEmpty())
-							ec.setPosition(movX, ++movY, movZ);
-					} else {
-						ec.setPosition(movX, movY, movZ);
-					}
-				} else
-					cancel();
-			}
-		}, 1, 1);
+	public boolean hasTarget() {
+		return hasTarget;
 	}
 }

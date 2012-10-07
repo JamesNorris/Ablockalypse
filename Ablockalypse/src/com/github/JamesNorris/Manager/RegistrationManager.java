@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Manager;
 
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import com.github.Ablockalypse;
@@ -28,7 +29,7 @@ public class RegistrationManager {
 	 * 
 	 * @param instance The instance of the Ablockalypse plugin
 	 */
-	public static void register(final Ablockalypse instance) {
+	public static void register(final Plugin instance) {
 		final PluginManager pm = instance.getServer().getPluginManager();
 		/* EVENTS */
 		pm.registerEvents(new EntityDamage(), instance);
@@ -49,6 +50,6 @@ public class RegistrationManager {
 		pm.registerEvents(new EntityExplode(), instance);
 		pm.registerEvents(new EntityDamageByEntity(), instance);
 		/* COMMANDS */
-		instance.getCommand("za").setExecutor(new BaseCommand());
+		((Ablockalypse) instance).getCommand("za").setExecutor(new BaseCommand());
 	}
 }

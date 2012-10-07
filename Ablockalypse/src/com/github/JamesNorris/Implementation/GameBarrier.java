@@ -2,22 +2,31 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Creature;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Util.ControlledEffect;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 import com.github.JamesNorris.Util.Square;
 
 public class GameBarrier implements Barrier {
 	private List<Block> blocks;
 	private ConfigurationData cd;
 	private Location center;
+	private boolean breaking;
+	private int id, hittimes;
 
 	/**
 	 * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
@@ -42,15 +51,40 @@ public class GameBarrier implements Barrier {
 
 	/**
 	 * Changes all blocks within the barrier to air.
+	 * 
+	 * @param c The creature that is breaking the barrier
 	 */
-	@Override public void breakBarrier() {
-		for (Block block : blocks) {
-			blocks.remove(block);
-			block.setType(Material.AIR);
-			blocks.add(block);
+	@Override public void breakBarrier(final Creature c) {
+		if (!breaking) {
+			id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
+				public void run() {
+					if (!c.isDead()) {
+						++hittimes;
+						SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_BREAK);
+						EffectUtil.generateEffect(c.getWorld(), center, ZAEffect.WOOD_BREAK);
+						if (hittimes >= 5) {
+							for (Block block : blocks) {
+								blocks.remove(block);
+								block.setType(Material.AIR);
+								blocks.add(block);
+							}
+							if (cd.extraEffects)
+								new ControlledEffect(center.getWorld(), Effect.SMOKE, 3, 1, center, true);
+							cancel();
+						}
+					} else {
+						cancel();
+					}
+				}
+			}, 20, 20);
 		}
-		if (cd.extraEffects)
-			new ControlledEffect(center.getWorld(), Effect.SMOKE, 3, 1, center, true);
+	}
+
+	/*
+	 * Cancels the breakbarrier task.
+	 */
+	private void cancel() {
+		Bukkit.getScheduler().cancelTask(id);
 	}
 
 	/**
@@ -87,11 +121,13 @@ public class GameBarrier implements Barrier {
 	 * Replaces all holes in the barrier.
 	 */
 	@Override public void replaceBarrier() {
-		for (Block b : blocks)
+		for (Block b : blocks) {
 			if (b.getType() != Material.FENCE) {
 				blocks.remove(b);
 				b.setType(Material.FENCE);
 				blocks.add(b);
 			}
+		}
+		SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_REPAIR);
 	}
 }

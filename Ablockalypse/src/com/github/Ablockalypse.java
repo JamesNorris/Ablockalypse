@@ -15,6 +15,7 @@ public class Ablockalypse extends JavaPlugin {
 	public static Ablockalypse instance;
 	private static MainThreading mt;
 	private static PluginMaster pm;
+	public static boolean disable = false;
 
 	/**
 	 * Gets the PluginMaster instance for Ablockalypse. The PluginMaster instance is what manages the entire plugin.
@@ -33,7 +34,8 @@ public class Ablockalypse extends JavaPlugin {
 	}
 
 	@Override public void onDisable() {
-		External.saveBinaries(true);
+		disable = true;
+		External.saveData();
 	}
 
 	@Override public void onEnable() {
@@ -49,9 +51,10 @@ public class Ablockalypse extends JavaPlugin {
 			System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
 		} else {
 			RegistrationManager.register(this);
-			External.loadBinaries();
+			External.loadData();
 			mt = new MainThreading(this, true, true, true, true, true, true);
 			pm.addData(d, mt);
+			pm.addManager(External.ym);
 		}
 	}
 }

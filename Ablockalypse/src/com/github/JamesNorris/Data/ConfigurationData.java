@@ -8,8 +8,7 @@ import java.util.Random;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
-
-import com.github.Ablockalypse;
+import org.bukkit.plugin.Plugin;
 
 public class ConfigurationData {
 	public int buyLevel, woodSwordLevel, stoneSwordLevel, ironSwordLevel, diamondSwordLevel, goldSwordLevel, grenadeLevel;
@@ -21,7 +20,7 @@ public class ConfigurationData {
 	public String helmet, chestplate, leggings, boots;
 	public List<String> inventory;
 	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
-	public int packapunchlevel, gameEndWait, gameSaveWait;
+	public int packapunchlevel, gameEndWait;
 	public int powerchance, atompoints;
 	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, doubleSpeedLevel;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
@@ -32,7 +31,7 @@ public class ConfigurationData {
 	 * 
 	 * @param instance The instance of the plugin Ablockalypse
 	 */
-	public ConfigurationData(Ablockalypse plugin) {
+	public ConfigurationData(Plugin plugin) {
 		FileConfiguration cf = plugin.getConfig();
 		/* POINTS & LEVELS */
 		heallevel = cf.getInt("healLevel");
@@ -83,7 +82,6 @@ public class ConfigurationData {
 		extraEffects = cf.getBoolean("addedEffects");
 		powerrad = cf.getInt("powerupRadius");
 		gameEndWait = cf.getInt("GAME_END_WAIT_TIME") * 20;
-		gameSaveWait = cf.getInt("GAME_SAVE_WAIT_TIME") * 20;
 		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");
 	}

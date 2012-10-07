@@ -107,7 +107,7 @@ public class GameWallSign implements WallSign {
 	 * 
 	 * @param player The player to affect if the lines are run through
 	 */
-	@Override public void runLines(Player player) {
+	@SuppressWarnings("deprecation") @Override public void runLines(Player player) {
 		/* Makes sure the sign has the first requirement to be a ZA sign */
 		if (l1.equalsIgnoreCase(ld.first)) {
 			GameSignClickEvent gsce = new GameSignClickEvent(sign);
@@ -120,7 +120,7 @@ public class GameWallSign implements WallSign {
 						return;
 					} else if (Data.games.containsKey(l3)) {
 						setupPlayerWithGame(l3, player, false);
-						EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+						EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 						return;
 					} else {
 						player.sendMessage(ChatColor.RED + "That game does not exist!");
@@ -141,7 +141,7 @@ public class GameWallSign implements WallSign {
 								int cost = ym.perksignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cost + " points!");
-								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
 								player.sendMessage(ChatColor.RED + "You need " + ym.perksignline3.get(l3) + " points to buy this. You currently have " + n);
@@ -157,7 +157,7 @@ public class GameWallSign implements WallSign {
 								int cost = ym.enchsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cost + " points!");
-								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
 								player.sendMessage(ChatColor.RED + "You need " + ym.enchsignline3.get(l3) + " points to buy this. You currently have " + n);
@@ -173,7 +173,7 @@ public class GameWallSign implements WallSign {
 								int cost = ym.wepsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");
-								EffectUtil.generateEffect(player, ZAEffect.POTION_BREAK);
+								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
 								player.sendMessage(ChatColor.RED + "You need " + ym.wepsignline3.get(l3) + " points to buy this. You currently have " + n);
@@ -192,7 +192,7 @@ public class GameWallSign implements WallSign {
 										a = new GameArea(b);
 									if (!a.isPurchased()) {
 										a.purchaseArea();
-										EffectUtil.generateEffect(player, ZAEffect.FLAMES);
+										EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 										zap.subtractPoints(cost);
 										player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
 										return;
@@ -214,6 +214,7 @@ public class GameWallSign implements WallSign {
 					}
 				} else
 					return;
+			player.updateInventory();
 		}
 	}
 

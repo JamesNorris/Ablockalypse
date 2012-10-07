@@ -2,10 +2,12 @@ package com.github.JamesNorris.Implementation;
 
 import org.bukkit.Effect;
 import org.bukkit.World;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.HellHound;
@@ -19,10 +21,10 @@ public class GameHellHound implements HellHound, ZAMob {
 	private ZAGame game;
 	public boolean killed;
 	private MobTargettingThread mt;
-	private double speed;
 	private Player target;
 	private Wolf wolf;
 	private World world;
+	private int healthupdate;
 
 	/**
 	 * Creates a new instance of the GameWolf for ZA.
@@ -33,15 +35,17 @@ public class GameHellHound implements HellHound, ZAMob {
 		this.wolf = wolf;
 		this.game = game;
 		world = wolf.getWorld();
-		speed = .05;
-		mt = new MobTargettingThread();
+		this.healthupdate = game.getLevel() / 3;
+		Player p = game.getRandomLivingPlayer();
+		mt = new MobTargettingThread(Ablockalypse.instance, (Creature) wolf, p);
 		game.addMobCount();
-		mt.target(wolf, game.getRandomLivingPlayer(), speed);
 		setAggressive(true);
 		if (!Data.hellhounds.contains(this))
 			Data.hellhounds.add(this);
+		if (game.getLevel() <= 2)
+			wolf.setHealth(game.getLevel() * 5);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-			setSpeed(getSpeed() * 1.5);
+			setSpeed(0.3F);
 	}
 
 	/**
@@ -54,7 +58,12 @@ public class GameHellHound implements HellHound, ZAMob {
 	/**
 	 * Attempts to increase the mob health depending on the level the mob is on.
 	 */
-	@Override public void attemptHealthIncrease() {}
+	@Override public void attemptHealthIncrease() {
+		if (healthupdate > 0 && wolf.getHealth() <= 17) {
+			--healthupdate;
+			wolf.setHealth(20);
+		}
+	}
 
 	/**
 	 * Clears all data from this instance.
@@ -79,7 +88,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * @return The speed of the entity as a double
 	 */
 	@Override public double getSpeed() {
-		return speed;
+		return mt.getSpeed();
 	}
 
 	/**
@@ -150,12 +159,11 @@ public class GameHellHound implements HellHound, ZAMob {
 
 	/**
 	 * Sets the speed of the entity.
-	 * Default is .03.
 	 * 
 	 * @param speed The speed to set the entity to
 	 */
-	@Override public void setSpeed(double speed) {
-		this.speed = speed;
+	@Override public void setSpeed(float speed) {
+		mt.setSpeed(speed);
 	}
 
 	/**
@@ -165,8 +173,7 @@ public class GameHellHound implements HellHound, ZAMob {
 	 */
 	@Override public void setTarget(Player player) {
 		target = player;
-		if (player != null)
-			mt.target(wolf, player, speed);
+		mt.setTarget(player);
 	}
 
 	/**

@@ -56,10 +56,9 @@ public class TeleportThread {
 						player.sendMessage(ChatColor.GRAY + "Teleportation cancelled!");
 					}
 					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
-					if (time == 1)
-						EffectUtil.generateEffect(zaplayer.getPlayer(), ZAEffect.SMOKE);
 					--time;
 				} else if (time <= 0) {
+					EffectUtil.generateEffect(player, ZAEffect.SMOKE);
 					zaplayer.sendToMainframe("Teleport");
 					EffectUtil.generateEffect(player, ZAEffect.SMOKE);
 					cancel();

@@ -4,12 +4,15 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Creature;
 
 public interface Barrier {
 	/**
 	 * Changes all blocks within the barrier to air.
+	 * 
+	 * @param c The creature that is breaking the barrier
 	 */
-	public void breakBarrier();
+	public void breakBarrier(Creature c);
 
 	/**
 	 * Returns the list of blocks in the barrier.

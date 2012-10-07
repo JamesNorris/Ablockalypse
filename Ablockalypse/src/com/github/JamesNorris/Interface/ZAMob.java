@@ -61,11 +61,10 @@ public interface ZAMob {
 
 	/**
 	 * Sets the speed of the entity.
-	 * Default is .03.
 	 * 
 	 * @param speed The speed to set the entity to
 	 */
-	public void setSpeed(double speed);
+	public void setSpeed(float speed);
 
 	/**
 	 * Sets the target of this instance.

@@ -8,7 +8,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 public class GameEndThread {
 	private int time;
 	private ZAGame game;
-	
+
 	/**
 	 * Waits to end the given game after the given time.
 	 * 
@@ -22,7 +22,7 @@ public class GameEndThread {
 		if (autorun)
 			endGame();
 	}
-	
+
 	/**
 	 * Schedules the delayed task to end the game.
 	 */
@@ -30,8 +30,8 @@ public class GameEndThread {
 		Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
 				if (game.getRemainingPlayers() == 0)
-				game.endGame();
-			}			
+					game.endGame();
+			}
 		}, time);
 	}
 }

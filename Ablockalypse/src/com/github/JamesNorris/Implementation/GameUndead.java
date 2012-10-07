@@ -1,14 +1,15 @@
 package com.github.JamesNorris.Implementation;
 
 import net.minecraft.server.Entity;
-import net.minecraft.server.EntityHuman;
 import net.minecraft.server.NBTTagCompound;
 
 import org.bukkit.Effect;
 import org.bukkit.World;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Undead;
@@ -22,7 +23,6 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	private int healthupdate;
 	public boolean killed, fireproof;
 	private MobTargettingThread mt;
-	private double speed;
 	private Player target;
 	private Zombie zombie;
 
@@ -35,15 +35,16 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
 		this.game = game;
-		speed = .04;
-		mt = new MobTargettingThread();
+		Player p = game.getRandomLivingPlayer();
+		mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, p);
 		game.addMobCount();
-		mt.target(zombie, game.getRandomLivingPlayer(), speed);
-		healthupdate = game.getLevel();
+		healthupdate = game.getLevel() / 3;
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
+		if (game.getLevel() <= 2)
+			zombie.setHealth(game.getLevel() * 5);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-			setSpeed(getSpeed() * 1.5);
+			setSpeed(0.3F);
 	}
 
 	/**
@@ -60,7 +61,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * Attempts to increase the mob health depending on the level the zombie is on.
 	 */
 	@Override public void attemptHealthIncrease() {
-		if (healthupdate > 0 && zombie.getHealth() <= 15) {
+		if (healthupdate > 0 && zombie.getHealth() <= 17) {
 			--healthupdate;
 			zombie.setHealth(20);
 		}
@@ -92,7 +93,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * @return The speed of the entity as a double
 	 */
 	@Override public double getSpeed() {
-		return speed;
+		return mt.getSpeed();
 	}
 
 	/**
@@ -155,8 +156,8 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @param speed The speed to set the entity to
 	 */
-	@Override public void setSpeed(double speed) {
-		this.speed = speed;
+	@Override public void setSpeed(float speed) {
+		mt.setSpeed(speed);
 	}
 
 	/**
@@ -166,12 +167,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 */
 	@Override public void setTarget(Player p) {
 		target = p;
-		Entity e = Breakable.getNMSEntity(zombie);
-		Entity p2 = Breakable.getNMSPlayer(p);
-		EntityHuman eh = e.world.findNearbyPlayer(p2, 1000);
-		Player p3 = (Player) eh.getBukkitEntity();
-		if (p != null)
-			mt.target(zombie, p3, speed);
+		mt.setTarget(p);
 	}
 
 	/**

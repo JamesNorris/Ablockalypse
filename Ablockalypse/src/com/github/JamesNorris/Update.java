@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.bukkit.plugin.Plugin;
+
 import com.github.Ablockalypse;
 
 public class Update {
@@ -22,8 +24,8 @@ public class Update {
 	 * 
 	 * @param instance The instance of Ablockalypse to use for the Updater
 	 */
-	public Update(Ablockalypse instance) {
-		plugin = instance;
+	public Update(Plugin instance) {
+		plugin = (Ablockalypse) instance;
 		pm = Ablockalypse.getMaster();
 	}
 

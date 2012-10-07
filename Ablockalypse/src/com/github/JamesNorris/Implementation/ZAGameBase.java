@@ -9,15 +9,18 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
+import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.GameEndThread;
-import com.github.JamesNorris.Threading.MobSpawnThread;
 import com.github.JamesNorris.Threading.NextLevelThread;
+import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.SoundUtil.ZASound;
 import com.github.iKeirNez.Util.XMPP;
@@ -31,7 +34,7 @@ public class ZAGameBase implements ZAGame {
 	private Random rand;
 	private Location spawn;
 	private SpawnManager spawnManager;
-	private boolean wolfRound;
+	private boolean wolfRound, started;
 
 	/**
 	 * Creates a new instance of a game.
@@ -43,8 +46,9 @@ public class ZAGameBase implements ZAGame {
 	public ZAGameBase(String name, ConfigurationData cd) {
 		this.name = name;
 		this.cd = cd;
-		rand = new Random();
+		this.rand = new Random();
 		Data.games.put(name, this);
+		this.started = false;
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
@@ -196,6 +200,7 @@ public class ZAGameBase implements ZAGame {
 
 	/**
 	 * Starts the next level for the game, and adds a level to all players in this game.
+	 * Then, spawns a wave of zombies, and starts the thread for the next level.
 	 */
 	@Override public void nextLevel() {
 		int prev = level;
@@ -213,7 +218,11 @@ public class ZAGameBase implements ZAGame {
 		if (cd.wolfLevels != null && cd.wolfLevels.contains(level))
 			wolfRound = true;
 		new NextLevelThread(this, true);
-		new MobSpawnThread(this, true);
+		Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+			public void run() {
+				spawnWave();
+			}
+		}, 60);
 	}
 
 	/**
@@ -270,5 +279,41 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void subtractMobCount() {
 		--mobs;
+	}
+
+	/**
+	 * Spawns a wave of mobs around random living players in this game.
+	 */
+	@Override public void spawnWave() {
+		double m = 0.53;
+		double x = level;
+		double b = getPlayers().size();
+		int amt = (int) Math.round(MathAssist.line(m, x, b));
+		if (External.getYamlManager().getConfigurationData().DEBUG)
+			System.out.println("[Ablockalypse] [DEBUG] Amount of zombies in this wave: (" + getName() + ") " + amt);
+		if (getRemainingPlayers() >= 1) {
+			for (int i = 0; i <= amt; i++) {
+				Player p = Bukkit.getServer().getPlayer(getPlayers().iterator().next());
+				if (isWolfRound()) {
+					Location l = p.getLocation();
+					Location loc = spawnManager.findSpawnLocation(l, 7, 4);
+					spawnManager.gameSpawn(loc, EntityType.WOLF);
+				} else {
+					Location l = p.getLocation();
+					Location loc = spawnManager.findSpawnLocation(l, 16, 10);
+					spawnManager.gameSpawn(loc, EntityType.ZOMBIE);
+				}
+			}
+			this.started = true;
+		}
+	}
+
+	/**
+	 * Returns whether or not the game has started.
+	 * 
+	 * @return Whether or not the game has been started, and mobs are spawning
+	 */
+	@Override public boolean hasStarted() {
+		return started;
 	}
 }

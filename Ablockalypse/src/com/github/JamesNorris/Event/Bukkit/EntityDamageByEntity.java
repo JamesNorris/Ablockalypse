@@ -1,6 +1,7 @@
 package com.github.JamesNorris.Event.Bukkit;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,6 +11,7 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.JamesNorris.Interface.ZAMob;
 
 public class EntityDamageByEntity implements Listener {
 	private ConfigurationData cd;
@@ -23,7 +25,15 @@ public class EntityDamageByEntity implements Listener {
 			cd = External.ym.getConfigurationData();
 		Entity damager = event.getDamager();
 		Entity e = event.getEntity();
-		if (e instanceof Player) {
+		if (Data.isZAMob(e)) {
+			if (damager instanceof Fireball) {
+				ZAMob zam = Data.getZAMob(e);
+				int dmg = 20 - (zam.getGame().getLevel() / 2);
+				if (dmg <= 5)
+					dmg = 5;
+				event.setDamage(dmg);
+			}
+		} else if (e instanceof Player) {
 			Player p = (Player) e;
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);

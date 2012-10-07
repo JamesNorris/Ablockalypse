@@ -40,7 +40,18 @@ public class External {
 	public static Ablockalypse instance;
 	public static File l, g, f;
 	private static List<String> loadedGames;
-	public static String local = "local.yml", players = "players.bin", games = "games.yml", mainframes = "mainframes.bin", config = "config.yml", points = "points.bin", levels = "levels.bin", barriers = "barriers.bin", areas = "areas.bin";
+	/* .bin paths */	
+	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
+	public static String local = "local.yml";
+	public static String players = "players.bin";
+	public static String games = "games.yml";
+	public static String mainframes = "mainframes.bin";
+	public static String config = "config.yml";
+	public static String points = "points.bin";
+	public static String levels = "levels.bin";
+	public static String barriers = "barriers.bin";
+	public static String areas = "areas.bin";
+	/* end .bin paths */
 	private static HashMap<String, SerializableLocation> mainframeSavings = new HashMap<String, SerializableLocation>();
 	public static YamlManager ym;
 
@@ -81,13 +92,13 @@ public class External {
 	}
 
 	/**
-	 * Retrieves all of the information from the .bin files.
+	 * Retrieves all of the information from external files.
 	 */
-	public static void loadBinaries() {
+	public static void loadData() {
 		try {
 			loadedGames = ym.getGameData().getSavedGames();
 			/* mainframes.bin */
-			HashMap<String, SerializableLocation> save = External.load(mainframes);
+			HashMap<String, SerializableLocation> save = External.load(filelocation + mainframes);
 			if (save != null)
 				for (String s : save.keySet()) {
 					SerializableLocation loc = save.get(s);
@@ -98,7 +109,7 @@ public class External {
 					}
 				}
 			/* players.bin */
-			HashMap<String, String> save2 = External.load(players);
+			HashMap<String, String> save2 = External.load(filelocation + players);
 			if (save2 != null)
 				for (String s : save2.keySet())
 					if (Data.gameExists(s)) {
@@ -106,7 +117,7 @@ public class External {
 						zag.addPlayer(Bukkit.getServer().getPlayer(save2.get(s)));
 					}
 			/* barriers.bin */
-			ArrayList<SerializableLocation> save3 = External.load(barriers);
+			ArrayList<SerializableLocation> save3 = External.load(filelocation + barriers);
 			if (save3 != null)
 				for (SerializableLocation sl : save3) {
 					Location l = SerializableLocation.returnLocation(sl);
@@ -114,7 +125,7 @@ public class External {
 						new GameBarrier(l.getBlock());
 				}
 			/* areas.bin */
-			HashMap<SerializableLocation, Boolean> save4 = External.load(areas);
+			HashMap<SerializableLocation, Boolean> save4 = External.load(filelocation + areas);
 			if (save4 != null)
 				for (SerializableLocation sl : save4.keySet()) {
 					Location l = SerializableLocation.returnLocation(sl);
@@ -126,7 +137,7 @@ public class External {
 					}
 				}
 			/* points.bin */
-			HashMap<String, HashMap<String, Integer>> save5 = External.load(points);
+			HashMap<String, HashMap<String, Integer>> save5 = External.load(filelocation + points);
 			if (save5 != null)
 				for (String s : save5.keySet())
 					if (loadedGames.contains(s)) {
@@ -141,7 +152,7 @@ public class External {
 						}
 					}
 			/* levels.bin */
-			HashMap<String, Integer> save6 = External.load(levels);
+			HashMap<String, Integer> save6 = External.load(filelocation + levels);
 			if (save6 != null)
 				for (String s : save6.keySet())
 					if (loadedGames.contains(s)) {
@@ -210,8 +221,8 @@ public class External {
 	 * 
 	 * @param instance The instance of the Ablockalypse plugin to be used in this method
 	 */
-	public static void runResources(Ablockalypse instance) {
-		External.instance = instance;
+	public static void runResources(Plugin instance) {
+		External.instance = (Ablockalypse) instance;
 		try {
 			/* GET THE FILES */
 			/* config.yml */
@@ -237,7 +248,7 @@ public class External {
 			/* levels.bin */
 			loadResource(levels);
 			/* CREATE DATA AND DATA MANAGERS */
-			ConfigurationData cd = new ConfigurationData(instance);
+			ConfigurationData cd = new ConfigurationData((Ablockalypse) instance);
 			LocalizationData ld = new LocalizationData(l, local);
 			GameData gd = new GameData();
 			ym = new YamlManager(cd, ld, gd);
@@ -261,12 +272,11 @@ public class External {
 	}
 
 	/**
-	 * Saves all of the information to the .bin files.
-	 * 
-	 * @param restore Whether or not to reset everything to make it save for server stop/restart.
+	 * Saves all of the information to separate files to be retrieved onEnable().
 	 */
-	public static void saveBinaries(boolean restore) {
+	public static void saveData() {
 		try {
+			boolean restore = Ablockalypse.disable;
 			Data.refresh();
 			/* mainframes.bin */
 			if (Data.mainframes != null) {
@@ -277,12 +287,12 @@ public class External {
 						SerializableLocation loc = new SerializableLocation(l);
 						mainframeSavings.put(s, loc);
 					}
-					External.save(mainframeSavings, mainframes);// TODO figure out a way to NOT save anything that has already been saved.
+					External.save(mainframeSavings, filelocation + mainframes);// TODO figure out a way to NOT save anything that has already been saved.
 				}
 			}
 			/* players.bin */
 			if (Data.playergames != null)
-				External.save(Data.playergames, players);
+				External.save(Data.playergames, filelocation + players);
 			/* barriers.bin */
 			if (Data.barriers != null) {
 				ArrayList<Location> save3 = Data.barriers;
@@ -291,7 +301,7 @@ public class External {
 						SerializableLocation loc = new SerializableLocation(l);
 						barrierSavings.add(loc);
 					}
-					External.save(barrierSavings, barriers);
+					External.save(barrierSavings, filelocation + barriers);
 				}
 			}
 			/* areas.bin */
@@ -306,21 +316,20 @@ public class External {
 			}
 			/* points.bin */
 			if (Data.playerPoints != null)
-				External.save(Data.playerPoints, points);
+				External.save(Data.playerPoints, filelocation + points);
 			/* levels.bin */
 			if (Data.gameLevels != null)
-				External.save(Data.gameLevels, levels);
+				External.save(Data.gameLevels, filelocation + levels);
 			/* Make all physical data safe, by replacing all broken game items */
-			if (Data.areas != null)
+			if (Data.areas != null && restore)
 				for (GameArea a : Data.areas.values())
-					if (restore)
-						a.safeReplace();
-			if (Data.gamebarriers != null)
+					a.safeReplace();
+			if (Data.gamebarriers != null && restore)
 				for (GameBarrier b : Data.gamebarriers)
-					if (restore)
-						b.replaceBarrier();
+					b.replaceBarrier();
+			/* areas.bin saving */
 			if (areaSavings != null && areas != null)
-				External.save(areaSavings, areas);
+				External.save(areaSavings, filelocation + areas);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

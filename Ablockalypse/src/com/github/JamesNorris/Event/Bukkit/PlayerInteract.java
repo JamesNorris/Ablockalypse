@@ -47,7 +47,7 @@ public class PlayerInteract implements Listener {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if (b != null)
-			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName()))
+			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName()) && b.getType() == Material.FENCE)
 				new GameBarrier(b);
 			else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
 				event.setUseInteractedBlock(Result.DENY);

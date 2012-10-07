@@ -11,12 +11,13 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Event.GameCreateEvent;
+import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.iKeirNez.Util.CommandUtil;
-import com.github.iKeirNez.Util.CommonMsg;
+import com.github.iKeirNez.Util.CommonMessages;
 import com.github.iKeirNez.Util.StringFunctions;
 
 // TODO can you use local.yml and LocalizationData.java to change all strings?
@@ -48,7 +49,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommonMsg.notPlayer);
+						sender.sendMessage(CommonMessages.notPlayer);
 						return true;
 					}
 				} else {
@@ -73,7 +74,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMsg.notPlayer);
+					sender.sendMessage(CommonMessages.notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("create")) {
@@ -96,9 +97,44 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					sender.sendMessage(ChatColor.RED + "That game already exists!");
 					return true;
 				}
-			} else if (args[0].equalsIgnoreCase("barrier"))
-				// TODO already made playerinteract create a barrier... you just have to connect this to playerinteract
-				return true;
+			} else if (args[0].equalsIgnoreCase("barrier")) {
+				if (sender instanceof Player) {
+					if (sender.hasPermission("za.create")) {
+						Player player = (Player) sender;
+						PlayerInteract.barrierPlayers.add(player.getName());
+						player.sendMessage(ChatColor.GRAY + "Click on the center of a 3x3 section of fence to create a barrier.");
+						return true;
+					} else {
+						sender.sendMessage("You do not have permission to create barriers!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(CommonMessages.notPlayer);
+					return true;
+				}
+			} else if (args[0].equalsIgnoreCase("mainframe")) {
+				if (sender instanceof Player) {
+					Player p = (Player) sender;
+					String gameName = args[1];
+					if (Data.gameExists(gameName)) {
+						if (sender.hasPermission("za.create")) {
+							ZAGame zag = Data.findGame(gameName);
+							zag.setSpawn(p.getLocation());
+							sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "You do not have permission to set mainframes!");
+							return true;
+						}
+					} else {
+						sender.sendMessage(ChatColor.RED + "That game does not exist!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(CommonMessages.notPlayer);
+					return true;
+				}
+			}
 			return true;
 		}
 		return true;

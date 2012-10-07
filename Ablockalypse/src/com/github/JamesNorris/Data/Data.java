@@ -14,6 +14,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
+import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
@@ -208,8 +209,8 @@ public class Data {
 	 * 
 	 * @param plugin The instance of the Ablockalypse plugin
 	 */
-	public Data(Ablockalypse plugin) {
-		Data.plugin = plugin;
+	public Data(Plugin plugin) {
+		Data.plugin = (Ablockalypse) plugin;
 		Data.authors = plugin.getDescription().getAuthors();
 		Data.description = plugin.getDescription().getDescription();
 		Data.version = plugin.getDescription().getVersion();

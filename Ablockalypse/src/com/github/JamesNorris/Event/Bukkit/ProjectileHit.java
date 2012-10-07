@@ -19,7 +19,7 @@ import com.github.JamesNorris.Data.Data;
 
 public class ProjectileHit implements Listener {
 	public static ArrayList<UUID> uuids;
-	private int yield = 2;// Can be changed to make a larger explosion.
+	private int yield = 1;// Can be changed to make a larger explosion.
 
 	public ProjectileHit() {
 		ProjectileHit.uuids = new ArrayList<UUID>();

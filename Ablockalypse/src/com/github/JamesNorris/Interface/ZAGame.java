@@ -45,4 +45,8 @@ public interface ZAGame {
 	public void setSpawn(Location location);
 
 	public void subtractMobCount();
+
+	public void spawnWave();
+
+	public boolean hasStarted();
 }

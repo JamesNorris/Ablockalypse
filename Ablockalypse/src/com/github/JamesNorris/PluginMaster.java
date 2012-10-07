@@ -2,8 +2,11 @@ package com.github.JamesNorris;
 
 import java.io.File;
 
+import org.bukkit.plugin.Plugin;
+
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
 /**
@@ -18,25 +21,30 @@ public class PluginMaster {
 	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private MainThreading mt;
 	private String path = "plugins" + File.separator + "Ablockalypse.jar";
+	private YamlManager ym;
 
 	/**
 	 * Creates a new PluginMaster instance for Ablockalypse.
 	 * 
 	 * @param instance The Ablockalypse instance to associate with this instance
 	 */
-	public PluginMaster(Ablockalypse instance) {
-		this.instance = instance;
+	public PluginMaster(Plugin instance) {
+		this.instance = (Ablockalypse) instance;
 	}
 
-	/**
+	/*
 	 * Adds the 3 main types of data to this manager.
-	 * 
-	 * @param d The Data instance
-	 * @param mt The MainThreading instance
 	 */
 	public void addData(Data d, MainThreading mt) {
 		this.d = d;
 		this.mt = mt;
+	}
+
+	/*
+	 * Adds a YamlManager to this instance.
+	 */
+	public void addManager(YamlManager ym) {
+		this.ym = ym;
 	}
 
 	/**
@@ -45,7 +53,7 @@ public class PluginMaster {
 	 * @param reason The reason for the exception
 	 * @param disable Whether or not the Ablockalypse plugin should stop working
 	 */
-	public void crash(Ablockalypse instance, String reason, boolean disable) {
+	public void crash(Plugin instance, String reason, boolean disable) {
 		/* Everything in this method should be static, except for strings */
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(getIssuesURL());
@@ -113,5 +121,14 @@ public class PluginMaster {
 	 */
 	public String getUpdateURL() {
 		return address;
+	}
+
+	/**
+	 * Gets the YamlManager of the plugin.
+	 * 
+	 * @return The main YamlManager of the plugin
+	 */
+	public YamlManager getYamlManager() {
+		return ym;
 	}
 }

@@ -9,6 +9,10 @@ import org.bukkit.block.BlockFace;
 
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Area;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
 public class GameArea implements Area {
 	private Block block;
@@ -80,9 +84,14 @@ public class GameArea implements Area {
 		for (Location loc : locs) {
 			Block b = loc.getBlock();
 			b.setType(Material.AIR);
+			if (wood)
+				EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.WOOD_BREAK);
+			else
+				EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.IRON_BREAK);
 			opened = true;
 			toggleOpenedStatus();
 		}
+		SoundUtil.generateSound(location.getWorld(), location, ZASound.AREA_BUY);
 	}
 
 	/**
@@ -91,6 +100,7 @@ public class GameArea implements Area {
 	@Override public void replaceArea() {
 		for (Location loc : locs) {
 			Block b = loc.getBlock();
+			EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.SMOKE);
 			if (b.getType() == Material.AIR || b.getType() == null) {
 				if (wood)
 					b.setType(Material.WOOD_DOOR);
