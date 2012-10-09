@@ -20,7 +20,7 @@ import com.github.iKeirNez.Util.CommandUtil;
 import com.github.iKeirNez.Util.CommonMessages;
 import com.github.iKeirNez.Util.StringFunctions;
 
-// TODO can you use local.yml and LocalizationData.java to change all strings?
+// TODO can you use local.yml and LocalizationData.java to change all strings? -Jnorr44
 public class BaseCommand extends CommandUtil implements CommandExecutor {
 	private LocalizationData ld;
 
@@ -36,24 +36,29 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 				list(sender);
 				return true;
 			} else if (args[0].equalsIgnoreCase("join")) {
-				if (args.length == 2 && sender.hasPermission("za.join")) {
-					if (sender instanceof Player) {
-						Player player = (Player) sender;
-						String gameName = args[1];
-						if (Data.gameExists(gameName)) {
-							ZAPlayer zap = Data.findZAPlayer(player, gameName);
-							zap.loadPlayerToGame(gameName);
-							return true;
+				if (args.length == 2) {
+					if (sender.hasPermission("za.join")) {
+						if (sender instanceof Player) {
+							Player player = (Player) sender;
+							String gameName = args[1];
+							if (Data.gameExists(gameName)) {
+								ZAPlayer zap = Data.findZAPlayer(player, gameName);
+								zap.loadPlayerToGame(gameName);
+								return true;
+							} else {
+								sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+								return true;
+							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+							sender.sendMessage(CommonMessages.notPlayer);
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommonMessages.notPlayer);
+						sender.sendMessage(ChatColor.RED + "You do not have permission to join games!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "You do not have permission to join games!");
+					sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
@@ -78,32 +83,42 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("create")) {
-				String gameName = args[1];
-				if (!Data.gameExists(gameName)) {
-					if (!sender.hasPermission("za.create")) {
-						sender.sendMessage(ChatColor.RED + "You don't have permission to create games!");
-						return true;
+				if (args.length == 2) {
+					String gameName = args[1];
+					if (!Data.gameExists(gameName)) {
+						if (!sender.hasPermission("za.create")) {
+							sender.sendMessage(ChatColor.RED + "You don't have permission to create games!");
+							return true;
+						} else {
+							ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
+							GameCreateEvent gce = new GameCreateEvent(zag, sender, null);
+							Bukkit.getServer().getPluginManager().callEvent(gce);
+							if (!gce.isCancelled())
+								sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
+							else
+								zag.endGame();
+							return true;
+						}
 					} else {
-						ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
-						GameCreateEvent gce = new GameCreateEvent(zag, sender, null);
-						Bukkit.getServer().getPluginManager().callEvent(gce);
-						if (!gce.isCancelled())
-							sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
-						else
-							zag.endGame();
+						sender.sendMessage(ChatColor.RED + "That game already exists!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "That game already exists!");
+					sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("barrier")) {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("za.create")) {
-						Player player = (Player) sender;
-						PlayerInteract.barrierPlayers.add(player.getName());
-						player.sendMessage(ChatColor.GRAY + "Click on the center of a 3x3 section of fence to create a barrier.");
-						return true;
+						if (args.length == 2) {
+							String gameName = args[1];
+							Player player = (Player) sender;
+							PlayerInteract.barrierPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							player.sendMessage(ChatColor.GRAY + "Click the center of a 3x3 section of fence to make a barrier.");
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+						}
 					} else {
 						sender.sendMessage("You do not have permission to create barriers!");
 						return true;
@@ -115,23 +130,49 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 			} else if (args[0].equalsIgnoreCase("mainframe")) {
 				if (sender instanceof Player) {
 					Player p = (Player) sender;
-					String gameName = args[1];
-					if (Data.gameExists(gameName)) {
-						if (sender.hasPermission("za.create")) {
-							ZAGame zag = Data.findGame(gameName);
-							zag.setSpawn(p.getLocation());
-							sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
-							return true;
+					if (args.length == 2) {
+						String gameName = args[1];
+						if (Data.gameExists(gameName)) {
+							if (sender.hasPermission("za.create")) {
+								ZAGame zag = Data.findGame(gameName);
+								zag.setSpawn(p.getLocation());
+								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
+								return true;
+							} else {
+								sender.sendMessage(ChatColor.RED + "You do not have permission to set mainframes!");
+								return true;
+							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "You do not have permission to set mainframes!");
+							sender.sendMessage(ChatColor.RED + "That game does not exist!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "That game does not exist!");
+						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 						return true;
 					}
 				} else {
 					sender.sendMessage(CommonMessages.notPlayer);
+					return true;
+				}
+			} else if (args[0].equalsIgnoreCase("end")) {
+				if (sender.hasPermission("za.create")) {
+					if (args.length == 2) {
+						String gameName = args[1];
+						if (Data.gameExists(gameName)) {
+							ZAGame zag = Data.findGame(gameName);
+							zag.endGame();
+							sender.sendMessage(ChatColor.GRAY + "You have ended the game " + gameName);
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "That game does not exist!");
+							return true;
+						}
+					} else {
+						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(ChatColor.RED + "You do not have permission to end games");
 					return true;
 				}
 			}

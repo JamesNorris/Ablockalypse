@@ -57,8 +57,7 @@ public class RespawnThread {
 					if (zap.getGame() == null)
 						cancel();
 					zap.sendToMainframe("Respawn");
-					if (zap.isInLimbo())
-						zap.toggleLimbo();
+					zap.setLimbo(false);
 					cancel();
 				} else
 					player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);

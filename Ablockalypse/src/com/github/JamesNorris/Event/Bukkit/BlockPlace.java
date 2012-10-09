@@ -9,25 +9,23 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 
 public class BlockPlace implements Listener {
-	private ConfigurationData cd;
 	private LocalizationData ld;
+
+	public BlockPlace() {
+		ld = External.ym.getLocalizationData();
+	}
 
 	/*
 	 * Called when a player places a block.
 	 * Used mainly for avoiding unwanted players from placing ZASigns.
 	 */
 	@EventHandler public void BPE(BlockPlaceEvent event) {
-		if (ld == null)
-			ld = External.ym.getLocalizationData();
-		if (cd == null)
-			cd = External.ym.getConfigurationData();
 		Player p = event.getPlayer();
 		Block b = event.getBlock();
 		if (b instanceof Sign) {

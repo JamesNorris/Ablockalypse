@@ -4,6 +4,7 @@ import net.minecraft.server.Entity;
 import net.minecraft.server.NBTTagCompound;
 
 import org.bukkit.Effect;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
@@ -20,10 +21,9 @@ import com.github.JamesNorris.Util.Breakable;
 
 public class GameUndead extends Entity implements Undead, ZAMob {
 	private ZAGame game;
-	private int healthupdate;
 	public boolean killed, fireproof;
 	private MobTargettingThread mt;
-	private Player target;
+	private Object target;
 	private Zombie zombie;
 
 	/**
@@ -35,10 +35,13 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
 		this.game = game;
-		Player p = game.getRandomLivingPlayer();
-		mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, p);
+		if (game.getRandomBarrier() != null) {
+			Location gbloc = game.getRandomBarrier().getCenter();
+			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, gbloc);
+		} else {
+			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, game.getRandomLivingPlayer());
+		}
 		game.addMobCount();
-		healthupdate = game.getLevel() / 3;
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
 		if (game.getLevel() <= 2)
@@ -56,16 +59,6 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * NOTE: DO NOT USE
 	 */
 	@Override protected void a(NBTTagCompound arg0) {}
-
-	/**
-	 * Attempts to increase the mob health depending on the level the zombie is on.
-	 */
-	@Override public void attemptHealthIncrease() {
-		if (healthupdate > 0 && zombie.getHealth() <= 17) {
-			--healthupdate;
-			zombie.setHealth(20);
-		}
-	}
 
 	/**
 	 * NOTE: DO NOT USE
@@ -101,8 +94,8 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @return The zombies' target
 	 */
-	@Override public Player getTarget() {
-		return target;
+	@Override public Player getTargetPlayer() {
+		return (Player) target;
 	}
 
 	/**
@@ -165,7 +158,7 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * 
 	 * @param p The player to target
 	 */
-	@Override public void setTarget(Player p) {
+	@Override public void setTargetPlayer(Player p) {
 		target = p;
 		mt.setTarget(p);
 	}
@@ -177,5 +170,24 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 */
 	@Override public org.bukkit.entity.Entity getEntity() {
 		return zombie;
+	}
+
+	/**
+	 * Gets the target of the mob.
+	 * 
+	 * @return The mobs' target as a location
+	 */
+	@Override public Location getTargetLocation() {
+		return (Location) target;
+	}
+
+	/**
+	 * Sets the target of this instance.
+	 * 
+	 * @param loc The location to target
+	 */
+	@Override public void setTargetLocation(Location loc) {
+		target = loc;
+		mt.setTarget(loc);
 	}
 }

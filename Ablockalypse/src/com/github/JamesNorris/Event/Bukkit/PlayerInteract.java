@@ -1,7 +1,6 @@
 package com.github.JamesNorris.Event.Bukkit;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -21,12 +20,13 @@ import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.GameWallSign;
+import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
 
 public class PlayerInteract implements Listener {
-	public static List<String> barrierPlayers = new ArrayList<String>();
+	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
 	private ConfigurationData cd;
 	private YamlManager ym;
 	private LocalizationData ld;
@@ -47,9 +47,11 @@ public class PlayerInteract implements Listener {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if (b != null)
-			if (!Data.playerExists(p) && barrierPlayers.contains(p.getName()) && b.getType() == Material.FENCE)
-				new GameBarrier(b);
-			else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
+			if (!Data.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) {
+				new GameBarrier(b, barrierPlayers.get(p.getName()));
+				p.sendMessage(ChatColor.GRAY + "Barrier created successfully!");
+				barrierPlayers.remove(p.getName());
+			} else if (b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) {
 				event.setUseInteractedBlock(Result.DENY);
 				Sign s = (Sign) b.getState();
 				if (s.getLine(0).equalsIgnoreCase(ld.first)) {
@@ -66,9 +68,14 @@ public class PlayerInteract implements Listener {
 				event.setUseInteractedBlock(Result.DENY);
 				ZAPlayerBase zap = Data.players.get(p);
 				if (b.getType() == Material.ENDER_PORTAL_FRAME) {
-					p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
-					new TeleportThread(zap, 5, true);
-					return;
+					if (!zap.isTeleporting()) {
+						p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
+						new TeleportThread(zap, cd.teleportTime, true);
+						return;
+					} else {
+						p.sendMessage(ChatColor.GRAY + "You are already teleporting!");
+						return;
+					}
 				} else if (b.getType() == Material.CHEST)
 					if (zap.getPoints() >= cd.mccost) {
 						Chest c = (Chest) b.getState();
@@ -77,7 +84,7 @@ public class PlayerInteract implements Listener {
 						zap.subtractPoints(cd.mccost);
 						return;
 					} else {
-						p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " points out of the " + cd.mccost + " points to buy this");
+						p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cd.mccost + " points to buy this.");
 						event.setCancelled(true);
 						return;
 					}

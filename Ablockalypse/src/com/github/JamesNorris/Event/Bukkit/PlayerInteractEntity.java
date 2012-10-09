@@ -14,14 +14,16 @@ import com.github.JamesNorris.Implementation.ZAPlayerBase;
 public class PlayerInteractEntity implements Listener {
 	private ConfigurationData cd;
 
+	public PlayerInteractEntity() {
+		cd = External.ym.getConfigurationData();
+	}
+
 	/*
 	 * The event called when a player hits another entity.
 	 * 
 	 * Used for picking a player up out of last stand.
 	 */
 	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
-		if (cd == null)
-			cd = External.ym.getConfigurationData();
 		Player p = event.getPlayer();
 		Entity e = event.getRightClicked();
 		if (Data.players.containsKey(p) && Data.players.containsKey(e)) {

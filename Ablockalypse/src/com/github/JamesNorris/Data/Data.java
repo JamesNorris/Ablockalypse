@@ -24,7 +24,6 @@ import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
-import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -36,7 +35,7 @@ public class Data {
 	public static HashMap<Block, GameArea> areas = new HashMap<Block, GameArea>();;
 	public static List<String> authors;
 	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
-	public static ArrayList<Location> barriers = new ArrayList<Location>();
+	public static HashMap<Location, String> barriers = new HashMap<Location, String>();
 	public static String description;
 	public static ArrayList<GameBarrier> gamebarriers = new ArrayList<GameBarrier>();
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
@@ -52,25 +51,6 @@ public class Data {
 	public static HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public static ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
 	public static String version;
-
-	/**
-	 * Checks if the square exists, if not, creates a new square with the specified location and radius.
-	 * 
-	 * @param b The barrier to find the square around
-	 * @param l The center of the square
-	 * @param radius The radius of the square
-	 * @return The square around the barrier
-	 */
-	public static Square findBarrierSquare(Barrier b, Location l, int radius) {
-		Square s;
-		if (Data.squares.containsKey(b))
-			s = Data.squares.get(b);
-		else {
-			s = new Square(l, radius);
-			Data.squares.put((GameBarrier) b, s);
-		}
-		return s;
-	}
 
 	/**
 	 * Checks if the game exists, if not, creates a new game.

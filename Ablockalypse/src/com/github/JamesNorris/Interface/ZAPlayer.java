@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
+import com.github.JamesNorris.Util.MiscUtil.PlayerStatus;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 
 public interface ZAPlayer {
@@ -116,7 +117,28 @@ public interface ZAPlayer {
 	public void toggleLastStand();
 
 	/**
-	 * Toggles the player limbo status.
+	 * Changes the player limbo status.
 	 */
-	public void toggleLimbo();
+	public void setLimbo(boolean tf);
+
+	/**
+	 * Changes the teleportation status of the player.
+	 * 
+	 * @param tf What to change the status to
+	 */
+	public void setTeleporting(boolean tf);
+
+	/**
+	 * Checks if the player is teleporting or not.
+	 * 
+	 * @return Whether or not the player is teleporting
+	 */
+	public boolean isTeleporting();
+
+	/**
+	 * Gets the status of the player.
+	 * 
+	 * @return The current status of the player
+	 */
+	public PlayerStatus getStatus();
 }

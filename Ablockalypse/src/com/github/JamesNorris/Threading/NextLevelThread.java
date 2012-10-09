@@ -56,7 +56,7 @@ public class NextLevelThread {
 	protected void waitForNextLevel() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				if (game.hasStarted() && game.getRemainingMobs() <= 0) {
+				if (game.hasStarted() && game.getRemainingMobs() <= 0 && !game.isPaused()) {
 					--counter;
 					if (!played) {
 						played = true;

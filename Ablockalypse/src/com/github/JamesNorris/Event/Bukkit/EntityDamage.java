@@ -8,7 +8,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.github.JamesNorris.Data.Data;
-import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Util.Breakable;
 
 public class EntityDamage implements Listener {
@@ -19,8 +18,6 @@ public class EntityDamage implements Listener {
 	@EventHandler public void EDE(EntityDamageEvent event) {
 		Entity e = event.getEntity();
 		if (e != null && Data.isZAMob(e)) {
-			ZAMob zam = Data.getZAMob(e);
-			zam.attemptHealthIncrease();
 			if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof Zombie) {
 				Breakable.getNMSEntity(e).extinguish();
 				event.setCancelled(true);

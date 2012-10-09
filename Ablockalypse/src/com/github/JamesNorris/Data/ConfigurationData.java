@@ -13,14 +13,14 @@ import org.bukkit.plugin.Plugin;
 public class ConfigurationData {
 	public int buyLevel, woodSwordLevel, stoneSwordLevel, ironSwordLevel, diamondSwordLevel, goldSwordLevel, grenadeLevel;
 	public int cost, enchDamageCost, enchRandomCost, powerrad;
-	public boolean DEBUG, ENABLE_AUTO_UPDATE, extraEffects;
+	public boolean DEBUG, ENABLE_AUTO_UPDATE, extraEffects, clearmobs;
 	public Enchantment enchant;
 	public int heallevel, speedlevel, damagelevel, regenlevel;
 	public int healPoints, speedPoints, damagePoints, regenPoints;
 	public String helmet, chestplate, leggings, boots;
 	public List<String> inventory;
 	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
-	public int packapunchlevel, gameEndWait;
+	public int packapunchlevel, gameEndWait, teleportTime;
 	public int powerchance, atompoints;
 	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, doubleSpeedLevel;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
@@ -81,7 +81,8 @@ public class ConfigurationData {
 		wolfLevels = cf.getIntegerList("wolfLevels");
 		extraEffects = cf.getBoolean("addedEffects");
 		powerrad = cf.getInt("powerupRadius");
-		gameEndWait = cf.getInt("GAME_END_WAIT_TIME") * 20;
+		clearmobs = cf.getBoolean("clearNearbyMobs");
+		teleportTime = cf.getInt("teleportTime");
 		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");
 	}

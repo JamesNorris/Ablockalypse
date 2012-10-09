@@ -1,7 +1,5 @@
 package com.github.JamesNorris.Event.Bukkit;
 
-import java.util.Random;
-
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,17 +14,16 @@ import com.github.JamesNorris.Util.MiscUtil;
 
 public class EntityDeath implements Listener {
 	private ConfigurationData cd;
-	private Random rand;
+
+	public EntityDeath() {
+		cd = External.ym.getConfigurationData();
+	}
 
 	/*
 	 * Called when an Entity is killed.
 	 * Used for adding points when a player kills an entity, while they are in-game.
 	 */
 	@EventHandler public void EDE(EntityDeathEvent event) {
-		if (cd == null)
-			cd = External.ym.getConfigurationData();
-		if (rand == null)
-			rand = new Random();
 		Entity e = event.getEntity();
 		Player p = event.getEntity().getKiller();
 		if (Data.isZAMob(e)) {

@@ -15,6 +15,7 @@ public class MobTargettingThread {
 	private final Plugin plugin;
 	private Player p;
 	private Creature c;
+	private Location location;
 	private int id;
 	private boolean hasTarget = false;
 	private float speed = 0.2F;
@@ -25,12 +26,27 @@ public class MobTargettingThread {
 	 * 
 	 * @param plugin The plugin to use to run the thread
 	 * @param c The creature instance to move
-	 * @param loc The location to start targetting
+	 * @param p The player to start targetting
 	 */
 	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
 		this.plugin = plugin;
 		this.c = c;
+		this.p = p;
 		setTarget(p);
+	}
+
+	/**
+	 * Creates a new mobtargetter, that can target specific locations.
+	 * 
+	 * @param plugin The plugin to use to run the thread
+	 * @param c The creature instance to move
+	 * @param loc The location to start targetting
+	 */
+	public MobTargettingThread(Plugin plugin, Creature c, Location loc) {
+		this.plugin = plugin;
+		this.c = c;
+		this.location = loc;
+		setTarget(loc);
 	}
 
 	/**
@@ -49,10 +65,20 @@ public class MobTargettingThread {
 	 */
 	public void setTarget(Player p) {
 		cancel();
-		if (p != null) {
+		if (p != null)
 			this.p = p;
-			target();
-		}
+		target();
+	}
+
+	/**
+	 * Changes the target of the mob.
+	 * 
+	 * @param l The new target
+	 */
+	public void setTarget(Location l) {
+		cancel();
+		this.location = l;
+		target();
 	}
 
 	/**
@@ -71,7 +97,7 @@ public class MobTargettingThread {
 		hasTarget = true;
 		id = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			public void run() {
-				if (!c.isDead() && !p.isDead()) {
+				if (!c.isDead() && (p == null || !p.isDead())) {
 					moveMob();
 				} else {
 					cancel();
@@ -92,11 +118,17 @@ public class MobTargettingThread {
 	 * Moves the mob towards the target.
 	 */
 	private void moveMob() {
-		Location loc = p.getLocation();
-		EntityCreature mob = (EntityCreature) ((CraftCreature) c).getHandle();
-		PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
-		mob.setPathEntity(path);
-		mob.getNavigation().a(path, speed);
+		Location loc = null;
+		if (p != null)
+			loc = p.getLocation();
+		else if (location != null)
+			loc = location;
+		if (p != null || location != null) {
+			EntityCreature mob = (EntityCreature) ((CraftCreature) c).getHandle();
+			PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
+			mob.setPathEntity(path);
+			mob.getNavigation().a(path, speed);
+		}
 	}
 
 	/**

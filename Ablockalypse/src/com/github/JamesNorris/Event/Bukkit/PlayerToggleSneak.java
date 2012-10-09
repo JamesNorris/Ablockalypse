@@ -1,6 +1,6 @@
 package com.github.JamesNorris.Event.Bukkit;
 
-import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -8,7 +8,6 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Util.Square;
 
 public class PlayerToggleSneak implements Listener {
 	/*
@@ -21,10 +20,10 @@ public class PlayerToggleSneak implements Listener {
 			if (Data.players.get(p).isInLastStand())
 				event.setCancelled(true);
 			for (GameBarrier b : Data.barrierpanels.keySet()) {
-				Square s = Data.findBarrierSquare(b, b.getCenter(), 3);
-				for (Location l : s.getLocations())
-					if (p.getLocation() == l)
-						b.replaceBarrier();
+				if (b.withinRadius((Entity) p) && b.isBroken()) {
+					b.replaceBarrier();
+					break;
+				}
 			}
 		}
 	}

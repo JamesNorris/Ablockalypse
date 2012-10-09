@@ -1,7 +1,5 @@
 package com.github.JamesNorris.Implementation;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -30,6 +28,7 @@ import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.MiscUtil.PlayerStatus;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.SoundUtil.ZASound;
@@ -42,7 +41,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	private ZAGame game;
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
-	private boolean laststand, sleepingignored, sent, limbo;
+	private boolean laststand, sleepingignored, sent, limbo, teleporting;
 	private int level, health, food, fire, points;
 	private String name;
 	private Player player;
@@ -65,8 +64,9 @@ public class ZAPlayerBase implements ZAPlayer {
 		point = new HashMap<String, Integer>();
 		Data.players.put(player, this);
 		player.setLevel(1);
-		if (game.getLevel() == 0)
+		if (game.getLevel() == 0 && !game.isPaused()) {
 			game.nextLevel();
+		}
 	}
 
 	/**
@@ -82,17 +82,6 @@ public class ZAPlayerBase implements ZAPlayer {
 		if (Data.playerPoints.containsKey(game.getName()))
 			Data.playerPoints.remove(game.getName());
 		Data.playerPoints.put(game.getName(), point);
-	}
-
-	/**
-	 * Removes all data associated with the player, as well as restoring the data of the player before they joined the game.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		restoreStatus();
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 
 	/**
@@ -208,6 +197,8 @@ public class ZAPlayerBase implements ZAPlayer {
 				zag.addPlayer(player);
 				saveStatus();
 				prepForGame();
+				if (game.getSpawn() == null)
+					game.setSpawn(player.getLocation());
 				sendToMainframe("Loading player to a game");
 				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 				return;
@@ -250,7 +241,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * Removes the player from the game, and removes all data from the player.
 	 */
 	@Override public void removeFromGame() {
-		finalize();
+		restoreStatus();
 	}
 
 	/*
@@ -398,12 +389,50 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
-	 * Toggles the player limbo status.
+	 * Changes the player limbo status.
 	 */
-	@Override public void toggleLimbo() {
-		if (limbo)
-			limbo = false;
-		else
+	@Override public void setLimbo(boolean tf) {
+		if (tf)
 			limbo = true;
+		else
+			limbo = false;
+	}
+
+	/**
+	 * Changes the teleportation status of the player.
+	 * 
+	 * @param tf What to change the status to
+	 */
+	@Override public void setTeleporting(boolean tf) {
+		if (tf)
+			teleporting = true;
+		else
+			teleporting = false;
+	}
+
+	/**
+	 * Gets the status of the player.
+	 * 
+	 * @return The current status of the player
+	 */
+	@Override public PlayerStatus getStatus() {
+		if (limbo)
+			return PlayerStatus.LIMBO;
+		if (laststand)
+			return PlayerStatus.LAST_STAND;
+		if (teleporting)
+			return PlayerStatus.TELEPORTING;
+		return null;
+	}
+
+	/**
+	 * Checks if the player is teleporting or not.
+	 * 
+	 * @return Whether or not the player is teleporting
+	 */
+	@Override public boolean isTeleporting() {
+		if (teleporting)
+			return true;
+		return false;
 	}
 }

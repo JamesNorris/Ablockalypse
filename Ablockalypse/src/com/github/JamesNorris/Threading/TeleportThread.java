@@ -50,17 +50,20 @@ public class TeleportThread {
 	protected void countdown() {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
+				zaplayer.setTeleporting(true);
 				if (time != 0) {
 					if (!sameLocation()) {
 						cancel();
 						player.sendMessage(ChatColor.GRAY + "Teleportation cancelled!");
+						zaplayer.setTeleporting(false);
 					}
 					player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
 					--time;
 				} else if (time <= 0) {
-					EffectUtil.generateEffect(player, ZAEffect.SMOKE);
+					EffectUtil.generateControlledEffect(player.getLocation(), ZAEffect.SMOKE, 1);
 					zaplayer.sendToMainframe("Teleport");
-					EffectUtil.generateEffect(player, ZAEffect.SMOKE);
+					EffectUtil.generateControlledEffect(player.getLocation(), ZAEffect.SMOKE, 1);
+					zaplayer.setTeleporting(false);
 					cancel();
 				}
 			}

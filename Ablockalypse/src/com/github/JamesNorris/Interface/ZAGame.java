@@ -5,9 +5,14 @@ import java.util.Set;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Manager.SpawnManager;
 
 public interface ZAGame {
+	public GameBarrier getRandomBarrier();
+
+	public void addBarrier(GameBarrier gb);
+
 	public void addMobCount();
 
 	public void addPlayer(Player player);
@@ -48,5 +53,11 @@ public interface ZAGame {
 
 	public void spawnWave();
 
+	public void spawn(Location l);
+
 	public boolean hasStarted();
+
+	public void pause(boolean tf);
+
+	public boolean isPaused();
 }

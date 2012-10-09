@@ -35,6 +35,15 @@ public class SpawnManager {
 		rand = new Random();
 	}
 
+	/**
+	 * Gets the world the SpawnManager uses to spawn mobs.
+	 * 
+	 * @return The world the SpawnManager manages
+	 */
+	public World getWorld() {
+		return world;
+	}
+
 	/*
 	 * Checks if the location given is open to spawn, and if not adds to the location y.
 	 */

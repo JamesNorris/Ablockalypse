@@ -23,6 +23,10 @@ public class MiscUtil {
 		ATOM_BOMB, BARRIER_FIX, WEAPON_FIX;
 	}
 
+	public enum PlayerStatus {
+		LAST_STAND, LIMBO, TELEPORTING;
+	}
+
 	private static ConfigurationData cd;
 	private static Random rand;
 

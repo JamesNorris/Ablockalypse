@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Event.Bukkit;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,14 +21,16 @@ public class PlayerDeath implements Listener {
 		if (Data.players.containsKey(p)) {
 			event.getDrops().clear();
 			ZAPlayerBase zap = Data.players.get(p);
-			if (!zap.isInLimbo())
-				zap.toggleLimbo();
+			zap.setLimbo(true);
 			ZAGame zag = zap.getGame();
 			if (zag.getRemainingPlayers() > 0) {
 				if (zap.isInLastStand())
 					zap.toggleLastStand();
 			} else
-				zag.endGame();
+				for (String s : zag.getPlayers()) {
+					Player player = Bukkit.getPlayer(s);
+					zag.removePlayer(player);
+				}
 		}
 	}
 }

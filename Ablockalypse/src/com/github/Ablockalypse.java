@@ -52,7 +52,7 @@ public class Ablockalypse extends JavaPlugin {
 		} else {
 			RegistrationManager.register(this);
 			External.loadData();
-			mt = new MainThreading(this, true, true, true, true, true, true);
+			mt = new MainThreading(this, true, true, true);
 			pm.addData(d, mt);
 			pm.addManager(External.ym);
 		}

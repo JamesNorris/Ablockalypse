@@ -117,6 +117,7 @@ public class GameWallSign implements WallSign {
 				if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
 					if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
 						setupPlayerWithGame(l3, player, true);
+						player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
 						return;
 					} else if (Data.games.containsKey(l3)) {
 						setupPlayerWithGame(l3, player, false);
@@ -140,11 +141,11 @@ public class GameWallSign implements WallSign {
 									player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
 								int cost = ym.perksignline3.get(l3);
 								zap.subtractPoints(cost);
-								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " perk for " + cost + " points!");
+								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
 								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
-								player.sendMessage(ChatColor.RED + "You need " + ym.perksignline3.get(l3) + " points to buy this. You currently have " + n);
+								player.sendMessage(ChatColor.RED + "You have " + n + " / " + ym.perksignline3.get(l3) + " points to buy this.");
 								return;
 							}
 							/* ENCHANTMENTS */
@@ -156,11 +157,11 @@ public class GameWallSign implements WallSign {
 									player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
 								int cost = ym.enchsignline3.get(l3);
 								zap.subtractPoints(cost);
-								player.sendMessage(ChatColor.BOLD + "You have bought the " + l3 + " enchantment for " + cost + " points!");
+								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
 								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
-								player.sendMessage(ChatColor.RED + "You need " + ym.enchsignline3.get(l3) + " points to buy this. You currently have " + n);
+								player.sendMessage(ChatColor.RED + "You have " + n + " / " + ym.enchsignline3.get(l3) + " points to buy this.");
 								return;
 							}
 							/* WEAPONS */
@@ -172,11 +173,11 @@ public class GameWallSign implements WallSign {
 									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
 								int cost = ym.wepsignline3.get(l3);
 								zap.subtractPoints(cost);
-								player.sendMessage(ChatColor.BOLD + "You have bought a " + l3 + " for " + cost + " points!");
+								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
 								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 								return;
 							} else {
-								player.sendMessage(ChatColor.RED + "You need " + ym.wepsignline3.get(l3) + " points to buy this. You currently have " + n);
+								player.sendMessage(ChatColor.RED + "You have " + n + " / " + ym.wepsignline3.get(l3) + " points to buy this.");
 								return;
 							}
 							/* AREAS */
@@ -200,7 +201,7 @@ public class GameWallSign implements WallSign {
 										player.sendMessage(ChatColor.RED + "This area has already been purchased!");
 									return;
 								} else {
-									player.sendMessage(ChatColor.RED + "You need " + cost + " points to buy this. You currently have " + zap.getPoints());
+									player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
 									return;
 								}
 							} catch (Exception e) {
@@ -209,7 +210,7 @@ public class GameWallSign implements WallSign {
 						else
 							return;
 					} else {
-						player.sendMessage(ChatColor.RED + "Level " + ym.levelmap.get(l3) + " is required to buy that. Your current level is " + player.getLevel());
+						player.sendMessage(ChatColor.RED + "You are level " + player.getLevel() + " / " + ym.levelmap.get(l3) + " required to buy that.");
 						return;
 					}
 				} else

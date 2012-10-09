@@ -20,7 +20,7 @@ public class PlayerQuit implements Listener {
 			ZAPlayerBase zap = Data.players.get(p);
 			ZAGame zag = zap.getGame();
 			zag.removePlayer(p);
-			zap.finalize();
+			zap.removeFromGame();
 			return;
 		}
 	}

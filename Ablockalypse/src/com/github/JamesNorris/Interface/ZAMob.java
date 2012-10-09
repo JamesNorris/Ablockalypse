@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Interface;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -7,11 +8,6 @@ import org.bukkit.entity.Player;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 
 public interface ZAMob {
-	/**
-	 * Attempts to increase the mob health depending on the level the mob is on.
-	 */
-	public void attemptHealthIncrease();
-
 	/**
 	 * Gets the game this mob is in.
 	 * 
@@ -29,9 +25,16 @@ public interface ZAMob {
 	/**
 	 * Gets the target of the mob.
 	 * 
-	 * @return The mobs' target
+	 * @return The mobs' target as a player
 	 */
-	public Player getTarget();
+	public Player getTargetPlayer();
+
+	/**
+	 * Gets the target of the mob.
+	 * 
+	 * @return The mobs' target as a location
+	 */
+	public Location getTargetLocation();
 
 	/**
 	 * Gets the targetter for this mob.
@@ -71,7 +74,14 @@ public interface ZAMob {
 	 * 
 	 * @param p The player to target
 	 */
-	public void setTarget(Player p);
+	public void setTargetPlayer(Player p);
+
+	/**
+	 * Sets the target of this instance.
+	 * 
+	 * @param loc The location to target
+	 */
+	public void setTargetLocation(Location loc);
 
 	/**
 	 * Gets the Entity instance of the mob.

@@ -29,4 +29,20 @@ public class MathAssist {
 	public static double line(double m, double x, double b) {
 		return (m * x) + b;
 	}
+
+	/**
+	 * Gets the distance between 2 sets of coords.
+	 * 
+	 * @param x The first x coord
+	 * @param y The first y coord
+	 * @param z The first z coord
+	 * @param x2 The second x coord
+	 * @param y2 The second y coord
+	 * @param z2 The second z coord
+	 * @return The distance between the 2 sets of coords
+	 */
+	public static double distance(int x, int y, int z, int x2, int y2, int z2) {
+		int X = x2 - x, Y = y2 - y, Z = z2 - z;
+		return Math.sqrt((X * X) + (Y * Y) + (Z * Z));
+	}
 }

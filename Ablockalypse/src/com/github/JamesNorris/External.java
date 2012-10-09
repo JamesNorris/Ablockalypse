@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -26,6 +25,7 @@ import com.github.JamesNorris.Data.GameData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
@@ -33,14 +33,14 @@ import com.github.JamesNorris.Util.SerializableLocation;
 
 public class External {
 	private static HashMap<SerializableLocation, Boolean> areaSavings = new HashMap<SerializableLocation, Boolean>();
-	private static ArrayList<SerializableLocation> barrierSavings = new ArrayList<SerializableLocation>();
+	private static HashMap<SerializableLocation, String> barrierSavings = new HashMap<SerializableLocation, String>();
 	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
 	public static boolean CommandsEXPresent = (CommandsEX != null && CommandsEX.isEnabled());
-	private static FileConfiguration fc;
+	private static FileConfiguration fc, gc;
 	public static Ablockalypse instance;
 	public static File l, g, f;
 	private static List<String> loadedGames;
-	/* .bin paths */	
+	/* .bin paths */
 	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
 	public static String local = "local.yml";
 	public static String players = "players.bin";
@@ -117,12 +117,14 @@ public class External {
 						zag.addPlayer(Bukkit.getServer().getPlayer(save2.get(s)));
 					}
 			/* barriers.bin */
-			ArrayList<SerializableLocation> save3 = External.load(filelocation + barriers);
+			HashMap<SerializableLocation, String> save3 = External.load(filelocation + barriers);
 			if (save3 != null)
-				for (SerializableLocation sl : save3) {
-					Location l = SerializableLocation.returnLocation(sl);
-					if (l.getBlock().getType() == Material.FENCE)
-						new GameBarrier(l.getBlock());
+				for (SerializableLocation sl : save3.keySet()) {
+					String gamename = save3.get(sl);
+					if (loadedGames.contains(gamename)) {
+						Location l = SerializableLocation.returnLocation(sl);
+						new GameBarrier(l.getBlock(), (ZAGameBase) Data.findGame(gamename));
+					}
 				}
 			/* areas.bin */
 			HashMap<SerializableLocation, Boolean> save4 = External.load(filelocation + areas);
@@ -234,7 +236,9 @@ public class External {
 			loadConfig(l, local);
 			/* games.yml */
 			g = new File(instance.getDataFolder(), games);
-			loadConfig(g, games);
+			gc = getConfig(g, games);
+			if (!g.exists())
+				saveConfig(g, gc, games);
 			/* mainframes.bin */
 			loadResource(mainframes);
 			/* players.bin */
@@ -295,11 +299,11 @@ public class External {
 				External.save(Data.playergames, filelocation + players);
 			/* barriers.bin */
 			if (Data.barriers != null) {
-				ArrayList<Location> save3 = Data.barriers;
+				HashMap<Location, String> save3 = Data.barriers;
 				if (save3 != null) {
-					for (Location l : save3) {
+					for (Location l : save3.keySet()) {
 						SerializableLocation loc = new SerializableLocation(l);
-						barrierSavings.add(loc);
+						barrierSavings.put(loc, save3.get(l));
 					}
 					External.save(barrierSavings, filelocation + barriers);
 				}
@@ -330,6 +334,13 @@ public class External {
 			/* areas.bin saving */
 			if (areaSavings != null && areas != null)
 				External.save(areaSavings, filelocation + areas);
+			/* games.yml saving *///TODO make this work
+			if (!gc.contains("Current_ZA_Games"))
+				gc.createSection("Current_ZA_Games");
+			for (String s : Data.games.keySet())
+				if (!External.getYamlManager().getGameData().getSavedGames().contains(s))
+					gc.addDefault("Current_ZA_Games", s);
+			saveConfig(g, gc, filelocation + games);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

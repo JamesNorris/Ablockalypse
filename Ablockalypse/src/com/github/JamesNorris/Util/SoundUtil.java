@@ -1,9 +1,12 @@
 package com.github.JamesNorris.Util;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+
+import com.github.Ablockalypse;
 
 public class SoundUtil {
 	public enum ZASound {
@@ -29,7 +32,7 @@ public class SoundUtil {
 	 * @param l The location to play the sound at
 	 * @param sound The sound to play
 	 */
-	public static void generateSound(World w, Location l, ZASound sound) {
+	public static void generateSound(final World w, final Location l, ZASound sound) {
 		switch (sound) {
 			case TELEPORT:
 				w.playSound(l, Sound.PORTAL_TRIGGER, 1, 1);
@@ -42,7 +45,11 @@ public class SoundUtil {
 			break;
 			case START:
 				w.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
-				w.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+					public void run() {
+						w.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
+					}
+				}, 40);
 			break;
 			case END:
 				w.playSound(l, Sound.AMBIENCE_RAIN, 7, 1);

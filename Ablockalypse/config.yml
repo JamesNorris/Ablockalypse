@@ -52,6 +52,9 @@ startingItems:
 # These items will be given to players when they enter a ZA game
 # The format for items are - <item-id>:[damage-value] [amount] [enchantment-name/id] [enchantment level]
 
+teleportTime: 5
+# The amount of time to count down before teleporting.
+
 ################################################### MISCELLANEOUS ###################################################
 
 losePerksOnLastStand: true
@@ -76,6 +79,9 @@ addedEffects: true
 powerupRadius: 15
 # The radius of the effect of powerups. This can be set lower to reduce some lag.
 # NOTE: This only works for barrier fixes and atom bombs.
+
+clearNearbyMobs: false
+# If enabled, clears all mobs near the player so they don't interfere.
 
 ###################################################### WEAPONS ######################################################
 
@@ -112,9 +118,6 @@ xmppAnnouncePlayerLeaveGame: true
 xmppAnnounceLastStand: true
 
 #################################################### MAINTENANCE ####################################################
-
-GAME_END_WAIT_TIME: 60
-# The time in seconds before ending a game with no players left.
 
 ENABLE_AUTO_UPDATE: false
 # Enables automatic updating for Ablockalypse.

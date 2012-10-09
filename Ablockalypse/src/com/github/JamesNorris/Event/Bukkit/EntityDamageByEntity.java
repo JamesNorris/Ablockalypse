@@ -16,21 +16,29 @@ import com.github.JamesNorris.Interface.ZAMob;
 public class EntityDamageByEntity implements Listener {
 	private ConfigurationData cd;
 
+	public EntityDamageByEntity() {
+		cd = External.ym.getConfigurationData();
+	}
+
 	/*
 	 * Called when an entity damaged another entity.
 	 * Used mostly for picking someone out of last stand.
 	 */
 	@EventHandler public void EDBEE(EntityDamageByEntityEvent event) {
-		if (cd == null)
-			cd = External.ym.getConfigurationData();
 		Entity damager = event.getDamager();
 		Entity e = event.getEntity();
 		if (Data.isZAMob(e)) {
 			if (damager instanceof Fireball) {
 				ZAMob zam = Data.getZAMob(e);
-				int dmg = 20 - (zam.getGame().getLevel() / 2);
-				if (dmg <= 5)
-					dmg = 5;
+				int dmg = 40 - (zam.getGame().getLevel());
+				if (dmg <= 4)
+					dmg = 4;
+				event.setDamage(dmg);
+			} else if (damager instanceof Player) {
+				ZAMob zam = Data.getZAMob(e);
+				int dmg = event.getDamage() - zam.getGame().getLevel();
+				if (dmg < 2)
+					dmg = 2;
 				event.setDamage(dmg);
 			}
 		} else if (e instanceof Player) {
