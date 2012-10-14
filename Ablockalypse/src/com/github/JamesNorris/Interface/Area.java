@@ -1,52 +1,57 @@
 package com.github.JamesNorris.Interface;
 
+import java.util.ArrayList;
+
+import org.bukkit.Location;
 import org.bukkit.block.Block;
+
+import com.github.JamesNorris.Implementation.ZAGameBase;
 
 public interface Area {
 	/**
-	 * Returns the block that is the sign clicked to buy the area.
+	 * Gets the game this area is assigned to.
 	 * 
-	 * @return The sign of the area in Block form
+	 * @return The game this area is assigned to
 	 */
-	public Block getSignBlock();
+	public ZAGameBase getGame();
+
+	/**
+	 * Gets a list of blocks for this area.
+	 * 
+	 * @return A list of blocks for this area
+	 */
+	public ArrayList<Block> getBlocks();
 
 	/**
 	 * Returns if the area is purchased or not.
 	 * 
 	 * @return Whether or not the area has been purchased
 	 */
-	public boolean isPurchased();
+	public boolean isOpened();
 
 	/**
-	 * Returns true if the area door is wood.
+	 * Opens the area.
+	 */
+	public void open();
+
+	/**
+	 * Closes the area.
+	 */
+	public void close();
+
+	/**
+	 * Sets the first or second location of the area.
 	 * 
-	 * @return Whether or not the area is wooden
+	 * @param loc The location to set
+	 * @param n A number between 1 and 2
 	 */
-	public boolean isWood();
+	public void setLocation(Location loc, int n);
 
 	/**
-	 * Removes the area.
-	 */
-	public void purchaseArea();
-
-	/**
-	 * Replaces the area.
-	 */
-	public void replaceArea();
-
-	/**
-	 * Safely closes the area on restart/stop, without changing the status of the area.
-	 */
-	public void safeReplace();
-
-	/**
-	 * Changes the type of the door when it is reloaded.
-	 * NOTE: This will not change the physical appearance until the area is purchased and restored.
+	 * Gets a point from the area. This must be between 1 and 2.
 	 * 
-	 * WOOD = true;
-	 * IRON = false;
-	 * 
-	 * @param tf Whether or not to set the status of the door to wood
+	 * @param i The point to get
+	 * @return The location of the point
 	 */
-	public void setWood(boolean tf);
+	public Location getPoint(int i);
 }

@@ -1,5 +1,7 @@
 package com.github.JamesNorris.Interface;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Location;
@@ -9,6 +11,10 @@ import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Manager.SpawnManager;
 
 public interface ZAGame {
+	public void broadcastPoints();
+
+	public void setWolfRound(boolean tf);
+
 	public GameBarrier getRandomBarrier();
 
 	public void addBarrier(GameBarrier gb);
@@ -17,7 +23,7 @@ public interface ZAGame {
 
 	public void addPlayer(Player player);
 
-	public void endGame();
+	public void remove();
 
 	public int getLevel();
 
@@ -33,7 +39,7 @@ public interface ZAGame {
 
 	public int getRemainingPlayers();
 
-	public Location getSpawn();
+	public Location getMainframe();
 
 	public SpawnManager getSpawnManager();
 
@@ -47,17 +53,23 @@ public interface ZAGame {
 
 	public void setRemainingMobs(int i);
 
-	public void setSpawn(Location location);
+	public void setMainframe(Location location);
 
 	public void subtractMobCount();
 
 	public void spawnWave();
 
-	public void spawn(Location l);
+	public void spawn(Location l, boolean closespawn);
 
 	public boolean hasStarted();
 
 	public void pause(boolean tf);
 
 	public boolean isPaused();
+
+	public List<GameBarrier> getBarriers();
+
+	public ArrayList<Location> getMobSpawners();
+
+	public void addMobSpawner(Location l);
 }

@@ -14,5 +14,5 @@ public interface MysteryChest {
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	public void randomize(Player p);
+	public void giveItem(Player p);
 }

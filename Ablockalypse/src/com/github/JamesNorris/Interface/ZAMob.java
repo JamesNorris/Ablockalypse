@@ -2,12 +2,20 @@ package com.github.JamesNorris.Interface;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Threading.MobTargettingThread;
 
 public interface ZAMob {
+	/**
+	 * Gets the creature associated with this mob.
+	 * 
+	 * @return The creature associated with this mob
+	 */
+	public Creature getCreature();
+
 	/**
 	 * Gets the game this mob is in.
 	 * 

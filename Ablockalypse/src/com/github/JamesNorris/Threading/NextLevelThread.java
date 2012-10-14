@@ -4,6 +4,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.Data;
@@ -28,7 +30,7 @@ public class NextLevelThread {
 		this.game = game;
 		instance = Ablockalypse.instance;
 		played = false;
-		counter = 2;
+		counter = 3;
 		if (nextlevel)
 			waitForNextLevel();
 	}
@@ -63,10 +65,15 @@ public class NextLevelThread {
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
 							SoundUtil.generateSound(zap.getPlayer(), ZASound.PREV_LEVEL);
+							Player p = zap.getPlayer();
+							p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + game.getLevel() + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + (game.getLevel() + 1));
 						}
+						game.broadcastPoints();
 					}
 					if (counter == 0) {
 						played = false;
+						if (game.isWolfRound())
+							game.setWolfRound(false);
 						game.nextLevel();
 						for (String s : game.getPlayers()) {
 							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());

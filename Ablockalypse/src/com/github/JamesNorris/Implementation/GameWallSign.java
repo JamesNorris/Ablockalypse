@@ -22,6 +22,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 import com.github.JamesNorris.Util.MiscUtil;
 
@@ -116,11 +117,11 @@ public class GameWallSign implements WallSign {
 				/* Attempts to add the player to a game if the second line has the join string */
 				if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
 					if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
-						setupPlayerWithGame(l3, player, true);
+						setupPlayerWithGame(l3, player);
 						player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
 						return;
 					} else if (Data.games.containsKey(l3)) {
-						setupPlayerWithGame(l3, player, false);
+						setupPlayerWithGame(l3, player);
 						EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 						return;
 					} else {
@@ -128,10 +129,10 @@ public class GameWallSign implements WallSign {
 						return;
 					}
 					/* Otherwise, checks for enough points, then attempts to purchase something for the player */
-				} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap.get(l3) != null && ym.levelmap != null && Data.players != null && Data.players.containsKey(player)) {
+				} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap != null && Data.players != null && Data.players.containsKey(player)) {
 					ZAPlayerBase zap = Data.players.get(player);
 					int n = zap.getPoints();
-					if (player.getLevel() >= ym.levelmap.get(l3)) {
+					if (ym.levelmap.get(l3) == null || player.getLevel() >= ym.levelmap.get(l3)) {
 						/* PERKS */
 						if (l2.equalsIgnoreCase(ld.perkstring)) {
 							if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
@@ -181,33 +182,32 @@ public class GameWallSign implements WallSign {
 								return;
 							}
 							/* AREAS */
-						} else if (l2.equalsIgnoreCase(ld.areastring))
+						} else if (l2.equalsIgnoreCase(ld.areastring)) {
+							int cost = 1500;
 							try {
-								int cost = Integer.parseInt(l3);
-								if (zap.getPoints() >= cost) {
-									Block b = sign.getBlock();
-									GameArea a;
-									if (!Data.areas.containsKey(b))
-										a = Data.areas.get(b);
-									else
-										a = new GameArea(b);
-									if (!a.isPurchased()) {
-										a.purchaseArea();
+								cost = Integer.parseInt(l3);
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
+							if (zap.getPoints() >= cost) {
+								GameArea a = getClosestArea(sign.getBlock(), (ZAGameBase) zap.getGame());
+								if (a != null) {
+									if (!a.isOpened()) {
+										a.open();
 										EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 										zap.subtractPoints(cost);
 										player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
 										return;
 									} else
 										player.sendMessage(ChatColor.RED + "This area has already been purchased!");
-									return;
-								} else {
-									player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
-									return;
-								}
-							} catch (Exception e) {
+								} else
+									player.sendMessage(ChatColor.RED + "There is no area close to this sign!");
+								return;
+							} else {
+								player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
 								return;
 							}
-						else
+						} else
 							return;
 					} else {
 						player.sendMessage(ChatColor.RED + "You are level " + player.getLevel() + " / " + ym.levelmap.get(l3) + " required to buy that.");
@@ -220,18 +220,40 @@ public class GameWallSign implements WallSign {
 	}
 
 	/*
+	 * Gets the closest game area to the given block.
+	 */
+	private GameArea getClosestArea(Block b, ZAGameBase zag) {
+		int distance = Integer.MAX_VALUE;
+		Location loc = b.getLocation();
+		GameArea lp = null;
+		for (GameArea a : Data.areas) {
+			if (a.getGame() == zag) {
+				Location l = a.getPoint(1);
+				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+				if (current < distance) {
+					distance = current;
+					lp = a;
+				}
+			}
+		}
+		if (lp != null)
+			return lp;
+		return null;
+	}
+
+	/*
 	 * Checks for the game and player to create a new game instance and player instance.
 	 */
-	private void setupPlayerWithGame(String name, Player player, boolean created) {
+	private void setupPlayerWithGame(String name, Player player) {
 		ZAGame zag = Data.findGame(l3);
-		if (created)
-			zag.setSpawn(player.getLocation());// TODO remove this when we have a proper spawn-setting system
+		if (zag.getMainframe() == null)
+			zag.setMainframe(player.getLocation());// TODO remove this when we have a proper spawn-setting system
 		ZAPlayer zap = Data.findZAPlayer(player, l3);
 		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
 		Bukkit.getServer().getPluginManager().callEvent(gce);
 		if (!gce.isCancelled())
 			zap.loadPlayerToGame(l3);
 		else
-			zag.endGame();
+			zag.remove();
 	}
 }

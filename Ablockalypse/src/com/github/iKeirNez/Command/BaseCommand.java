@@ -96,7 +96,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							if (!gce.isCancelled())
 								sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
 							else
-								zag.endGame();
+								zag.remove();
 							return true;
 						}
 					} else {
@@ -118,6 +118,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						} else {
 							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							return true;
 						}
 					} else {
 						sender.sendMessage("You do not have permission to create barriers!");
@@ -135,7 +136,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (Data.gameExists(gameName)) {
 							if (sender.hasPermission("za.create")) {
 								ZAGame zag = Data.findGame(gameName);
-								zag.setSpawn(p.getLocation());
+								zag.setMainframe(p.getLocation());
 								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
 								return true;
 							} else {
@@ -154,14 +155,14 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					sender.sendMessage(CommonMessages.notPlayer);
 					return true;
 				}
-			} else if (args[0].equalsIgnoreCase("end")) {
+			} else if (args[0].equalsIgnoreCase("remove")) {
 				if (sender.hasPermission("za.create")) {
 					if (args.length == 2) {
 						String gameName = args[1];
 						if (Data.gameExists(gameName)) {
 							ZAGame zag = Data.findGame(gameName);
-							zag.endGame();
-							sender.sendMessage(ChatColor.GRAY + "You have ended the game " + gameName);
+							zag.remove();
+							sender.sendMessage(ChatColor.GRAY + "You have removed the game " + gameName);
 							return true;
 						} else {
 							sender.sendMessage(ChatColor.RED + "That game does not exist!");
@@ -172,7 +173,49 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						return true;
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "You do not have permission to end games");
+					sender.sendMessage(ChatColor.RED + "You do not have permission to remove games");
+					return true;
+				}
+			} else if (args[0].equalsIgnoreCase("spawner")) {
+				if (sender instanceof Player) {
+					if (sender.hasPermission("za.create")) {
+						if (args.length == 2) {
+							String gameName = args[1];
+							Player player = (Player) sender;
+							PlayerInteract.spawnerPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							player.sendMessage(ChatColor.GRAY + "Click a block to create a spawner.");
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							return true;
+						}
+					} else {
+						sender.sendMessage("You do not have permission to create spawners!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(CommonMessages.notPlayer);
+					return true;
+				}
+			} else if (args[0].equalsIgnoreCase("area")) {
+				if (sender instanceof Player) {
+					if (sender.hasPermission("za.create")) {
+						if (args.length == 2) {
+							String gameName = args[1];
+							Player player = (Player) sender;
+							PlayerInteract.areaPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							player.sendMessage(ChatColor.GRAY + "Click a block to select point 1.");
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							return true;
+						}
+					} else {
+						sender.sendMessage("You do not have permission to create areas!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(CommonMessages.notPlayer);
 					return true;
 				}
 			}

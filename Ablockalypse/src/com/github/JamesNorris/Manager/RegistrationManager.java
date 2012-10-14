@@ -4,6 +4,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Event.Bukkit.BlockBreak;
 import com.github.JamesNorris.Event.Bukkit.BlockPlace;
 import com.github.JamesNorris.Event.Bukkit.EntityBreakDoor;
 import com.github.JamesNorris.Event.Bukkit.EntityDamage;
@@ -14,6 +15,7 @@ import com.github.JamesNorris.Event.Bukkit.EntityTarget;
 import com.github.JamesNorris.Event.Bukkit.PlayerDeath;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteractEntity;
+import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
 import com.github.JamesNorris.Event.Bukkit.PlayerMove;
 import com.github.JamesNorris.Event.Bukkit.PlayerPickupItem;
 import com.github.JamesNorris.Event.Bukkit.PlayerQuit;
@@ -49,6 +51,8 @@ public class RegistrationManager {
 		pm.registerEvents(new PlayerRespawn(), instance);
 		pm.registerEvents(new EntityExplode(), instance);
 		pm.registerEvents(new EntityDamageByEntity(), instance);
+		pm.registerEvents(new PlayerJoin(), instance);
+		pm.registerEvents(new BlockBreak(), instance);
 		/* COMMANDS */
 		((Ablockalypse) instance).getCommand("za").setExecutor(new BaseCommand());
 	}

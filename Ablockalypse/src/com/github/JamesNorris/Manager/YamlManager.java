@@ -9,14 +9,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.potion.PotionEffectType;
 
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GameData;
 import com.github.JamesNorris.Data.LocalizationData;
 
 public class YamlManager {
 	private ConfigurationData cd;
 	public HashMap<String, Enchantment> enchmap = new HashMap<String, Enchantment>();
 	public HashMap<String, Integer> enchsignline3 = new HashMap<String, Integer>();
-	private GameData gd;
 	private LocalizationData ld;
 	public HashMap<String, Integer> levelmap = new HashMap<String, Integer>();
 	public HashMap<String, PotionEffectType> perkmap = new HashMap<String, PotionEffectType>();
@@ -30,10 +28,9 @@ public class YamlManager {
 	 * @param cd The ConfigurationData instance to load to the manager
 	 * @param ld The LocalizationData instance to load to the manager
 	 */
-	public YamlManager(ConfigurationData cd, LocalizationData ld, GameData gd) {
+	public YamlManager(ConfigurationData cd, LocalizationData ld) {
 		this.cd = cd;
 		this.ld = ld;
-		this.gd = gd;
 		initSignRequirements();
 	}
 
@@ -54,15 +51,6 @@ public class YamlManager {
 	 */
 	public ConfigurationData getConfigurationData() {
 		return cd;
-	}
-
-	/**
-	 * Gets the GameData from this instance.
-	 * 
-	 * @return The GameData used with this instance
-	 */
-	public GameData getGameData() {
-		return gd;
 	}
 
 	/**

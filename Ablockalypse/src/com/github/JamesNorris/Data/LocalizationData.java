@@ -1,8 +1,6 @@
 package com.github.JamesNorris.Data;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import org.bukkit.configuration.file.FileConfiguration;
 
@@ -20,7 +18,7 @@ public class LocalizationData {
 		healstring = c.getString("perkHealString");
 		speedstring = c.getString("perkSpeedString");
 		damagestring = c.getString("perkDamageString");
-		regenstring = c.getString("perkRegenString");
+		regenstring = c.getString("perkRegenerationString");
 		enchstring = c.getString("enchantmentString");
 		enchdamagestring = c.getString("enchantmentDamageString");
 		enchrandstring = c.getString("enchantmentRandomString");
@@ -31,17 +29,7 @@ public class LocalizationData {
 		weapondiamondstring = c.getString("weaponDiamondSwordString");
 		weapongoldstring = c.getString("weaponGoldSwordString");
 		weapongrenadestring = c.getString("weaponGrenadeString");
-		areastring = c.getString("areaString");
+		areastring = c.getString("areaString");// TODO not working
 		joingame = c.getString("joinString");
-	}
-
-	/**
-	 * Clears all of the LocalizationData.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 }

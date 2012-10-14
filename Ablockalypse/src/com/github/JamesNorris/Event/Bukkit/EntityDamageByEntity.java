@@ -31,13 +31,13 @@ public class EntityDamageByEntity implements Listener {
 			if (damager instanceof Fireball) {
 				ZAMob zam = Data.getZAMob(e);
 				int dmg = 40 - (zam.getGame().getLevel());
-				if (dmg <= 4)
-					dmg = 4;
+				if (dmg <= 6)
+					dmg = 6;
 				event.setDamage(dmg);
 			} else if (damager instanceof Player) {
 				ZAMob zam = Data.getZAMob(e);
-				int dmg = event.getDamage() - zam.getGame().getLevel();
-				if (dmg < 2)
+				int dmg = event.getDamage() - (zam.getGame().getLevel() / 4);
+				if (dmg <= 2)
 					dmg = 2;
 				event.setDamage(dmg);
 			}
@@ -46,7 +46,7 @@ public class EntityDamageByEntity implements Listener {
 			if (Data.players.containsKey(p)) {
 				ZAPlayerBase zap = Data.players.get(p);
 				if (damager instanceof Player) {
-					Player p2 = (Player) damager;// TODO add a friendly fire option
+					Player p2 = (Player) damager;
 					if (Data.playerExists(p2)) {
 						if (zap.isInLastStand())
 							zap.toggleLastStand();
@@ -55,8 +55,12 @@ public class EntityDamageByEntity implements Listener {
 				} else if (p.getHealth() <= cd.lsthresh && !zap.isInLastStand() && !zap.isInLimbo()) {
 					p.setHealth(cd.lsthresh);
 					zap.toggleLastStand();
-				} else if (zap.isInLastStand())
+				} else if (zap.isInLastStand()) {
 					event.setCancelled(true);
+				}
+				if (damager instanceof Fireball) {
+					event.setCancelled(true);
+				}
 			}
 		}
 	}

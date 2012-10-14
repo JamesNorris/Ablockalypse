@@ -1,12 +1,13 @@
 package com.github.JamesNorris.Implementation;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Area;
 import com.github.JamesNorris.Util.EffectUtil;
@@ -15,144 +16,146 @@ import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
 public class GameArea implements Area {
-	private Block block;
-	private Location location;
-	private List<Location> locs;
-	private boolean wood, opened;
+	private Location loc1, loc2;
+	private HashMap<Location, Material> locs = new HashMap<Location, Material>();
+	private boolean opened;
+	private ZAGameBase zag;
 
 	/**
 	 * Creates a new Area instance, that can be bought for a set price.
 	 * 
 	 * @param block The sign directly facing the area door
 	 */
-	public GameArea(Block block) {
-		this.block = block;
+	public GameArea(ZAGameBase zag) {
+		this.zag = zag;
 		opened = false;
-		location = block.getLocation();
-		for (BlockFace bf : new BlockFace[] {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST, BlockFace.NORTH_EAST, BlockFace.NORTH_WEST, BlockFace.SOUTH_EAST, BlockFace.SOUTH_WEST}) {
-			Block b = block.getRelative(bf);
-			if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR) {
-				if (b.getType() == Material.WOOD)
-					wood = true;
-				else
-					wood = false;
-				locs.add(b.getLocation());
-			}
-		}
-		if (!Data.areas.containsKey(block))
-			Data.areas.put(block, this);
-		if (!Data.loadedareas.containsKey(location))
-			Data.loadedareas.put(location, opened);
+		Data.areas.add(this);
 	}
 
 	/**
-	 * Returns the block that is the sign clicked to buy the area.
+	 * Returns if the area is opened or not.
 	 * 
-	 * @return The sign of the area in Block form
+	 * @return Whether or not the area has been opened
 	 */
-	@Override public Block getSignBlock() {
-		return block;
-	}
-
-	/**
-	 * Returns if the area is purchased or not.
-	 * 
-	 * @return Whether or not the area has been purchased
-	 */
-	@Override public boolean isPurchased() {
-		for (Location loc : locs) {
-			Block b = loc.getBlock();
-			if (b.getType() == Material.AIR || b.getType() == null)
-				return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Returns true if the area door is wood.
-	 * 
-	 * @return Whether or not the area is wooden
-	 */
-	@Override public boolean isWood() {
-		return wood;
+	@Override public boolean isOpened() {
+		return opened;
 	}
 
 	/**
 	 * Removes the area.
 	 */
-	@Override public void purchaseArea() {
-		for (Location loc : locs) {
-			Block b = loc.getBlock();
-			b.setType(Material.AIR);
-			if (wood)
-				EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.WOOD_BREAK);
-			else
-				EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.IRON_BREAK);
-			opened = true;
-			toggleOpenedStatus();
+	@Override public void open() {
+		for (Location l : locs.keySet()) {
+			l.getBlock().getDrops().clear();
+			l.getBlock().setType(Material.AIR);
+			EffectUtil.generateEffect(l.getWorld(), l, ZAEffect.SMOKE);
 		}
-		SoundUtil.generateSound(location.getWorld(), location, ZASound.AREA_BUY);
+		opened = true;
+		SoundUtil.generateSound(loc1.getWorld(), loc1, ZASound.AREA_BUY);
 	}
 
 	/**
 	 * Replaces the area.
 	 */
-	@Override public void replaceArea() {
-		for (Location loc : locs) {
-			Block b = loc.getBlock();
-			EffectUtil.generateEffect(loc.getWorld(), loc, ZAEffect.SMOKE);
-			if (b.getType() == Material.AIR || b.getType() == null) {
-				if (wood)
-					b.setType(Material.WOOD_DOOR);
-				else
-					b.setType(Material.IRON_DOOR);
-				opened = false;
-				toggleOpenedStatus();
+	@Override public void close() {
+		for (Location l : locs.keySet()) {
+			l.getBlock().setType(locs.get(l));
+			EffectUtil.generateEffect(l.getWorld(), l, ZAEffect.SMOKE);
+		}
+		opened = false;
+	}
+
+	/**
+	 * Sets the first or second location of the area.
+	 * 
+	 * @param loc The location to set
+	 * @param n A number between 1 and 2
+	 */
+	@Override public void setLocation(Location loc, int n) {
+		if (n == 1)
+			loc1 = loc;
+		if (n == 2) {
+			loc2 = loc;
+			if (loc1 == null) {
+				Ablockalypse.getMaster().crash(Ablockalypse.instance, "An area has been selected without a first location", false);
+			} else {
+				int x = loc1.getBlockX();
+				int y = loc1.getBlockY();
+				int z = loc1.getBlockZ();
+				int x2 = loc2.getBlockX();
+				int y2 = loc2.getBlockY();
+				int z2 = loc2.getBlockZ();
+				int modX = 0;
+				int highX = 0;
+				if (x < x2) {
+					modX = x;
+					highX = x2;
+				} else {
+					modX = x2;
+					highX = x;
+				}
+				int modY = 0;
+				int highY = 0;
+				if (y < y2) {
+					modY = y;
+					highY = y2;
+				} else {
+					modY = y2;
+					highY = y;
+				}
+				int modZ = 0;
+				int highZ = 0;
+				if (z < z2) {
+					modZ = z;
+					highZ = z2;
+				} else {
+					modZ = z2;
+					highZ = z;
+				}
+				for (int i = modX; i <= highX; i++) {
+					for (int j = modY; j <= highY; j++) {
+						for (int k = modZ; k <= highZ; k++) {
+							Location l = loc1.getWorld().getBlockAt(i, j, k).getLocation();
+							locs.put(l, l.getBlock().getType());
+						}
+					}
+				}
 			}
 		}
 	}
 
 	/**
-	 * Safely closes the area on restart/stop, without changing the status of the area.
+	 * Gets a list of blocks for this area.
+	 * 
+	 * @return A list of blocks for this area
 	 */
-	@Override public void safeReplace() {
-		for (Location loc : locs) {
-			Block b = loc.getBlock();
-			if (b.getType() == Material.AIR || b.getType() == null) {
-				if (wood)
-					b.setType(Material.WOOD_DOOR);
-				else
-					b.setType(Material.IRON_DOOR);
-				opened = false;
-			}
-		}
+	@Override public ArrayList<Block> getBlocks() {
+		ArrayList<Block> bls = new ArrayList<Block>();
+		for (Location l : locs.keySet())
+			bls.add(l.getBlock());
+		return bls;
 	}
 
 	/**
-	 * Changes the type of the door when it is reloaded.
-	 * NOTE: This will not change the physical appearance until the area is purchased and restored.
+	 * Gets the game this area is assigned to.
 	 * 
-	 * WOOD = true;
-	 * IRON = false;
-	 * 
-	 * @param tf Whether or not to set the status of the door to wood
+	 * @return The game this area is assigned to
 	 */
-	@Override public void setWood(boolean tf) {
-		wood = tf;
-		if (Data.loadedareas.containsKey(location)) {
-			Data.loadedareas.remove(location);
-			Data.loadedareas.put(location, wood);
-		}
+	@Override public ZAGameBase getGame() {
+		return zag;
 	}
 
-	/*
-	 * Changes the opened status of the area.
-	 * NOTE: This does not physically change the area!
+	/**
+	 * Gets a point from the area. This must be between 1 and 2.
+	 * 
+	 * @param i The point to get
+	 * @return The location of the point
 	 */
-	private void toggleOpenedStatus() {
-		if (Data.loadedareas.containsKey(location)) {
-			Data.loadedareas.remove(location);
-			Data.loadedareas.put(location, opened);
-		}
+	@Override public Location getPoint(int i) {
+		if (i == 1)
+			return loc1;
+		if (i == 2)
+			return loc2;
+		return null;
 	}
 }

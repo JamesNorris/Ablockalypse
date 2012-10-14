@@ -7,22 +7,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
-import com.github.JamesNorris.Data.GameData;
 import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.ZAGameBase;
@@ -34,23 +33,28 @@ import com.github.JamesNorris.Util.SerializableLocation;
 public class External {
 	private static HashMap<SerializableLocation, Boolean> areaSavings = new HashMap<SerializableLocation, Boolean>();
 	private static HashMap<SerializableLocation, String> barrierSavings = new HashMap<SerializableLocation, String>();
+	private static HashMap<String, SerializableLocation> spawnSavings = new HashMap<String, SerializableLocation>();
+	private static HashMap<SerializableLocation, String> areaGameSavings = new HashMap<SerializableLocation, String>();
+	private static HashMap<SerializableLocation, SerializableLocation> areaLocSavings = new HashMap<SerializableLocation, SerializableLocation>();
 	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
 	public static boolean CommandsEXPresent = (CommandsEX != null && CommandsEX.isEnabled());
-	private static FileConfiguration fc, gc;
+	private static FileConfiguration fc;
 	public static Ablockalypse instance;
-	public static File l, g, f;
-	private static List<String> loadedGames;
+	public static File l, f;
 	/* .bin paths */
 	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
 	public static String local = "local.yml";
 	public static String players = "players.bin";
-	public static String games = "games.yml";
+	public static String games = "games.bin";
 	public static String mainframes = "mainframes.bin";
 	public static String config = "config.yml";
 	public static String points = "points.bin";
 	public static String levels = "levels.bin";
 	public static String barriers = "barriers.bin";
 	public static String areas = "areas.bin";
+	public static String spawns = "spawns.bin";
+	public static String areagames = "areagames.bin";
+	public static String arealocs = "arealocs.bin";
 	/* end .bin paths */
 	private static HashMap<String, SerializableLocation> mainframeSavings = new HashMap<String, SerializableLocation>();
 	public static YamlManager ym;
@@ -96,7 +100,8 @@ public class External {
 	 */
 	public static void loadData() {
 		try {
-			loadedGames = ym.getGameData().getSavedGames();
+			/* games.bin */
+			ArrayList<String> loadedGames = External.load(filelocation + games);
 			/* mainframes.bin */
 			HashMap<String, SerializableLocation> save = External.load(filelocation + mainframes);
 			if (save != null)
@@ -105,7 +110,7 @@ public class External {
 					Location l = SerializableLocation.returnLocation(loc);
 					for (String s2 : loadedGames) {
 						ZAGame zag = Data.findGame(s2);
-						zag.setSpawn(l);
+						zag.setMainframe(l);
 					}
 				}
 			/* players.bin */
@@ -114,7 +119,12 @@ public class External {
 				for (String s : save2.keySet())
 					if (Data.gameExists(s)) {
 						ZAGame zag = Data.findGame(s);
-						zag.addPlayer(Bukkit.getServer().getPlayer(save2.get(s)));
+						Player p = Bukkit.getPlayer(save2.get(s));
+						if (p != null && p.isOnline())
+							zag.addPlayer(p);
+						else {
+							PlayerJoin.offlinePlayers.put(save2.get(s), s);
+						}
 					}
 			/* barriers.bin */
 			HashMap<SerializableLocation, String> save3 = External.load(filelocation + barriers);
@@ -127,15 +137,29 @@ public class External {
 					}
 				}
 			/* areas.bin */
+			HashMap<SerializableLocation, SerializableLocation> save9 = External.load(filelocation + arealocs);
 			HashMap<SerializableLocation, Boolean> save4 = External.load(filelocation + areas);
+			HashMap<SerializableLocation, String> save8 = External.load(filelocation + areagames);
 			if (save4 != null)
-				for (SerializableLocation sl : save4.keySet()) {
-					Location l = SerializableLocation.returnLocation(sl);
-					Block b = l.getBlock();
-					if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR) {
-						GameArea a = new GameArea(b);
-						if (save4.get(sl))
-							a.purchaseArea();
+				for (SerializableLocation sl : save9.keySet()) {
+					for (SerializableLocation sl2 : save4.keySet()) {
+						for (SerializableLocation sl3 : save8.keySet()) {
+							Location l = SerializableLocation.returnLocation(sl);
+							Location l2 = SerializableLocation.returnLocation(save9.get(sl));
+							Location l3 =  SerializableLocation.returnLocation(sl2);
+							Location l4 = SerializableLocation.returnLocation(sl3);
+							if ((l.getBlockX() == l3.getBlockX() && l3.getBlockX() == l4.getBlockX()) && (l.getBlockZ() == l3.getBlockZ() && l3.getBlockZ() == l4.getBlockZ()) && (l.getBlockY() == l3.getBlockY() && l3.getBlockY() == l4.getBlockY())){
+							if (loadedGames.contains(save8.get(sl3))) {
+								GameArea a = new GameArea((ZAGameBase) Data.findGame(save8.get(sl3)));
+								if (l != null && l2 != null) {
+									a.setLocation(l, 1);
+									a.setLocation(l2, 2);
+								}
+								if (save4.get(sl2))
+									a.open();
+							}
+							}
+						}
 					}
 				}
 			/* points.bin */
@@ -145,12 +169,17 @@ public class External {
 					if (loadedGames.contains(s)) {
 						HashMap<String, Integer> values = save5.get(s);
 						for (String s2 : values.keySet()) {
+							Player p = Bukkit.getPlayer(s2);
 							int i = values.get(s2);
-							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s2), s);
-							int current = zap.getPoints();
-							if (current != 0)
-								zap.subtractPoints(current);
-							zap.addPoints(i);
+							if (p != null && p.isOnline()) {
+								ZAPlayer zap = Data.findZAPlayer(p, s);
+								int current = zap.getPoints();
+								if (current != 0)
+									zap.subtractPoints(current);
+								zap.addPoints(i);
+							} else {
+								PlayerJoin.offlinePlayerPoints.put(s2, i);
+							}
 						}
 					}
 			/* levels.bin */
@@ -160,7 +189,22 @@ public class External {
 					if (loadedGames.contains(s)) {
 						int i = save6.get(s);
 						ZAGame zag = Data.findGame(s);
-						zag.setLevel(i);
+						if (zag.getPlayers().size() > 0) {
+							zag.setLevel(i);
+						} else {
+							PlayerJoin.gameLevels.put(s, i);
+						}
+					}
+			/* spawns.bin */
+			HashMap<String, SerializableLocation> save7 = External.load(filelocation + spawns);
+			if (save7 != null)
+				for (String s : save7.keySet())
+					if (loadedGames.contains(s)) {
+						SerializableLocation sl = save7.get(s);
+						Location l = SerializableLocation.returnLocation(sl);
+						ZAGameBase zag = (ZAGameBase) Data.findGame(s);
+						Data.spawns.put(zag, l);
+						zag.addMobSpawner(l);
 					}
 			/* CLEARING */
 			if (save != null)
@@ -175,6 +219,10 @@ public class External {
 				save5.clear();
 			if (save6 != null)
 				save6.clear();
+			if (save7 != null)
+				save7.clear();
+			if (save8 != null)
+				save8.clear();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -234,11 +282,8 @@ public class External {
 			/* local.yml */
 			l = new File(instance.getDataFolder(), local);
 			loadConfig(l, local);
-			/* games.yml */
-			g = new File(instance.getDataFolder(), games);
-			gc = getConfig(g, games);
-			if (!g.exists())
-				saveConfig(g, gc, games);
+			/* games.bin */
+			loadResource(games);
 			/* mainframes.bin */
 			loadResource(mainframes);
 			/* players.bin */
@@ -247,15 +292,20 @@ public class External {
 			loadResource(barriers);
 			/* areas.bin */
 			loadResource(areas);
+			/* arealocs.bin */
+			loadResource(arealocs);
+			/* areagames.bin */
+			loadResource(areagames);
 			/* points.bin */
 			loadResource(points);
 			/* levels.bin */
 			loadResource(levels);
+			/* spawns.bin */
+			loadResource(spawns);
 			/* CREATE DATA AND DATA MANAGERS */
 			ConfigurationData cd = new ConfigurationData((Ablockalypse) instance);
 			LocalizationData ld = new LocalizationData(l, local);
-			GameData gd = new GameData();
-			ym = new YamlManager(cd, ld, gd);
+			ym = new YamlManager(cd, ld);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -291,7 +341,7 @@ public class External {
 						SerializableLocation loc = new SerializableLocation(l);
 						mainframeSavings.put(s, loc);
 					}
-					External.save(mainframeSavings, filelocation + mainframes);// TODO figure out a way to NOT save anything that has already been saved.
+					External.save(mainframeSavings, filelocation + mainframes);
 				}
 			}
 			/* players.bin */
@@ -308,15 +358,25 @@ public class External {
 					External.save(barrierSavings, filelocation + barriers);
 				}
 			}
-			/* areas.bin */
-			if (Data.loadedareas != null) {
-				HashMap<Location, Boolean> save4 = Data.loadedareas;
-				if (save4 != null)
-					for (Location l : save4.keySet()) {
-						boolean tf = save4.get(l);
-						SerializableLocation loc = new SerializableLocation(l);
-						areaSavings.put(loc, tf);
-					}
+			/* areas.bin, areagames.bin and arealocs.bin */
+			if (Data.areas != null) {
+				for (GameArea ga : Data.areas) {
+					SerializableLocation sl = new SerializableLocation(ga.getPoint(1));
+					areaSavings.put(sl, ga.isOpened());
+					areaGameSavings.put(sl, ga.getGame().getName());
+					areaLocSavings.put(sl, new SerializableLocation(ga.getPoint(2)));
+				}
+			}
+			/* spawns.bin */
+			if (Data.getSpawns() != null) {
+				HashMap<ZAGameBase, Location> save5 = Data.getSpawns();
+				for (ZAGameBase zag : save5.keySet()) {
+					String s = zag.getName();
+					Location l = save5.get(zag);
+					SerializableLocation loc = new SerializableLocation(l);
+					spawnSavings.put(s, loc);
+				}
+				External.save(spawnSavings, filelocation + spawns);
 			}
 			/* points.bin */
 			if (Data.playerPoints != null)
@@ -326,21 +386,24 @@ public class External {
 				External.save(Data.gameLevels, filelocation + levels);
 			/* Make all physical data safe, by replacing all broken game items */
 			if (Data.areas != null && restore)
-				for (GameArea a : Data.areas.values())
-					a.safeReplace();
+				for (GameArea a : Data.areas)
+					a.close();
 			if (Data.gamebarriers != null && restore)
 				for (GameBarrier b : Data.gamebarriers)
 					b.replaceBarrier();
-			/* areas.bin saving */
-			if (areaSavings != null && areas != null)
+			/* areas.bin, areagames.bin and arealocs.bin saving */
+			if (areaSavings != null && areas != null && areaGameSavings != null) {
 				External.save(areaSavings, filelocation + areas);
-			/* games.yml saving *///TODO make this work
-			if (!gc.contains("Current_ZA_Games"))
-				gc.createSection("Current_ZA_Games");
-			for (String s : Data.games.keySet())
-				if (!External.getYamlManager().getGameData().getSavedGames().contains(s))
-					gc.addDefault("Current_ZA_Games", s);
-			saveConfig(g, gc, filelocation + games);
+				External.save(areaGameSavings, filelocation + areagames);
+				External.save(areaLocSavings, filelocation + arealocs);
+			}
+			/* games.bin saving */
+			if (Data.games != null) {
+				ArrayList<String> gamesaves = new ArrayList<String>();
+				for (String s : Data.games.keySet())
+					gamesaves.add(s);
+				External.save(gamesaves, filelocation + games);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.entity.CraftWolf;
 import org.bukkit.craftbukkit.entity.CraftZombie;
 import org.bukkit.entity.Entity;
@@ -32,7 +31,7 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.Square;
 
 public class Data {
-	public static HashMap<Block, GameArea> areas = new HashMap<Block, GameArea>();;
+	public static ArrayList<GameArea> areas = new ArrayList<GameArea>();
 	public static List<String> authors;
 	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
 	public static HashMap<Location, String> barriers = new HashMap<Location, String>();
@@ -41,7 +40,6 @@ public class Data {
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
 	public static HashMap<String, ZAGameBase> games = new HashMap<String, ZAGameBase>();
 	public static ArrayList<GameHellHound> hellhounds = new ArrayList<GameHellHound>();
-	public static HashMap<Location, Boolean> loadedareas = new HashMap<Location, Boolean>();
 	public static HashMap<String, Location> mainframes = new HashMap<String, Location>();
 	public static ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
 	public static HashMap<String, String> playergames = new HashMap<String, String>();
@@ -50,7 +48,32 @@ public class Data {
 	public static Ablockalypse plugin;
 	public static HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public static ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
+	public static HashMap<ZAGameBase, Location> spawns = new HashMap<ZAGameBase, Location>();
 	public static String version;
+
+	/**
+	 * Gets an arraylist of spawning locations for the game provided.
+	 * 
+	 * @param gamename The game to look for
+	 * @return The arraylist of spawners for the provided game
+	 */
+	public static ArrayList<Location> getSpawns(String gamename) {
+		ArrayList<Location> locs = new ArrayList<Location>();
+		for (ZAGameBase zag : spawns.keySet()) {
+			if (zag.getName() == gamename)
+				locs.add(spawns.get(zag));
+		}
+		return locs;
+	}
+
+	/**
+	 * Gets the spawns for all games in a hashmap.
+	 * 
+	 * @return All spawns in all games
+	 */
+	public static HashMap<ZAGameBase, Location> getSpawns() {
+		return spawns;
+	}
 
 	/**
 	 * Checks if the game exists, if not, creates a new game.
@@ -66,6 +89,20 @@ public class Data {
 		else
 			zag = new ZAGameBase(name, External.ym.getConfigurationData());
 		return zag;
+	}
+
+	/**
+	 * Gets a ZAPlayer from a player without using a string, if the player exists.
+	 * 
+	 * @param p The player to check for
+	 * @return The ZAPlayer instance connected to that player
+	 */
+	public static ZAPlayer getZAPlayer(Player p) {
+		for (ZAPlayerBase zap : Data.players.values()) {
+			if (zap.getName() == p.getName())
+				return (ZAPlayer) zap;
+		}
+		return null;
 	}
 
 	/**
@@ -120,6 +157,12 @@ public class Data {
 		return null;
 	}
 
+	/**
+	 * Gets the ZAMob linked to the provided entity if one is present.
+	 * 
+	 * @param e The entity to check for
+	 * @return The ZAMob linked to the entity
+	 */
 	public static ZAMob getZAMob(Entity e) {
 		if (e instanceof Zombie) {
 			for (GameUndead gu : Data.undead)
@@ -173,7 +216,7 @@ public class Data {
 	}
 
 	/**
-	 * Refreshes the data in the Data class.
+	 * Refreshes the refreshable data in the Data class.
 	 */
 	public static void refresh() {
 		for (ZAPlayerBase zap : Data.players.values()) {

@@ -11,6 +11,7 @@ import org.bukkit.entity.Wolf;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -35,8 +36,10 @@ public class GameHellHound implements HellHound, ZAMob {
 		this.wolf = wolf;
 		this.game = game;
 		world = wolf.getWorld();
-		if (game.getRandomBarrier() != null) {
-			Location gbloc = game.getRandomBarrier().getCenter();
+		wolf.setHealth(8);
+		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(wolf.getLocation());
+		if (targetbarrier != null) {
+			Location gbloc = targetbarrier.getCenter();
 			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) wolf, gbloc);
 		} else {
 			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) wolf, game.getRandomLivingPlayer());
@@ -45,10 +48,8 @@ public class GameHellHound implements HellHound, ZAMob {
 		setAggressive(true);
 		if (!Data.hellhounds.contains(this))
 			Data.hellhounds.add(this);
-		if (game.getLevel() <= 2)
-			wolf.setHealth(game.getLevel() * 5);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-			setSpeed(0.3F);
+			setSpeed(0.24F);
 	}
 
 	/**
@@ -195,5 +196,14 @@ public class GameHellHound implements HellHound, ZAMob {
 	@Override public void setTargetLocation(Location loc) {
 		target = loc;
 		mt.setTarget(loc);
+	}
+
+	/**
+	 * Gets the creature associated with this mob.
+	 * 
+	 * @return The creature associated with this mob
+	 */
+	@Override public Creature getCreature() {
+		return (Creature) wolf;
 	}
 }

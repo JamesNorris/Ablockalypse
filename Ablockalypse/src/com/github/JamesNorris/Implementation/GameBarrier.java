@@ -2,10 +2,12 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
@@ -38,16 +40,26 @@ public class GameBarrier implements Barrier {
 		this.game = game;
 		this.radius = 2;
 		this.hittimes = 5;
-		square = new Square(getCenter(), 2);
-		for (Location loc : square.getLocations()) {
-			Material type = loc.getBlock().getType();
-			if (loc.getBlock() != null && !loc.getBlock().isEmpty() && type != null && (type == Material.GRASS || type == Material.DIRT || type == Material.MYCEL)) {
-				this.spawnloc = loc;
-				break;
-			}
-		}
+		Random rand = new Random();
+		/* finding spawnloc */
+		int chance = rand.nextInt(4);
+		World w = this.center.getWorld();
+		int x = this.center.getBlockX();
+		int y = this.center.getBlockY();
+		int z = this.center.getBlockZ();
+		int modX = rand.nextInt(2) + 3;
+		int modZ = rand.nextInt(2) + 3;
+		if (chance == 1) {
+			x = x - modX;
+			z = z - modZ;
+		} else if (chance == 2)
+			x = x - modX;
+		else if (chance == 3)
+			z = z - modZ;
+		this.spawnloc = w.getBlockAt(x, y, z).getLocation();
 		if (spawnloc == null)
 			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
+		/* end finding spawnloc */
 		game.addBarrier(this);
 		Location l = center.getLocation();
 		if (!Data.barriers.containsKey(l))
@@ -98,8 +110,6 @@ public class GameBarrier implements Barrier {
 					if (hittimes == 0) {
 						hittimes = 5;
 						breakPanels();
-						if (game.getRandomLivingPlayer() != null)
-							Data.getZAMob((Entity) c).setTargetPlayer(game.getRandomLivingPlayer());
 						cancel();
 					}
 				} else {

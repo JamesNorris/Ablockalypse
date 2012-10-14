@@ -37,7 +37,11 @@ mysteryChestCost: 1500
 doubleSpeedLevel: 10
 # The level at which zombies should double their speed.
 
-wolfLevels: {5, 11, 15, 18}
+wolfLevels:
+    - 5 
+    - 11
+    - 15
+    - 18
 # The levels to spawn wolves on.
 
 startingItems:
@@ -51,6 +55,7 @@ startingItems:
     boots: 301:5 1
 # These items will be given to players when they enter a ZA game
 # The format for items are - <item-id>:[damage-value] [amount] [enchantment-name/id] [enchantment level]
+# SORRY, THIS IS NOT CURRENTLY WORKING. THIS WILL BE FIXED SOON!
 
 teleportTime: 5
 # The amount of time to count down before teleporting.

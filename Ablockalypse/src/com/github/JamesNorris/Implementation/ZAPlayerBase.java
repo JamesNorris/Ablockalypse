@@ -2,7 +2,6 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -32,7 +31,6 @@ import com.github.JamesNorris.Util.MiscUtil.PlayerStatus;
 import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.SoundUtil.ZASound;
-import com.github.JamesNorris.Util.Square;
 
 public class ZAPlayerBase implements ZAPlayer {
 	private Location before;
@@ -126,8 +124,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @param type The type of powerup to give the player
 	 */
 	@Override public void givePowerup(PowerupType type) {
-		Location loc = player.getLocation();
-		int radius = cd.powerrad;
 		switch (type) {
 			case ATOM_BOMB:
 				for (ZAMob zam : Data.getZAMobs()) {
@@ -143,11 +139,8 @@ public class ZAPlayerBase implements ZAPlayer {
 			break;
 			case BARRIER_FIX:
 				if (Data.gamebarriers.size() >= 1) {
-					Square s2 = new Square(loc, radius);
-					List<Location> locs2 = s2.getLocations();
-					for (GameBarrier b : Data.gamebarriers)
-						if (locs2.contains(b.getCenter()))
-							b.replaceBarrier();
+					for (GameBarrier b : game.getBarriers())
+						b.replaceBarrier();
 				}
 			break;
 			case WEAPON_FIX:
@@ -197,8 +190,8 @@ public class ZAPlayerBase implements ZAPlayer {
 				zag.addPlayer(player);
 				saveStatus();
 				prepForGame();
-				if (game.getSpawn() == null)
-					game.setSpawn(player.getLocation());
+				if (game.getMainframe() == null)
+					game.setMainframe(player.getLocation());
 				sendToMainframe("Loading player to a game");
 				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
 				return;
@@ -210,7 +203,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	/*
 	 * Clearing the player status to allow the player to be put in the game without carrying over items.
 	 */
-	private void prepForGame() {
+	@SuppressWarnings("deprecation") private void prepForGame() {
 		player.setGameMode(GameMode.SURVIVAL);
 		player.getInventory().clear();
 		player.setLevel(0);
@@ -235,6 +228,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		// } catch (Exception e) {
 		// e.printStackTrace();
 		// }
+		player.updateInventory();
 	}
 
 	/**
@@ -247,24 +241,27 @@ public class ZAPlayerBase implements ZAPlayer {
 	/*
 	 * Restoring the player status to the last saved status before the game.
 	 */
-	private void restoreStatus() {
+	@SuppressWarnings("deprecation") private void restoreStatus() {
 		if (laststand)
 			toggleLastStand();
-		player.setGameMode(gm);
-		player.teleport(before);
-		player.getInventory().clear();
-		player.getInventory().setContents(inventory);
-		player.setLevel(level);
-		player.setExp(exp);
-		player.setHealth(health);
-		player.setFoodLevel(food);
-		player.setSaturation(saturation);
-		player.addPotionEffects(pot);
-		player.getInventory().setArmorContents(armor);
-		player.setSleepingIgnored(sleepingignored);
-		player.setFireTicks(fire);
-		player.setFallDistance(fall);
-		player.setExhaustion(exhaust);
+		if (gm != null) {
+			player.setGameMode(gm);
+			player.teleport(before);
+			player.getInventory().clear();
+			player.getInventory().setContents(inventory);
+			player.setLevel(level);
+			player.setExp(exp);
+			player.setHealth(health);
+			player.setFoodLevel(food);
+			player.setSaturation(saturation);
+			player.addPotionEffects(pot);
+			player.getInventory().setArmorContents(armor);
+			player.setSleepingIgnored(sleepingignored);
+			player.setFireTicks(fire);
+			player.setFallDistance(fall);
+			player.setExhaustion(exhaust);
+			player.updateInventory();
+		}
 	}
 
 	/*
@@ -295,7 +292,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 */
 	@Override public void sendToMainframe(String reason) {
 		player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
-		Location loc = game.getSpawn();
+		Location loc = game.getMainframe();
 		Chunk c = loc.getChunk();
 		if (!c.isLoaded())
 			c.load();
@@ -392,10 +389,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * Changes the player limbo status.
 	 */
 	@Override public void setLimbo(boolean tf) {
-		if (tf)
-			limbo = true;
-		else
-			limbo = false;
+		limbo = tf;
 	}
 
 	/**
@@ -404,10 +398,7 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @param tf What to change the status to
 	 */
 	@Override public void setTeleporting(boolean tf) {
-		if (tf)
-			teleporting = true;
-		else
-			teleporting = false;
+		teleporting = tf;
 	}
 
 	/**
@@ -431,8 +422,6 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @return Whether or not the player is teleporting
 	 */
 	@Override public boolean isTeleporting() {
-		if (teleporting)
-			return true;
-		return false;
+		return teleporting;
 	}
 }

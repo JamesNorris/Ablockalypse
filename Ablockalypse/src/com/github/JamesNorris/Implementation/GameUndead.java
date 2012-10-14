@@ -13,6 +13,7 @@ import org.bukkit.entity.Zombie;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -35,19 +36,19 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 		super(Breakable.getNMSWorld(zombie.getWorld()));
 		this.zombie = zombie;
 		this.game = game;
-		if (game.getRandomBarrier() != null) {
-			Location gbloc = game.getRandomBarrier().getCenter();
+		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(zombie.getLocation());
+		if (targetbarrier != null) {
+			Location gbloc = targetbarrier.getCenter();
 			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, gbloc);
 		} else {
 			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, game.getRandomLivingPlayer());
 		}
+		zombie.setHealth(10);
 		game.addMobCount();
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
-		if (game.getLevel() <= 2)
-			zombie.setHealth(game.getLevel() * 5);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-			setSpeed(0.3F);
+			setSpeed(0.24F);
 	}
 
 	/**
@@ -189,5 +190,14 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	@Override public void setTargetLocation(Location loc) {
 		target = loc;
 		mt.setTarget(loc);
+	}
+
+	/**
+	 * Gets the creature associated with this mob.
+	 * 
+	 * @return The creature associated with this mob
+	 */
+	@Override public Creature getCreature() {
+		return (Creature) zombie;
 	}
 }

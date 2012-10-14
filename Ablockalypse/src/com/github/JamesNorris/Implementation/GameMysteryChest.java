@@ -45,7 +45,7 @@ public class GameMysteryChest implements MysteryChest {
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	@SuppressWarnings("deprecation") @Override public void randomize(Player p) {
+	@SuppressWarnings("deprecation") @Override public void giveItem(Player p) {
 		Inventory inv = p.getInventory();
 		int i = rand.nextInt(1000) + 1;
 		if (i >= 950) {

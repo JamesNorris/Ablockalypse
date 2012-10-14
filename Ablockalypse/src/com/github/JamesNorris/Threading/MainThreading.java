@@ -51,6 +51,10 @@ public class MainThreading {
 						if (bg.withinRadius(gu.getEntity()) && !bg.isBroken())
 							bg.breakBarrier((Creature) gu.getZombie());
 					}
+					for (GameHellHound ghh : Data.hellhounds) {
+						if (bg.withinRadius(ghh.getEntity()) && !bg.isBroken())
+							bg.breakBarrier((Creature) ghh.getWolf());
+					}
 				}
 			}
 		}, 20, 20);

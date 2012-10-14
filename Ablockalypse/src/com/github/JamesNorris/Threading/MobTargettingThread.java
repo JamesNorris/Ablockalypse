@@ -6,10 +6,14 @@ import net.minecraft.server.PathEntity;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftCreature;
 import org.bukkit.entity.Creature;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Interface.ZAMob;
+import com.github.JamesNorris.Interface.ZAPlayer;
 
 public class MobTargettingThread {
 	private final Plugin plugin;
@@ -18,7 +22,7 @@ public class MobTargettingThread {
 	private Location location;
 	private int id;
 	private boolean hasTarget = false;
-	private float speed = 0.2F;
+	private float speed = 0.18F;
 	private float radius = 32.0F;
 
 	/**
@@ -119,6 +123,10 @@ public class MobTargettingThread {
 	 */
 	private void moveMob() {
 		Location loc = null;
+		if (p != null && p.isDead() && Data.playerExists(p)) {
+			ZAPlayer zap = Data.getZAPlayer(p);
+			p = zap.getGame().getRandomLivingPlayer();
+		}
 		if (p != null)
 			loc = p.getLocation();
 		else if (location != null)
@@ -129,6 +137,13 @@ public class MobTargettingThread {
 			mob.setPathEntity(path);
 			mob.getNavigation().a(path, speed);
 		}
+		if (Data.barriers.containsKey(location) && location.getBlock().isEmpty() && Data.isZAMob((Entity) c)) {
+			ZAMob zam = Data.getZAMob((Entity) c);
+			if (zam.getGame().getRandomLivingPlayer() != null)
+				zam.setTargetPlayer(zam.getGame().getRandomLivingPlayer());
+		}
+		if (p != null && !Data.players.containsKey(p))
+			cancel();
 	}
 
 	/**
