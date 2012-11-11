@@ -1,7 +1,5 @@
 package com.github.JamesNorris.Manager;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 
 import org.bukkit.Material;
@@ -32,16 +30,6 @@ public class YamlManager {
 		this.cd = cd;
 		this.ld = ld;
 		initSignRequirements();
-	}
-
-	/**
-	 * Clears all data from this instance.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 
 	/**

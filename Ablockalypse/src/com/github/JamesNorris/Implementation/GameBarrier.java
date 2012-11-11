@@ -11,24 +11,39 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.External;
+import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAColor;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.SoundUtil;
-import com.github.JamesNorris.Util.SoundUtil.ZASound;
 import com.github.JamesNorris.Util.Square;
 
-public class GameBarrier implements Barrier {
+public class GameBarrier implements Barrier, GameObject {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 	private Location center, spawnloc;
-	private int id, hittimes, radius;
+	private int radius, blockamt, id, id2;
+	private int hittimesoriginal = 5, fixtimesoriginal = 3;
+	private int hittimes;
+	private int fixtimes;
 	private ZAGameBase game;
 	private Square square;
+	private BlinkerThread bt;
+	private ConfigurationData cd;
+	private boolean correct;
+	private Player p;
 
 	/**
 	 * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
@@ -36,10 +51,12 @@ public class GameBarrier implements Barrier {
 	 * @param center The center of the barrier
 	 */
 	public GameBarrier(Block center, ZAGameBase game) {
+		Data.objects.add(this);
 		this.center = center.getLocation();
 		this.game = game;
-		this.radius = 2;
-		this.hittimes = 5;
+		radius = 2;
+		fixtimes = fixtimesoriginal;
+		hittimes = hittimesoriginal;
 		Random rand = new Random();
 		/* finding spawnloc */
 		int chance = rand.nextInt(4);
@@ -56,7 +73,7 @@ public class GameBarrier implements Barrier {
 			x = x - modX;
 		else if (chance == 3)
 			z = z - modZ;
-		this.spawnloc = w.getBlockAt(x, y, z).getLocation();
+		spawnloc = w.getBlockAt(x, y, z).getLocation();
 		if (spawnloc == null)
 			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
 		/* end finding spawnloc */
@@ -73,26 +90,26 @@ public class GameBarrier implements Barrier {
 				blocks.add(b);
 				if (!Data.barrierpanels.containsValue(loc))
 					Data.barrierpanels.put(this, loc);
+				++blockamt;
 			}
 		}
-	}
-
-	/**
-	 * Gets the square surrounding this barrier for 2 blocks.
-	 * 
-	 * @return The barriers' surrounding square
-	 */
-	@Override public Square getSquare() {
-		return square;
-	}
-
-	/**
-	 * Gets the game this barrier is involved in.
-	 * 
-	 * @return The game this barrier is attached to
-	 */
-	@Override public ZAGame getGame() {
-		return game;
+		cd = External.getYamlManager().getConfigurationData();
+		bt = new BlinkerThread(this.center.getBlock(), ZAColor.BLUE, false, 30, this);
+		if (cd.blinkers) {
+			bt.blink();
+			if (blockamt == 9) {
+				bt.setColor(ZAColor.GREEN);
+				correct = true;
+			} else {
+				bt.setColor(ZAColor.RED);
+				correct = false;
+			}
+			Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+				@Override public void run() {
+					bt.setColor(ZAColor.BLUE);
+				}
+			}, 200);
+		}
 	}
 
 	/**
@@ -101,64 +118,127 @@ public class GameBarrier implements Barrier {
 	 * @param c The creature that is breaking the barrier
 	 */
 	@Override public void breakBarrier(final Creature c) {
+		breakBarrier((LivingEntity) c);
+	}
+
+	/**
+	 * Slowly breaks the blocks of the barrier.
+	 * 
+	 * @param e The entityliving that is breaking the barrier
+	 */
+	@Override public void breakBarrier(final LivingEntity e) {
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
-				if (!c.isDead() && withinRadius((Entity) c) && !isBroken()) {
+			@Override public void run() {
+				if (!e.isDead() && isWithinRadius(e) && !isBroken()) {
 					--hittimes;
 					SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_BREAK);
-					EffectUtil.generateEffect(c.getWorld(), center, ZAEffect.WOOD_BREAK);
+					EffectUtil.generateEffect(e.getWorld(), center, ZAEffect.WOOD_BREAK);
 					if (hittimes == 0) {
-						hittimes = 5;
+						hittimes = hittimesoriginal;
 						breakPanels();
-						cancel();
+						cancelBreak();
 					}
-				} else {
-					cancel();
-				}
+				} else
+					cancelBreak();
 			}
 		}, 100, 100);
 	}
 
 	/**
-	 * Sets the radius of the barrier to be broken.
+	 * Slowly breaks the blocks of the barrier.
 	 * 
-	 * @param i The radius
+	 * @param p The player that is breaking the barrier
 	 */
-	public void setRadius(int i) {
-		this.radius = i;
+	@Override public void breakBarrier(Player p) {
+		breakBarrier((LivingEntity) p);
 	}
 
 	/**
-	 * Gets the radius of the barrier as an integer.
-	 * 
-	 * @return The radius of the barrier
+	 * Changes all blocks within the barrier to air.
 	 */
-	public int getRadius() {
-		return radius;
-	}
-
-	/**
-	 * Checks if the entity is within the radius of the barrier.
-	 * 
-	 * @param e The entity to check for
-	 * @return Whether or not the entity is within the radius
-	 */
-	@Override public boolean withinRadius(Entity e) {
-		Location el = e.getLocation();
-		int x = el.getBlockX(), x2 = center.getBlockX();
-		int y = el.getBlockY(), y2 = center.getBlockY();
-		int z = el.getBlockZ(), z2 = center.getBlockZ();
-		int distance = (int) MathAssist.distance(x, y, z, x2, y2, z2);
-		if (distance <= radius)
-			return true;
-		return false;
+	@Override public void breakPanels() {
+		for (int i = 0; i <= blocks.size(); i++) {
+			Block b = blocks.iterator().next();
+			blocks.remove(b);
+			b.setType(Material.AIR);
+			bt.setUnderlay(Material.AIR);
+			EffectUtil.generateEffect(b.getWorld(), b.getLocation(), ZAEffect.SMOKE);
+			blocks.add(b);
+		}
 	}
 
 	/*
 	 * Cancels the breakbarrier task.
 	 */
-	private void cancel() {
+	private void cancelBreak() {
 		Bukkit.getScheduler().cancelTask(id);
+	}
+
+	/*
+	 * Cancels the fixbarrier task.
+	 */
+	private void cancelFix() {
+		Bukkit.getScheduler().cancelTask(id2);
+	}
+
+	/**
+	 * Slowly fixes the blocks of the barrier.
+	 * 
+	 * @param c The creature that is fixing the barrier
+	 */
+	@Override public void fixBarrier(final Creature c) {
+		fixBarrier((LivingEntity) c);
+	}
+
+	/**
+	 * Slowly fixes the blocks of the barrier.
+	 * 
+	 * @param e The livingentity that is fixing the barrier
+	 */
+	@Override public void fixBarrier(final LivingEntity e) {
+		if (e instanceof Player)
+			p = (Player) e;
+		if (Data.playerExists(p)) {
+			final ZAPlayer zap = Data.getZAPlayer(p);
+			id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
+				@Override public void run() {
+					if (p != null && !p.isSneaking())
+						cancelFix();
+					if (!e.isDead() && isWithinRadius(e) && isBroken()) {
+						--fixtimes;
+						if (fixtimes > 0)
+							zap.addPoints(cd.barrierpartfix);
+						SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_REPAIR);
+						EffectUtil.generateEffect(e.getWorld(), center, ZAEffect.WOOD_BREAK);
+						if (fixtimes == 0) {
+							zap.addPoints(cd.barrierfullfix);
+							fixtimes = fixtimesoriginal;
+							replacePanels();
+							cancelFix();
+						}
+					} else
+						cancelFix();
+				}
+			}, 20, 20);
+		}
+	}
+
+	/**
+	 * Slowly fixes the blocks of the barrier.
+	 * 
+	 * @param p The player that is fixing the barrier
+	 */
+	@Override public void fixBarrier(Player p) {
+		fixBarrier((LivingEntity) p);
+	}
+
+	/**
+	 * Gets the BlinkerThread attached to this instance.
+	 * 
+	 * @return The BlinkerThread attached to this instance
+	 */
+	@Override public BlinkerThread getBlinkerThread() {
+		return bt;
 	}
 
 	/**
@@ -167,7 +247,10 @@ public class GameBarrier implements Barrier {
 	 * @return A list of blocks located in the barrier
 	 */
 	@Override public List<Block> getBlocks() {
-		return blocks;
+		ArrayList<Block> bls = new ArrayList<Block>();
+		for (Block b : blocks)
+			bls.add(b);
+		return bls;
 	}
 
 	/**
@@ -180,28 +263,21 @@ public class GameBarrier implements Barrier {
 	}
 
 	/**
-	 * Tells whether or not the barrier has any missing fence blocks.
+	 * Gets the game this barrier is involved in.
 	 * 
-	 * @return Whether or not the barrier is broken
+	 * @return The game this barrier is attached to
 	 */
-	@Override public boolean isBroken() {
-		if (center.getBlock().getType() != Material.FENCE)
-			return true;
-		return false;
+	@Override public ZAGame getGame() {
+		return game;
 	}
 
 	/**
-	 * Replaces all holes in the barrier.
+	 * Gets the radius of the barrier as an integer.
+	 * 
+	 * @return The radius of the barrier
 	 */
-	@Override public void replaceBarrier() {
-		for (int i = 0; i <= 9; i++) {
-			Block b = blocks.iterator().next();
-			blocks.remove(b);
-			b.setType(Material.FENCE);
-			EffectUtil.generateEffect(b.getWorld(), b.getLocation(), ZAEffect.SMOKE);
-			blocks.add(b);
-		}
-		SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_REPAIR);
+	@Override public int getRadius() {
+		return radius;
 	}
 
 	/**
@@ -214,15 +290,127 @@ public class GameBarrier implements Barrier {
 	}
 
 	/**
-	 * Changes all blocks within the barrier to air.
+	 * Gets the square surrounding this barrier for 2 blocks.
+	 * 
+	 * @return The barriers' surrounding square
 	 */
-	@Override public void breakPanels() {
-		for (int i = 0; i <= 9; i++) {
+	@Override public Square getSquare() {
+		return square;
+	}
+
+	/**
+	 * Checks if the BlinkerThread is running.
+	 * 
+	 * @return Whether or not the barrier is blinking
+	 */
+	@Override public boolean isBlinking() {
+		return bt.isRunning();
+	}
+
+	/**
+	 * Tells whether or not the barrier has any missing blocks.
+	 * 
+	 * @return Whether or not the barrier is broken
+	 */
+	@Override public boolean isBroken() {
+		if (center.getBlock().isEmpty())
+			return true;
+		return false;
+	}
+
+	/**
+	 * Checks if the barrier is setup correctly or not.
+	 * 
+	 * @return Whether or not the barrier is setup correctly
+	 */
+	@Override public boolean isCorrect() {
+		return correct;
+	}
+
+	/**
+	 * Checks if the entity is within the radius of the barrier.
+	 * 
+	 * @param e The entity to check for
+	 * @return Whether or not the entity is within the radius
+	 */
+	@Override public boolean isWithinRadius(Entity e) {
+		Location el = e.getLocation();
+		int x = el.getBlockX(), x2 = center.getBlockX();
+		int y = el.getBlockY(), y2 = center.getBlockY();
+		int z = el.getBlockZ(), z2 = center.getBlockZ();
+		int distance = (int) MathAssist.distance(x, y, z, x2, y2, z2);
+		if (distance <= radius)
+			return true;
+		return false;
+	}
+
+	/**
+	 * Removes the barrier.
+	 */
+	@Override public void remove() {
+		replacePanels();
+		if (isBlinking())
+			setBlinking(false);
+		game.removeBarrier(this);
+		Data.barriers.remove(center);
+		Data.barrierpanels.remove(this);
+		Data.objects.remove(this);
+	}
+
+	/**
+	 * Replaces all holes in the barrier.
+	 */
+	@Override public void replacePanels() {
+		for (int i = 0; i <= blocks.size(); i++) {
 			Block b = blocks.iterator().next();
 			blocks.remove(b);
-			b.setType(Material.AIR);
+			b.setType(Material.FENCE);
+			bt.setUnderlay(Material.FENCE);
 			EffectUtil.generateEffect(b.getWorld(), b.getLocation(), ZAEffect.SMOKE);
 			blocks.add(b);
 		}
+		SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_REPAIR);
+	}
+
+	/**
+	 * Stops/Starts the blinker for this barrier.
+	 * 
+	 * @param tf Whether or not this barrier should blink
+	 */
+	@Override public void setBlinking(boolean tf) {
+		bt.cancel();
+		if (tf)
+			bt.blink();
+	}
+
+	/**
+	 * Sets the amount of fix rounds to wait before fixing the barrier.
+	 * Fix rounds are called once every 20 ticks by all sneaking players near barriers.
+	 * 
+	 * @param i The amount of fix rounds to wait
+	 */
+	@Override public void setFixRequirement(int i) {
+		fixtimesoriginal = i;
+		fixtimes = i;
+	}
+
+	/**
+	 * Sets the amount of hit rounds to wait before breaking the barrier.
+	 * Hit rounds are called once every 100 ticks by all mobs close to barriers.
+	 * 
+	 * @param i The amount of hit rounds to wait
+	 */
+	@Override public void setHitRequirement(int i) {
+		hittimesoriginal = i;
+		hittimes = i;
+	}
+
+	/**
+	 * Sets the radius of the barrier to be broken.
+	 * 
+	 * @param i The radius
+	 */
+	@Override public void setRadius(int i) {
+		radius = i;
 	}
 }

@@ -1,17 +1,23 @@
 package com.github.JamesNorris.Event.Bukkit;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.material.Door;
 
@@ -24,15 +30,22 @@ import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.GameWallSign;
 import com.github.JamesNorris.Implementation.ZAGameBase;
+import com.github.JamesNorris.Implementation.ZALocationBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.JamesNorris.Interface.MysteryChest;
+import com.github.JamesNorris.Interface.ZALocation;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class PlayerInteract implements Listener {
 	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> spawnerPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> areaPlayers = new HashMap<String, ZAGameBase>();
-	public static HashMap<String, GameArea> locClickers = new HashMap<String, GameArea>();
+	public static HashMap<String, ZAGameBase> chestPlayers = new HashMap<String, ZAGameBase>();
+	public static HashMap<String, Location> locClickers = new HashMap<String, Location>();
+	public static ArrayList<String> removers = new ArrayList<String>();
 	private ConfigurationData cd;
 	private YamlManager ym;
 	private LocalizationData ld;
@@ -53,24 +66,62 @@ public class PlayerInteract implements Listener {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		Action a = event.getAction();
-		if (b != null) {
+		if (b != null)
 			if ((!Data.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) && a == Action.RIGHT_CLICK_BLOCK) {
 				new GameBarrier(b, barrierPlayers.get(p.getName()));
 				p.sendMessage(ChatColor.GRAY + "Barrier created successfully!");
 				barrierPlayers.remove(p.getName());
 			} else if ((!Data.playerExists(p) && spawnerPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
-				spawnerPlayers.get(p.getName()).addMobSpawner(b.getLocation());
+				spawnerPlayers.get(p.getName()).addMobSpawner(new ZALocationBase(b.getLocation()));
 				p.sendMessage(ChatColor.GRAY + "Spawner created successfully!");
 				spawnerPlayers.remove(p.getName());
+			} else if ((!Data.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
+				event.setUseInteractedBlock(Result.DENY);
+				ZAGameBase zag = chestPlayers.get(p.getName());
+				if (!Data.isMysteryChest(b.getLocation())) {
+				chestPlayers.get(p.getName()).addMysteryChest(new GameMysteryChest((Chest) b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
+				p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
+				} else {
+					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
+				}
+				chestPlayers.remove(p.getName());
+			} else if (!Data.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+				String type = "null";
+				boolean worked = false;;
+				for (GameArea ga : Data.areas)
+					if (ga.getBlocks().contains(b)) {
+						ga.remove();
+						worked = true;
+						type = "area";
+						break;
+					}
+				for (GameBarrier gb : Data.barrierpanels.keySet())
+					if (gb.getBlocks().contains(b)) {
+						gb.remove();
+						worked = true;
+						type = "barrier";
+						break;
+					}
+				for (ZAGameBase zag : Data.spawns.keySet()) {
+					ZALocation loc = Data.spawns.get(zag);
+					if (loc.getBukkitBlock() == b) {
+						loc.remove();
+						worked = true;
+						type = "spawner";
+						break;
+					}
+				}
+				if (worked)
+					p.sendMessage(ChatColor.GRAY + "This " + type + " has been successfully removed!");
+				else
+					p.sendMessage(ChatColor.RED + "Removal unsuccessful");
+				removers.remove(p.getName());
 			} else if ((!Data.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
 				if (!locClickers.containsKey(p.getName())) {
-					GameArea ga = new GameArea(areaPlayers.get(p.getName()));
-					ga.setLocation(b.getLocation(), 1);
-					locClickers.put(p.getName(), ga);
+					locClickers.put(p.getName(), b.getLocation());
 					p.sendMessage(ChatColor.GRAY + "Click another block to select point 2.");
 				} else {
-					GameArea ga = locClickers.get(p.getName());
-					ga.setLocation(b.getLocation(), 2);
+					new GameArea(areaPlayers.get(p.getName()), b.getLocation(), locClickers.get(p.getName()));
 					locClickers.remove(p.getName());
 					areaPlayers.remove(p.getName());
 					p.sendMessage(ChatColor.GRAY + "Area created!");
@@ -101,10 +152,12 @@ public class PlayerInteract implements Listener {
 						return;
 					}
 				} else if (b.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
+					Location l = b.getLocation();
+					if (Data.isMysteryChest(l)) {
+					MysteryChest mc = Data.getMysteryChest(l);
+					if (mc != null && mc.isActive()) {
 					if (zap.getPoints() >= cd.mccost) {
-						Chest c = (Chest) b.getState();
-						GameMysteryChest mb = new GameMysteryChest(c);
-						mb.giveItem(p);
+						mc.giveRandomItem(p);
 						zap.subtractPoints(cd.mccost);
 						return;
 					} else {
@@ -112,10 +165,49 @@ public class PlayerInteract implements Listener {
 						event.setCancelled(true);
 						return;
 					}
-				} else if (b instanceof Door) {
+					}else {
+						p.sendMessage(ChatColor.RED + "That chest is not active!");
+						event.setCancelled(true);
+						return;
+					}
+					}
+				} else if (b instanceof Door)
 					event.setCancelled(true);
+				else if (b.getType() == Material.FENCE && a == Action.LEFT_CLICK_BLOCK) {
+					/* through-barrier damage */
+					Location loc2 = b.getLocation();
+					for (ZAMob zam : zap.getGame().getMobs()) {
+						Creature c = zam.getCreature();
+						Location loc3 = c.getLocation();
+						if (loc3.distance(loc2) <= 1.5) {
+							Material m = p.getItemInHand().getType();
+							int dmg = 0;
+							if (m == null)
+								dmg = 1;
+							if (m == Material.WOOD_SWORD)
+								dmg = 4;
+							if (m == Material.STONE_SWORD)
+								dmg = 5;
+							if (m == Material.IRON_SWORD)
+								dmg = 6;
+							if (m == Material.GOLD_SWORD)
+								dmg = 3;
+							if (m == Material.DIAMOND_SWORD)
+								dmg = 7;
+							EntityDamageByEntityEvent EDBE = new EntityDamageByEntityEvent(p, c, DamageCause.CUSTOM, dmg);
+							Bukkit.getPluginManager().callEvent(EDBE);
+							c.damage(EDBE.getDamage());
+							if (c.isDead()) {
+								zap.addPoints(cd.pointincrease);
+								int food = p.getFoodLevel();
+								if (food < 20)
+									p.setFoodLevel(20);
+								MiscUtil.randomPowerup(zap, c);
+							}
+							break;
+						}
+					}
 				}
 			}
-		}
 	}
 }

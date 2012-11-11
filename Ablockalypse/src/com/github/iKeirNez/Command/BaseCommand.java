@@ -11,16 +11,14 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Event.GameCreateEvent;
+import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.iKeirNez.Util.CommandUtil;
-import com.github.iKeirNez.Util.CommonMessages;
-import com.github.iKeirNez.Util.StringFunctions;
 
-// TODO can you use local.yml and LocalizationData.java to change all strings? -Jnorr44
 public class BaseCommand extends CommandUtil implements CommandExecutor {
 	private LocalizationData ld;
 
@@ -50,7 +48,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 								return true;
 							}
 						} else {
-							sender.sendMessage(CommonMessages.notPlayer);
+							sender.sendMessage(CommandUtil.notPlayer);
 							return true;
 						}
 					} else {
@@ -62,8 +60,8 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
-				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + Data.version);// TODO see Data.java
-				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + StringFunctions.implode(Data.authors.toArray(), ", ", " and "));
+				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + Data.version);
+				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + CommandUtil.implode(Data.authors.toArray(), ", ", " and "));
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
@@ -71,15 +69,20 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					if (Data.players.containsKey(player)) {
 						ZAPlayerBase zap = Data.players.get(player);
 						ZAGame zag = zap.getGame();
-						sender.sendMessage(ChatColor.AQUA + "Successfully quit the Ablockalypse game: " + ChatColor.GOLD + zag.getName());
-						zag.removePlayer(player);
+						GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
+						Bukkit.getPluginManager().callEvent(GPLE);
+						if (!GPLE.isCancelled()) {
+							sender.sendMessage(ChatColor.AQUA + "Successfully quit the Ablockalypse game: " + ChatColor.GOLD + zag.getName());
+							zag.removePlayer(player);
+							return true;
+						}
 						return true;
 					} else {
 						sender.sendMessage(ChatColor.RED + "You must be in a game to do that!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMessages.notPlayer);
+					sender.sendMessage(CommandUtil.notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("create")) {
@@ -87,7 +90,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					String gameName = args[1];
 					if (!Data.gameExists(gameName)) {
 						if (!sender.hasPermission("za.create")) {
-							sender.sendMessage(ChatColor.RED + "You don't have permission to create games!");
+							sender.sendMessage(CommandUtil.noMaintainPerms);
 							return true;
 						} else {
 							ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
@@ -121,11 +124,11 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage("You do not have permission to create barriers!");
+						sender.sendMessage(CommandUtil.noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMessages.notPlayer);
+					sender.sendMessage(CommandUtil.notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("mainframe")) {
@@ -140,7 +143,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
 								return true;
 							} else {
-								sender.sendMessage(ChatColor.RED + "You do not have permission to set mainframes!");
+								sender.sendMessage(CommandUtil.noMaintainPerms);
 								return true;
 							}
 						} else {
@@ -152,7 +155,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMessages.notPlayer);
+					sender.sendMessage(CommandUtil.notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("remove")) {
@@ -168,12 +171,13 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							sender.sendMessage(ChatColor.RED + "That game does not exist!");
 							return true;
 						}
-					} else {
-						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
-						return true;
+					} else if (args.length == 1) {
+						Player p = (Player) sender;
+						p.sendMessage(ChatColor.GRAY + "Click a ZA object to remove it.");
+						PlayerInteract.removers.add(p.getName());
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "You do not have permission to remove games");
+					sender.sendMessage(CommandUtil.noMaintainPerms);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("spawner")) {
@@ -190,11 +194,11 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage("You do not have permission to create spawners!");
+						sender.sendMessage(CommandUtil.noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMessages.notPlayer);
+					sender.sendMessage(CommandUtil.notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("area")) {
@@ -211,14 +215,34 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage("You do not have permission to create areas!");
+						sender.sendMessage(CommandUtil.noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommonMessages.notPlayer);
+					sender.sendMessage(CommandUtil.notPlayer);
 					return true;
 				}
-			}
+			} else if (args[0].equalsIgnoreCase("chest"))
+				if (sender instanceof Player) {
+					if (sender.hasPermission("za.create")) {
+						if (args.length == 2) {
+							String gameName = args[1];
+							Player player = (Player) sender;
+							PlayerInteract.chestPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							player.sendMessage(ChatColor.GRAY + "Click a chest to turn it into a mystery chest.");
+							return true;
+						} else {
+							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							return true;
+						}
+					} else {
+						sender.sendMessage(CommandUtil.noMaintainPerms);
+						return true;
+					}
+				} else {
+					sender.sendMessage(CommandUtil.notPlayer);
+					return true;
+				}
 			return true;
 		}
 		return true;

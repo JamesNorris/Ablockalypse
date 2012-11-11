@@ -7,19 +7,16 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Util.Enumerated.ZASound;
 
 public class SoundUtil {
-	public enum ZASound {
-		ACHIEVEMENT, DEATH, END, LAST_STAND, NEXT_LEVEL, PREV_LEVEL, START, TELEPORT, BARRIER_BREAK, BARRIER_REPAIR, AREA_BUY, AREA_REPLACE, EXPLOSION;
-	}
-
 	/**
 	 * Plays a selection of sounds near the player.
 	 * 
 	 * @param player The player to play the sound near
 	 * @param sound The type of sound to be played through this manager
 	 */
-	public static void generateSound(Player player, ZASound sound) {// TODO allow sounds to be changed from the API
+	public static void generateSound(Player player, ZASound sound) {
 		Location l = player.getLocation();
 		World w = l.getWorld();
 		generateSound(w, l, sound);
@@ -46,12 +43,12 @@ public class SoundUtil {
 			case START:
 				w.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
 				Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
-					public void run() {
+					@Override public void run() {
 						w.playSound(l, Sound.PORTAL_TRAVEL, 1, 1);
 					}
 				}, 40);
 			break;
-			case END:
+			case END://TODO change
 				w.playSound(l, Sound.AMBIENCE_RAIN, 7, 1);
 				w.playSound(l, Sound.AMBIENCE_THUNDER, 7, 1);
 			break;

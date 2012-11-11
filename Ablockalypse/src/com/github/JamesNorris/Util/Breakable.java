@@ -2,6 +2,7 @@ package com.github.JamesNorris.Util;
 
 import net.minecraft.server.EntityPlayer;
 import net.minecraft.server.EntityWolf;
+import net.minecraft.server.NBTTagCompound;
 import net.minecraft.server.Packet40EntityMetadata;
 import net.minecraft.server.WorldServer;
 
@@ -11,9 +12,11 @@ import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.entity.CraftEntity;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.entity.CraftWolf;
+import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
+import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.Data.ByteData;
 
@@ -71,9 +74,58 @@ public class Breakable {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			EntityPlayer ep = Breakable.getNMSPlayer(p);
 			if (tf)
-				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04)));
+				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04), true));// TODO test
 			else
-				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00)));
+				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00), true));
+		}
+		if (tf)
+			player.teleport(player.getLocation().subtract(0, .5, 0));
+	}
+
+	public class ItemNameManager {//TODO annotations
+		private final ItemStack itemStack;
+
+		public ItemNameManager(ItemStack itemStack) {
+			this.itemStack = itemStack;
+			CraftItemStack is = ((CraftItemStack) this.itemStack);
+			NBTTagCompound tag = is.getHandle().getTag();
+			if (tag == null) {
+				is.getHandle().setTag(new NBTTagCompound());
+			}
+		}
+
+		private boolean hasDisplay() {
+			return ((CraftItemStack) this.itemStack).getHandle().getTag().hasKey("display");
+		}
+
+		private NBTTagCompound getDisplay() {
+			return ((CraftItemStack) this.itemStack).getHandle().getTag().getCompound("display");
+		}
+
+		private void addDisplay() {
+			((CraftItemStack) this.itemStack).getHandle().getTag().setCompound("display", new NBTTagCompound());
+		}
+
+		public String getName() {
+			if (hasDisplay() == false) {
+				return null;
+			}
+			String name = getDisplay().getString("Name");
+			if (name.equals("")) {
+				return null;
+			}
+			return name;
+		}
+
+		public void setName(String name) {
+			if (hasDisplay() == false) {
+				this.addDisplay();
+			}
+			NBTTagCompound display = this.getDisplay();
+			if (name == null) {
+				display.remove("Name");
+			}
+			display.setString("Name", name);
 		}
 	}
 }

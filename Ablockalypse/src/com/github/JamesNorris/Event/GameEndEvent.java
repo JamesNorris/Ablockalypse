@@ -1,11 +1,11 @@
 package com.github.JamesNorris.Event;
 
-import org.bukkit.World;
-import org.bukkit.block.Sign;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class GameSignClickEvent extends Event {
+import com.github.JamesNorris.Interface.ZAGame;
+
+public class GameEndEvent extends Event {
 	private static HandlerList handlers = new HandlerList();
 
 	/**
@@ -18,15 +18,27 @@ public class GameSignClickEvent extends Event {
 	}
 
 	private boolean cancel;
-	private Sign sign;
+	private ZAGame game;
+	private int score;
 
 	/**
-	 * An event called when a player clicks a sign with the default required first line.
+	 * Called when a game ends.
 	 * 
-	 * @param sign The sign clicked
+	 * @param game The game that is being ended
+	 * @param score The final score of the game
 	 */
-	public GameSignClickEvent(Sign sign) {
-		this.sign = sign;
+	public GameEndEvent(ZAGame game, int score) {
+		this.game = game;
+		this.score = score;
+	}
+
+	/**
+	 * Finds the game that has just ended.
+	 * 
+	 * @return The game that ended
+	 */
+	public ZAGame getGame() {
+		return game;
 	}
 
 	@Override public HandlerList getHandlers() {
@@ -34,21 +46,12 @@ public class GameSignClickEvent extends Event {
 	}
 
 	/**
-	 * Gets the sign involved in this event.
+	 * Gets the score that the game ended with.
 	 * 
-	 * @return The sign clicked
+	 * @return The score the game ended with
 	 */
-	public Sign getSign() {
-		return sign;
-	}
-
-	/**
-	 * Gets the world that this event takes place in.
-	 * 
-	 * @return The world of the sign clicked
-	 */
-	public World getWorld() {
-		return sign.getWorld();
+	public int getScore() {
+		return score;
 	}
 
 	/**

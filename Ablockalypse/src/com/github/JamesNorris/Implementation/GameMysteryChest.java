@@ -1,36 +1,68 @@
 package com.github.JamesNorris.Implementation;
 
+import java.util.ArrayList;
 import java.util.Random;
 
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
+import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
+import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Manager.ItemManager;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.SoundUtil;
-import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
-public class GameMysteryChest implements MysteryChest {
+public class GameMysteryChest implements MysteryChest, GameObject {
 	private ConfigurationData cd;
-	private Chest chest;
+	private Object chest;
 	private Random rand;
+	private Item item;
+	private boolean active = true;
+	private int uses;
+	private Location loc;
+	private ZAGame game;
+	private ArrayList<ItemStack> its = new ArrayList<ItemStack>();
+	private ItemManager im;
 
 	/**
 	 * Creates a new instance of the MysteryChest.
 	 * 
 	 * @param chest The chest to be made into this instance
 	 */
-	public GameMysteryChest(Chest chest) {
+	public GameMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
+		Data.objects.add(this);
+		Data.chests.put(loc, this);
 		this.chest = chest;
+		this.im = new ItemManager();
 		rand = new Random();
+		this.game = game;
+		this.loc = loc;
+		this.active = active;
+		uses = rand.nextInt(8) + 2;
 		cd = External.getYamlManager().getConfigurationData();
+	}
+
+	/**
+	 * Gets the uses that this chest has before the mystery chest moves to another location.
+	 * 
+	 * @return The uses before movement
+	 */
+	@Override public int getActiveUses() {
+		return uses;
 	}
 
 	/**
@@ -38,37 +70,121 @@ public class GameMysteryChest implements MysteryChest {
 	 * 
 	 * @return The chest associated with this instance
 	 */
-	@Override public Chest getChest() {
-		return chest;
+	@Override public Object getChest() {
+		if (chest instanceof Chest)
+		return (Chest) chest;
+		else if (chest instanceof DoubleChest)
+			return (DoubleChest) chest;
+		return null;
+	}
+
+	/**
+	 * Gets the game that this MysteryChest is attached to.
+	 * 
+	 * @return The game that uses this chest
+	 */
+	@Override public ZAGame getGame() {
+		return game;
 	}
 
 	/**
 	 * Randomizes the contents of the MysteryChest.
 	 */
-	@SuppressWarnings("deprecation") @Override public void giveItem(Player p) {
-		Inventory inv = p.getInventory();
-		int i = rand.nextInt(1000) + 1;
-		if (i >= 950) {
-			ItemStack it = new ItemStack(Material.BOW, 1);
-			it.addEnchantment(Enchantment.ARROW_INFINITE, 1);
-			inv.addItem(it);
-			inv.addItem(new ItemStack(Material.ARROW, 1));
-		} else if (i >= 920)
-			inv.addItem(new ItemStack(Material.GOLD_SWORD, 1));
-		else if (i >= 670)
-			inv.addItem(new ItemStack(Material.DIAMOND_SWORD, 1));
-		else if (i >= 460)
-			inv.addItem(new ItemStack(Material.IRON_SWORD, 1));
-		else if (i >= 280)
-			inv.addItem(new ItemStack(Material.STONE_SWORD, 1));
-		else if (i >= 100)
-			inv.addItem(new ItemStack(Material.WOOD_SWORD, 1));
-		else
-			inv.addItem(new ItemStack(Material.ENDER_PEARL, 10));
-		if (cd.extraEffects) {
-			SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
-			EffectUtil.generateEffect(p, ZAEffect.FLAMES);
+	@SuppressWarnings("deprecation") @Override public void giveRandomItem(final Player p) {
+		if (active) {
+			--uses;
+			int i = rand.nextInt(100);
+			if (!its.isEmpty())
+				its.clear();
+			if (item != null) {
+				item.remove();
+				item = null;
+			}
+			if (i >= 95) {
+				ItemStack it = new ItemStack(Material.BOW, 1);
+				im.addEnchantment(it, Enchantment.ARROW_INFINITE, 1);
+				its.add(it);
+				its.add(new ItemStack(Material.ARROW, 1));
+			} else if (i >= 92)
+				its.add(new ItemStack(Material.GOLD_SWORD, 1));
+			else if (i >= 67)
+				its.add(new ItemStack(Material.DIAMOND_SWORD, 1));
+			else if (i >= 46)
+				its.add(new ItemStack(Material.IRON_SWORD, 1));
+			else if (i >= 28)
+				its.add(new ItemStack(Material.STONE_SWORD, 1));
+			else if (i >= 10)
+				its.add(new ItemStack(Material.WOOD_SWORD, 1));
+			else
+				its.add(new ItemStack(Material.ENDER_PEARL, 10));
+			for (ItemStack it : its)
+				MiscUtil.dropItemAtPlayer(loc, it, p);
+			if (cd.extraEffects) {
+				SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
+				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
+			}
+			p.updateInventory();
+			if (uses == 0) {
+				if (cd.movingchests) {
+				setActive(false);
+				game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
+				}
+			}
+		} else
+			p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
+	}
+
+	/**
+	 * Checks if the chest is active or not.
+	 * 
+	 * @return Whether or not the chest is active and can be used
+	 */
+	@Override public boolean isActive() {
+		return active;
+	}
+
+	/**
+	 * Removes the mystery chest completely.
+	 */
+	@Override public void remove() {
+		setActive(false);
+		Data.objects.remove(this);
+		Data.chests.remove(loc);
+	}
+
+	/**
+	 * Changes whether or not the chest will be active.
+	 * 
+	 * @param tf Whether or not the chest should be active
+	 */
+	@Override public void setActive(boolean tf) {
+		if (tf) {
+			if (uses == 0)
+				uses = rand.nextInt(8) + 2;
+//			if (cd.beacons)//TODO beacons
+			if (chest instanceof DoubleChest)
+			EffectUtil.generateEffect(((DoubleChest) chest).getWorld(), ((DoubleChest) chest).getLocation(), ZAEffect.BEACON);
+			else if (chest instanceof Chest)
+			EffectUtil.generateEffect(((Chest) chest).getWorld(), ((Chest) chest).getLocation(), ZAEffect.BEACON);
 		}
-		p.updateInventory();
+		active = tf;
+	}
+
+	/**
+	 * Sets the uses before the mystery chest moves.
+	 * 
+	 * @param i The uses before movement
+	 */
+	@Override public void setActiveUses(int i) {
+		uses = i;
+	}
+	
+	/**
+	 * Gets the location that the chest is located at.
+	 * 
+	 * @return The location of the chest
+	 */
+	public Location getLocation() {
+		return loc;
 	}
 }

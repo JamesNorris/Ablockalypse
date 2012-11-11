@@ -9,7 +9,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import com.github.JamesNorris.Data.ConfigurationData;
@@ -20,10 +19,12 @@ import com.github.JamesNorris.Event.GameSignClickEvent;
 import com.github.JamesNorris.Interface.WallSign;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Manager.ItemManager;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAPerk;
 import com.github.JamesNorris.Util.MathAssist;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
 import com.github.JamesNorris.Util.MiscUtil;
 
 public class GameWallSign implements WallSign {
@@ -34,6 +35,7 @@ public class GameWallSign implements WallSign {
 	private World world;
 	private int x, y, z;
 	private YamlManager ym;
+	private ItemManager im;
 
 	/**
 	 * Creates a new instance of a ZASign.
@@ -43,6 +45,7 @@ public class GameWallSign implements WallSign {
 	 */
 	public GameWallSign(Sign sign, YamlManager ym) {
 		this.sign = sign;
+		this.im = new ItemManager();
 		ld = ym.getLocalizationData();
 		cd = ym.getConfigurationData();
 		this.ym = ym;
@@ -54,6 +57,27 @@ public class GameWallSign implements WallSign {
 		y = sign.getY();
 		z = sign.getZ();
 		world = sign.getWorld();
+	}
+
+	/*
+	 * Gets the closest game area to the given block.
+	 */
+	private GameArea getClosestArea(Block b, ZAGameBase zag) {
+		int distance = Integer.MAX_VALUE;
+		Location loc = b.getLocation();
+		GameArea lp = null;
+		for (GameArea a : Data.areas)
+			if (a.getGame() == zag) {
+				Location l = a.getPoint(1);
+				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+				if (current < distance) {
+					distance = current;
+					lp = a;
+				}
+			}
+		if (lp != null)
+			return lp;
+		return null;
 	}
 
 	/**
@@ -137,9 +161,15 @@ public class GameWallSign implements WallSign {
 						if (l2.equalsIgnoreCase(ld.perkstring)) {
 							if (ym.perksignline3.containsKey(l3) && n >= ym.perksignline3.get(l3)) {
 								if (ym.perkmap.get(l3) == PotionEffectType.HEAL)
-									player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, 5, 5));
-								else
-									player.addPotionEffect(new PotionEffect(ym.perkmap.get(l3), cd.duration, 2));
+									zap.addPerk(ZAPerk.HEAL, 5, 5);
+								else {
+									if (l3.equalsIgnoreCase(ld.speedstring))
+										zap.addPerk(ZAPerk.SPEED, cd.duration, 1);
+									if (l3.equalsIgnoreCase(ld.damagestring))
+										zap.addPerk(ZAPerk.DAMAGE, cd.duration, 1);
+									if (l3.equalsIgnoreCase(ld.regenstring))
+										zap.addPerk(ZAPerk.REGENERATE, cd.duration, 1);
+								}
 								int cost = ym.perksignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
@@ -150,16 +180,19 @@ public class GameWallSign implements WallSign {
 								return;
 							}
 							/* ENCHANTMENTS */
-						} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isWeapon(player.getItemInHand())) {
+						} else if (l2.equalsIgnoreCase(ld.enchstring) && MiscUtil.isSword(player.getItemInHand())) {
 							if (ym.enchsignline3.containsKey(l3) && n >= ym.enchsignline3.get(l3)) {
+								ItemStack hand = player.getItemInHand();
+								player.getInventory().remove(hand);
 								if (l3.equalsIgnoreCase(ld.enchrandstring))
-									player.getItemInHand().addEnchantment(cd.randomEnchant(), 3);
+									im.addEnchantment(hand, cd.randomEnchant(), 3);
 								else
-									player.getItemInHand().addEnchantment(ym.enchmap.get(l3), 3);
+									im.addEnchantment(hand, ym.enchmap.get(l3), 3);
 								int cost = ym.enchsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
 								EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+								MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player);
 								return;
 							} else {
 								player.sendMessage(ChatColor.RED + "You have " + n + " / " + ym.enchsignline3.get(l3) + " points to buy this.");
@@ -169,9 +202,9 @@ public class GameWallSign implements WallSign {
 						} else if (l2.equalsIgnoreCase(ld.weaponstring)) {
 							if (ym.wepsignline3.containsKey(l3) && n >= ym.wepsignline3.get(l3)) {
 								if (ym.wepmap.get(l3) != Material.ENDER_PEARL)
-									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 1));
+									MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(ym.wepmap.get(l3), 1), player);
 								else
-									player.getInventory().addItem(new ItemStack(ym.wepmap.get(l3), 5));
+									MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(ym.wepmap.get(l3), 5), player);
 								int cost = ym.wepsignline3.get(l3);
 								zap.subtractPoints(cost);
 								player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + cost + " points!");
@@ -189,6 +222,7 @@ public class GameWallSign implements WallSign {
 							} catch (Exception e) {
 								e.printStackTrace();
 							}
+							sign.setLine(3, " " + cost + " ");
 							if (zap.getPoints() >= cost) {
 								GameArea a = getClosestArea(sign.getBlock(), (ZAGameBase) zap.getGame());
 								if (a != null) {
@@ -220,34 +254,12 @@ public class GameWallSign implements WallSign {
 	}
 
 	/*
-	 * Gets the closest game area to the given block.
-	 */
-	private GameArea getClosestArea(Block b, ZAGameBase zag) {
-		int distance = Integer.MAX_VALUE;
-		Location loc = b.getLocation();
-		GameArea lp = null;
-		for (GameArea a : Data.areas) {
-			if (a.getGame() == zag) {
-				Location l = a.getPoint(1);
-				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
-				if (current < distance) {
-					distance = current;
-					lp = a;
-				}
-			}
-		}
-		if (lp != null)
-			return lp;
-		return null;
-	}
-
-	/*
 	 * Checks for the game and player to create a new game instance and player instance.
 	 */
 	private void setupPlayerWithGame(String name, Player player) {
 		ZAGame zag = Data.findGame(l3);
 		if (zag.getMainframe() == null)
-			zag.setMainframe(player.getLocation());// TODO remove this when we have a proper spawn-setting system
+			zag.setMainframe(player.getLocation());
 		ZAPlayer zap = Data.findZAPlayer(player, l3);
 		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
 		Bukkit.getServer().getPluginManager().callEvent(gce);

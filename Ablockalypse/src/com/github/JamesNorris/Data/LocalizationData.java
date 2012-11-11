@@ -9,7 +9,8 @@ import com.github.JamesNorris.External;
 public class LocalizationData {
 	public String enchrandstring, weaponstring, weaponwoodstring, weaponstonestring, weaponironstring, weapondiamondstring;
 	public String first, perkstring, healstring, speedstring, damagestring, regenstring, enchstring, enchdamagestring;
-	public String weapongoldstring, weapongrenadestring, areastring, joingame;
+	public String weapongoldstring, weapongrenadestring, areastring, joingame, woodsword, stonesword, ironsword, goldsword;
+	public String diamondsword, bow;
 
 	public LocalizationData(File file, String path) {
 		FileConfiguration c = External.getConfig(file, path);
@@ -29,7 +30,13 @@ public class LocalizationData {
 		weapondiamondstring = c.getString("weaponDiamondSwordString");
 		weapongoldstring = c.getString("weaponGoldSwordString");
 		weapongrenadestring = c.getString("weaponGrenadeString");
-		areastring = c.getString("areaString");// TODO not working
+		areastring = c.getString("areaString");
 		joingame = c.getString("joinString");
+		woodsword = c.getString("woodSword");
+		stonesword = c.getString("stoneSword");
+		ironsword = c.getString("ironSword");
+		goldsword = c.getString("goldSword");
+		diamondsword = c.getString("diamondSword");
+		bow = c.getString("bow");
 	}
 }

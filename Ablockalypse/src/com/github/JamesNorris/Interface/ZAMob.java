@@ -17,6 +17,13 @@ public interface ZAMob {
 	public Creature getCreature();
 
 	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	public Entity getEntity();
+
+	/**
 	 * Gets the game this mob is in.
 	 * 
 	 * @return The game the mob is in.
@@ -33,16 +40,16 @@ public interface ZAMob {
 	/**
 	 * Gets the target of the mob.
 	 * 
-	 * @return The mobs' target as a player
+	 * @return The mobs' target as a location
 	 */
-	public Player getTargetPlayer();
+	public Location getTargetLocation();
 
 	/**
 	 * Gets the target of the mob.
 	 * 
-	 * @return The mobs' target as a location
+	 * @return The mobs' target as a player
 	 */
-	public Location getTargetLocation();
+	public Player getTargetPlayer();
 
 	/**
 	 * Gets the targetter for this mob.
@@ -80,21 +87,14 @@ public interface ZAMob {
 	/**
 	 * Sets the target of this instance.
 	 * 
-	 * @param p The player to target
-	 */
-	public void setTargetPlayer(Player p);
-
-	/**
-	 * Sets the target of this instance.
-	 * 
 	 * @param loc The location to target
 	 */
 	public void setTargetLocation(Location loc);
 
 	/**
-	 * Gets the Entity instance of the mob.
+	 * Sets the target of this instance.
 	 * 
-	 * @return The Entity associated with this instance
+	 * @param p The player to target
 	 */
-	public Entity getEntity();
+	public void setTargetPlayer(Player p);
 }

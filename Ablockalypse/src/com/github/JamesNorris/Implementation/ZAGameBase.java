@@ -11,30 +11,36 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Event.GameEndEvent;
+import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZALocation;
+import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.NextLevelThread;
+import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.SoundUtil;
-import com.github.JamesNorris.Util.SoundUtil.ZASound;
 import com.github.iKeirNez.Util.XMPP;
 import com.github.iKeirNez.Util.XMPP.XMPPType;
 
 public class ZAGameBase implements ZAGame {
 	private ConfigurationData cd;
-	private int level, mobs;
+	private int level, mobcount;
 	private String name;
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
 	private ArrayList<GameBarrier> barriers = new ArrayList<GameBarrier>();
-	private ArrayList<Location> spawners = new ArrayList<Location>();
+	private ArrayList<GameArea> areas = new ArrayList<GameArea>();
+	private ArrayList<ZALocation> spawners = new ArrayList<ZALocation>();
+	private ArrayList<GameMysteryChest> chests = new ArrayList<GameMysteryChest>();
 	private Random rand;
 	private Location mainframe;
 	private SpawnManager spawnManager;
-	private boolean wolfRound, paused;
-	public boolean started;
+	private boolean wolfRound, paused, started;
+	private NextLevelThread nlt;
+	private MysteryChest active;
 
 	/**
 	 * Creates a new instance of a game.
@@ -46,18 +52,44 @@ public class ZAGameBase implements ZAGame {
 	public ZAGameBase(String name, ConfigurationData cd) {
 		this.name = name;
 		this.cd = cd;
-		this.rand = new Random();
-		this.paused = false;
-		this.started = false;
+		rand = new Random();
+		paused = false;
+		started = false;
 		Data.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
 	/**
-	 * Adds one to the mob count.
+	 * Attaches an area to this game.
 	 */
-	@Override public void addMobCount() {
-		++mobs;
+	@Override public void addArea(GameArea ga) {
+		areas.add(ga);
+	}
+
+	/**
+	 * Attaches a barrier to this game.
+	 */
+	@Override public void addBarrier(GameBarrier gb) {
+		barriers.add(gb);
+	}
+
+	/**
+	 * Adds a spawner to the game
+	 * 
+	 * @param l The location to put the spawner at
+	 */
+	@Override public void addMobSpawner(ZALocation l) {
+		spawners.add(l);
+		Data.spawns.put(this, l);
+	}
+
+	/**
+	 * Adds a chest to the game.
+	 * 
+	 * @param mc The chest to add to the game
+	 */
+	@Override public void addMysteryChest(GameMysteryChest mc) {
+		chests.add(mc);
 	}
 
 	/**
@@ -67,31 +99,118 @@ public class ZAGameBase implements ZAGame {
 	 * @param player The player to be added to the game
 	 */
 	@Override public void addPlayer(Player player) {
+		if (!Data.players.containsKey(player)) {
+			ZAPlayerBase zap = new ZAPlayerBase(player, this);
+			zap.loadPlayerToGame(name);
+			zap.addPoints(cd.startpoints);
+		}
 		players.put(player.getName(), cd.startpoints);
+		broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
 		if (paused)
 			pause(false);
+		if (!started)
+			nextLevel();
 	}
 
 	/**
-	 * Ends the game, removes all attached instances, and finalizes this instance.
+	 * Sends a message to all players in the game.
+	 * 
+	 * @param message The message to send
+	 * @param exception A player to be excluded from the broadcast
 	 */
-	@Override public void remove() {
-		for (GameUndead gu : Data.undead)
-			if (gu.getGame() == this)
-				gu.kill();
-		for (GameHellHound ghh : Data.hellhounds)
-			if (ghh.getGame() == this)
-				ghh.kill();
-		for (GameArea a : Data.areas)
-			if (a.getGame() == this)
-				a.close();
+	@Override public void broadcast(String message, Player exception) {
+		for (String s : players.keySet())
+			if (exception != null) {
+				if (exception.getName() != s)
+					Bukkit.getPlayer(s).sendMessage(message);
+			} else
+				Bukkit.getPlayer(s).sendMessage(message);
+	}
+
+	/**
+	 * Sends all players in the game the points of all players.
+	 */
+	@Override public void broadcastPoints() {
 		for (String s : getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			ZAPlayer zap = Data.getZAPlayer(p);
-			removePlayer(p);
-			zap.removeFromGame();
+			for (String s2 : getPlayers()) {
+				Player p2 = Bukkit.getPlayer(s2);
+				ZAPlayer zap = Data.getZAPlayer(p2);
+				p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
+			}
 		}
-		Data.games.remove(name);
+	}
+
+	/**
+	 * Ends the game, repairs all barriers, closes all areas, and removes all players.
+	 */
+	@Override public void end() {
+		if (started) {
+			int points = 0;
+			for (int i : players.values())
+				points = points + i;
+			GameEndEvent GEE = new GameEndEvent(this, points);
+			Bukkit.getPluginManager().callEvent(GEE);
+			if (!GEE.isCancelled()) {
+				paused = true;
+				started = false;
+				mobcount = 0;
+				if (nlt != null && nlt.isRunning())
+					nlt.cancel();
+				for (GameUndead gu : Data.undead)
+					if (gu.getGame() == this)
+						gu.kill();
+				for (GameHellHound ghh : Data.hellhounds)
+					if (ghh.getGame() == this)
+						ghh.kill();
+				for (String name : getPlayers()) {
+					Player player = Bukkit.getServer().getPlayer(name);
+					ZAPlayerBase zap = Data.players.get(player);
+					player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
+					SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
+					removePlayer(player);
+				}
+				for (GameBarrier gb : barriers) {
+					gb.replacePanels();
+					gb.setBlinking(true);
+				}
+				for (GameArea ga : areas) {
+					ga.close();
+					ga.setBlinking(true);
+				}
+				for (MysteryChest mc : chests)
+					mc.setActive(false);
+				for (ZALocation zal : spawners)
+					zal.setBlinking(true);
+			}
+		}
+	}
+
+	/**
+	 * Gets the currently active chest for this game.
+	 * 
+	 * @return The currently active chest for this game
+	 */
+	@Override public MysteryChest getActiveMysteryChest() {
+		return active;
+	}
+
+	/**
+	 * Gets a list of areas connected to this game.
+	 * 
+	 * @return A list of areas in this game
+	 */
+	@Override public ArrayList<GameArea> getAreas() {
+		return areas;
+	}
+
+	/**
+	 * Gets a list of barriers connected to this game.
+	 * 
+	 * @return A list of barriers in this game
+	 */
+	@Override public List<GameBarrier> getBarriers() {
+		return barriers;
 	}
 
 	/**
@@ -101,6 +220,51 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public int getLevel() {
 		return level;
+	}
+
+	/**
+	 * Gets the spawn location for this game.
+	 * 
+	 * @return The location of the spawn
+	 */
+	@Override public Location getMainframe() {
+		return mainframe;
+	}
+
+	/**
+	 * Gets the remaining custom mobs in the game.
+	 * 
+	 * @return The amount of remaining mobs in this game
+	 */
+	@Override public int getMobCount() {
+		return mobcount;
+	}
+
+	/**
+	 * Gets all mobs spawned in this game.
+	 * 
+	 * @return All mobs currently alive in this game
+	 */
+	@Override public ArrayList<ZAMob> getMobs() {
+		return spawnManager.getLivingMobs();
+	}
+
+	/**
+	 * Gets all the spawners for this game.
+	 * 
+	 * @return The spawn locations as an arraylist for this game
+	 */
+	@Override public ArrayList<ZALocation> getMobSpawners() {
+		return spawners;
+	}
+
+	/**
+	 * Gets an arraylist of chests that are attached to this game.
+	 * 
+	 * @return The chests in this game
+	 */
+	@Override public ArrayList<GameMysteryChest> getMysteryChests() {
+		return chests;
 	}
 
 	/**
@@ -117,6 +281,28 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public Set<String> getPlayers() {
 		return players.keySet();
+	}
+
+	/**
+	 * Returns a random area from this game.
+	 * 
+	 * @return The random area from this game
+	 */
+	@Override public GameArea getRandomArea() {
+		if (areas != null && areas.size() >= 1)
+			return areas.get(rand.nextInt(areas.size()));
+		return null;
+	}
+
+	/**
+	 * Returns a random barrier from this game.
+	 * 
+	 * @return The random barrier from this game
+	 */
+	@Override public GameBarrier getRandomBarrier() {
+		if (barriers != null && barriers.size() >= 1)
+			return barriers.get(rand.nextInt(barriers.size()));
+		return null;
 	}
 
 	/**
@@ -157,26 +343,6 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Returns a random barrier from this game.
-	 * 
-	 * @return The random barrier from this game
-	 */
-	@Override public GameBarrier getRandomBarrier() {
-		if (barriers != null && barriers.size() >= 1)
-			return barriers.get(rand.nextInt(barriers.size()));
-		return null;
-	}
-
-	/**
-	 * Gets the remaining custom mobs in the game.
-	 * 
-	 * @return The amount of remaining mobs in this game
-	 */
-	@Override public int getRemainingMobs() {
-		return mobs;
-	}
-
-	/**
 	 * Gets the players still in the game.
 	 * 
 	 * @return How many players are in the game
@@ -192,21 +358,30 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Gets the spawn location for this game.
-	 * 
-	 * @return The location of the spawn
-	 */
-	@Override public Location getMainframe() {
-		return mainframe;
-	}
-
-	/**
 	 * Gets the manager that affects spawn for this game.
 	 * 
 	 * @return The SpawnManager instance associated with this game
 	 */
 	@Override public SpawnManager getSpawnManager() {
 		return spawnManager;
+	}
+
+	/**
+	 * Returns whether or not the game has started.
+	 * 
+	 * @return Whether or not the game has been started, and mobs are spawning
+	 */
+	@Override public boolean hasStarted() {
+		return started;
+	}
+
+	/**
+	 * Checks if the game is paused or not.
+	 * 
+	 * @return Whether or not the game is paused
+	 */
+	@Override public boolean isPaused() {
+		return paused;
 	}
 
 	/**
@@ -223,26 +398,87 @@ public class ZAGameBase implements ZAGame {
 	 * Then, spawns a wave of zombies, and starts the thread for the next level.
 	 */
 	@Override public void nextLevel() {
-		level = level + 1;
+		++level;
+		mobcount = 0;
+		if (!started) {
+			level = 0;
+			if (chests != null && chests.size() > 0) {
+				MysteryChest mc = chests.get(rand.nextInt(chests.size()));
+				setActiveMysteryChest(mc);
+			}
+		}
 		if (Data.gameLevels.containsKey(getName()))
 			Data.gameLevels.remove(getName());
 		Data.gameLevels.put(getName(), level);
-		if (level != 1) {
+		for (GameBarrier gb : barriers)
+			gb.setBlinking(false);
+		for (GameArea ga : areas)
+			ga.setBlinking(false);
+		for (ZAMob zam : Data.getZAMobs())
+			if (zam.getGame() == this)
+				zam.kill();
+		for (ZALocation zal : spawners)
+			zal.setBlinking(false);
+		if (level != 0) {
 			for (String s : players.keySet()) {
 				Player p = Bukkit.getServer().getPlayer(s);
 				p.setLevel(level);
 				p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + level + ChatColor.RESET + ChatColor.BOLD + " has started.");
 			}
-			broadcastPoints();
+			if (level != 1)
+				broadcastPoints();
 		}
 		if (cd.wolfLevels != null && cd.wolfLevels.contains(level))
 			wolfRound = true;
-		new NextLevelThread(this, true);
-		Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
-				spawnWave();
-			}
-		}, 40);
+		if (paused == true)
+			pause(false);
+		nlt = new NextLevelThread(this, true, 40);
+		if (getMobCount() <= 0)
+			spawnWave();
+	}
+
+	/**
+	 * Sets the game to pause or not.
+	 * 
+	 * @param tf Whether or not to pause or un-pause the game
+	 */
+	@Override public void pause(boolean tf) {
+		paused = tf;
+	}
+
+	/**
+	 * Ends the game, removes all attached instances, and finalizes this instance.
+	 */
+	@Override public void remove() {
+		end();
+		for (GameBarrier gb : barriers)
+			gb.setBlinking(false);
+		for (GameArea ga : areas)
+			ga.setBlinking(false);
+		for (ZALocation zal : spawners)
+			zal.setBlinking(false);
+		Data.games.remove(name);
+	}
+
+	/**
+	 * Removes an area from this game.
+	 */
+	@Override public void removeArea(GameArea ga) {
+		areas.remove(ga);
+	}
+
+	/**
+	 * Removes a barrier from this game.
+	 */
+	@Override public void removeBarrier(GameBarrier gb) {
+		barriers.remove(gb);
+	}
+
+	/**
+	 * Removes a mob spawner from this game.
+	 */
+	@Override public void removeMobSpawner(ZALocation l) {
+		spawners.remove(l);
 	}
 
 	/**
@@ -251,47 +487,44 @@ public class ZAGameBase implements ZAGame {
 	 * @param player The player to be removed from the game
 	 */
 	@Override public void removePlayer(Player player) {
-		players.remove(player.getName());
-		Data.players.get(player).removeFromGame();
-		Data.players.remove(player);
-		if (players.size() == 0) {
-			pause(true);
-			setLevel(0);
+		if (players.containsKey(player.getName()))
+			players.remove(player.getName());
+		ZAPlayer zap = Data.getZAPlayer(player);
+		if (zap != null) {
+			zap.removeFromGame();
+			Data.players.get(player).removeFromGame();
+			Data.players.remove(player);
+			if (players.size() == 0) {
+				pause(true);
+				end();
+			}
+		}
+	}
+
+	/**
+	 * Sets the active chest that can be used during this game.
+	 * 
+	 * @param mc The chest to be made active
+	 */
+	@Override public void setActiveMysteryChest(MysteryChest mc) {
+		if (cd.movingchests) {
+		active = mc;
+		for (MysteryChest chest : chests)
+			chest.setActive(false);
+		if (!mc.isActive()) {
+			mc.setActive(true);
+			mc.setActiveUses(rand.nextInt(8) + 2);
+		}
 		}
 	}
 
 	/**
 	 * Sets the game to the specified level.
-	 * If the level is set to 0, the game will restart.
 	 * 
 	 * @param i The level the game will be set to
 	 */
 	@Override public void setLevel(int i) {
-		if (i == 0) {
-			for (String name : getPlayers()) {
-				Player player = Bukkit.getServer().getPlayer(name);
-				ZAPlayerBase zap = Data.players.get(player);
-				player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has restarted. You made it to level " + level);
-				SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
-				removePlayer(player);
-			}
-			for (GameBarrier gb : barriers)
-				gb.replaceBarrier();
-			for (GameArea ga : Data.areas) {
-				if (ga.getGame() == this)
-					ga.close();
-			}
-		}
 		level = i;
-	}
-
-	/**
-	 * Sets the remaining custom mobs in the game.
-	 * 
-	 * @param i The amount to be set to
-	 */
-	@Override public void setRemainingMobs(int i) {
-		mobs = i;
 	}
 
 	/**
@@ -313,19 +546,28 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Removes one from the mob count.
+	 * Sets the mob count.
 	 */
-	@Override public void subtractMobCount() {
-		--mobs;
+	@Override public void setMobCount(int i) {
+		mobcount = i;
 	}
 
 	/**
-	 * Spawns a wave of mobs around random living players in this game.
-	 * If barriers are present and acessible, spawns the mobs at the barriers.
+	 * Sets the remaining custom mobs in the game.
+	 * 
+	 * @param i The amount to be set to
 	 */
-	@Override public void spawnWave() {
-		spawnManager.spawnWave();
-		started = true;
+	@Override public void setRemainingMobs(int i) {
+		mobcount = i;
+	}
+
+	/**
+	 * Makes the game a wolf round.
+	 * 
+	 * @param tf Whether or not the game should be a wolf round
+	 */
+	@Override public void setWolfRound(boolean tf) {
+		wolfRound = tf;
 	}
 
 	/**
@@ -339,88 +581,15 @@ public class ZAGameBase implements ZAGame {
 	}
 
 	/**
-	 * Returns whether or not the game has started.
-	 * 
-	 * @return Whether or not the game has been started, and mobs are spawning
+	 * Spawns a wave of mobs around random living players in this game.
+	 * If barriers are present and acessible, spawns the mobs at the barriers.
 	 */
-	@Override public boolean hasStarted() {
-		return started;
-	}
-
-	/**
-	 * Attaches a barrier to this game.
-	 */
-	@Override public void addBarrier(GameBarrier gb) {
-		this.barriers.add(gb);
-	}
-
-	/**
-	 * Sets the game to pause or not.
-	 * 
-	 * @param tf Whether or not to pause or un-pause the game
-	 */
-	@Override public void pause(boolean tf) {
-		paused = tf;
-	}
-
-	/**
-	 * Checks if the game is paused or not.
-	 * 
-	 * @return Whether or not the game is paused
-	 */
-	@Override public boolean isPaused() {
-		return paused;
-	}
-
-	/**
-	 * Makes the game a wolf round.
-	 * 
-	 * @param tf Whether or not the game should be a wolf round
-	 */
-	@Override public void setWolfRound(boolean tf) {
-		wolfRound = tf;
-	}
-
-	/**
-	 * Gets a list of barriers connected to this game.
-	 * 
-	 * @return A list of barriers in this game
-	 */
-	@Override public List<GameBarrier> getBarriers() {
-		return barriers;
-	}
-
-	/**
-	 * Gets all the spawners for this game.
-	 * 
-	 * @return The spawn locations as an arraylist for this game
-	 */
-	@Override public ArrayList<Location> getMobSpawners() {
-		return spawners;
-	}
-
-	/**
-	 * Adds a spawner to the game
-	 * 
-	 * @param l The location to put the spawner at
-	 */
-	@Override public void addMobSpawner(Location l) {
-		Location loc = l.add(0, 2, 0);
-		spawners.add(loc);
-		Data.spawns.put(this, loc);
-	}
-
-	/**
-	 * Sends all players in the game the points of all players.
-	 */
-	@Override public void broadcastPoints() {
-		for (String s : getPlayers()) {
-			Player p = Bukkit.getPlayer(s);
-			for (String s2 : getPlayers()) {
-				Player p2 = Bukkit.getPlayer(s2);
-				ZAPlayer zap = Data.getZAPlayer(p2);
-				p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
-			}
-		}
+	@Override public void spawnWave() {
+		if (mainframe == null && getRandomLivingPlayer() != null)
+			mainframe = getRandomLivingPlayer().getLocation();
+		if (spawnManager == null || spawnManager.getWorld() != mainframe.getWorld())
+			spawnManager = new SpawnManager(this, mainframe.getWorld());
+		spawnManager.spawnWave();
+		started = true;
 	}
 }

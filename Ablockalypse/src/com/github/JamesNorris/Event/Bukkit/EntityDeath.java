@@ -36,7 +36,7 @@ public class EntityDeath implements Listener {
 				int food = p.getFoodLevel();
 				if (food < 20)
 					p.setFoodLevel(20);
-				MiscUtil.randomPowerup(zap);
+				MiscUtil.randomPowerup(zap, e);
 			}
 		}
 	}

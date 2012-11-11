@@ -1,8 +1,5 @@
 package com.github.JamesNorris.Threading;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -11,7 +8,7 @@ import org.bukkit.entity.Player;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public class TeleportThread {
 	private Ablockalypse instance;
@@ -62,24 +59,14 @@ public class TeleportThread {
 						--time;
 					}
 				} else if (time <= 0) {
-					EffectUtil.generateControlledEffect(player.getLocation(), ZAEffect.SMOKE, 1);
+					EffectUtil.generateEffect(player, player.getLocation(), ZAEffect.SMOKE);
 					zaplayer.sendToMainframe("Teleport");
-					EffectUtil.generateControlledEffect(player.getLocation(), ZAEffect.SMOKE, 1);
+					EffectUtil.generateEffect(player, player.getLocation(), ZAEffect.SMOKE);
 					zaplayer.setTeleporting(false);
 					cancel();
 				}
 			}
 		}, 20, 20);
-	}
-
-	/*
-	 * Removes all data associated with this class.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 
 	/*

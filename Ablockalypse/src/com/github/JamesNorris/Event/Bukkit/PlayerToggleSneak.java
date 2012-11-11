@@ -1,6 +1,5 @@
 package com.github.JamesNorris.Event.Bukkit;
 
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,12 +18,11 @@ public class PlayerToggleSneak implements Listener {
 		if (Data.players.containsKey(p)) {
 			if (Data.players.get(p).isInLastStand())
 				event.setCancelled(true);
-			for (GameBarrier b : Data.barrierpanels.keySet()) {
-				if (b.withinRadius((Entity) p) && b.isBroken()) {
-					b.replaceBarrier();
+			for (GameBarrier b : Data.barrierpanels.keySet())
+				if (b.isWithinRadius(p) && b.isBroken()) {
+					b.fixBarrier(p);
 					break;
 				}
-			}
 		}
 	}
 }

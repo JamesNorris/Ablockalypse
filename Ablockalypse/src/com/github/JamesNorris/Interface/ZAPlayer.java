@@ -1,13 +1,26 @@
 package com.github.JamesNorris.Interface;
 
+import java.util.ArrayList;
+
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.Util.MiscUtil.PlayerStatus;
-import com.github.JamesNorris.Util.MiscUtil.PowerupType;
+import com.github.JamesNorris.Util.Enumerated.PlayerStatus;
+import com.github.JamesNorris.Util.Enumerated.PowerupType;
+import com.github.JamesNorris.Util.Enumerated.ZAPerk;
 
 public interface ZAPlayer {
+	/**
+	 * Adds a perk and effect to the player.
+	 * 
+	 * @param perk The type of perk to add to the player
+	 * @param duration The duration of the perk
+	 * @param power The power of the perk
+	 */
+	public void addPerk(ZAPerk perk, int duration, int power);
+
 	/**
 	 * Gives points to the player.
 	 * 
@@ -30,6 +43,13 @@ public interface ZAPlayer {
 	public String getName();
 
 	/**
+	 * Gets a list of perks that the player has attached to them.
+	 * 
+	 * @return A list of perks used by the player
+	 */
+	public ArrayList<ZAPerk> getPerks();
+
+	/**
 	 * Gets the Player instance of this ZAPlayer.
 	 * 
 	 * @return The player instance involved with this instance
@@ -44,11 +64,26 @@ public interface ZAPlayer {
 	public int getPoints();
 
 	/**
+	 * Gets the status of the player.
+	 * 
+	 * @return The current status of the player
+	 */
+	public PlayerStatus getStatus();
+
+	/**
 	 * Gives the player the specified powerup.
 	 * 
 	 * @param type The type of powerup to give the player
+	 * @param cause The entity that originated this event
 	 */
-	public void givePowerup(PowerupType type);
+	public void givePowerup(PowerupType type, Entity cause);
+
+	/**
+	 * Checks if the player has insta-kill enabled.
+	 * 
+	 * @return Whether or not the player has insta-kill
+	 */
+	public boolean hasInstaKill();
 
 	/**
 	 * Returns true if the player is in last stand
@@ -63,6 +98,13 @@ public interface ZAPlayer {
 	 * @return Whether or not the player is in limbo
 	 */
 	public boolean isInLimbo();
+
+	/**
+	 * Checks if the player is teleporting or not.
+	 * 
+	 * @return Whether or not the player is teleporting
+	 */
+	public boolean isTeleporting();
 
 	/**
 	 * Checks if the name given is the name of a game. If not, creates a new game.
@@ -83,6 +125,25 @@ public interface ZAPlayer {
 	 * @param reason The reason for teleportation for the debug mode
 	 */
 	public void sendToMainframe(String reason);
+
+	/**
+	 * Enables insta-kill for this player.
+	 * 
+	 * @param tf Whether or not to start/cancel insta-kill
+	 */
+	public void setInstaKill(boolean tf);
+
+	/**
+	 * Changes the player limbo status.
+	 */
+	public void setLimbo(boolean tf);
+
+	/**
+	 * Changes the teleportation status of the player.
+	 * 
+	 * @param tf What to change the status to
+	 */
+	public void setTeleporting(boolean tf);
 
 	/**
 	 * Removes points from the player.
@@ -115,30 +176,4 @@ public interface ZAPlayer {
 	 * Toggles sitting for the player.
 	 */
 	public void toggleLastStand();
-
-	/**
-	 * Changes the player limbo status.
-	 */
-	public void setLimbo(boolean tf);
-
-	/**
-	 * Changes the teleportation status of the player.
-	 * 
-	 * @param tf What to change the status to
-	 */
-	public void setTeleporting(boolean tf);
-
-	/**
-	 * Checks if the player is teleporting or not.
-	 * 
-	 * @return Whether or not the player is teleporting
-	 */
-	public boolean isTeleporting();
-
-	/**
-	 * Gets the status of the player.
-	 * 
-	 * @return The current status of the player
-	 */
-	public PlayerStatus getStatus();
 }

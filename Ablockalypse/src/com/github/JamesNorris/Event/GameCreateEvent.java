@@ -21,7 +21,6 @@ public class GameCreateEvent extends Event {
 
 	private boolean cancel;
 	private ZAGame game;
-	private String name;
 	private Player player;
 	private CommandSender sender;
 
@@ -35,7 +34,6 @@ public class GameCreateEvent extends Event {
 	 */
 	public GameCreateEvent(ZAGame game, CommandSender sender, Player player) {
 		this.game = game;
-		name = game.getName();
 		this.sender = sender;
 		cancel = false;
 	}
@@ -51,15 +49,6 @@ public class GameCreateEvent extends Event {
 
 	@Override public HandlerList getHandlers() {
 		return handlers;
-	}
-
-	/**
-	 * Gets the name of the game that was created.
-	 * 
-	 * @return The name of the game created
-	 */
-	public String getName() {
-		return name;
 	}
 
 	/**

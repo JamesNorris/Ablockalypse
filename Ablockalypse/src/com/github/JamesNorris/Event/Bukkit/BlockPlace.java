@@ -12,7 +12,7 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public class BlockPlace implements Listener {
 	private LocalizationData ld;

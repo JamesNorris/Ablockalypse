@@ -1,8 +1,5 @@
 package com.github.JamesNorris.Threading;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -26,8 +23,8 @@ public class RespawnThread {
 	public RespawnThread(Player player, int time, boolean autorun) {
 		this.player = player;
 		this.time = time;
-		this.zap = Data.getZAPlayer(player);
-		this.level = zap.getGame().getLevel();
+		zap = Data.getZAPlayer(player);
+		level = zap.getGame().getLevel();
 		if (autorun)
 			waitToRespawn();
 	}
@@ -39,16 +36,6 @@ public class RespawnThread {
 		Bukkit.getScheduler().cancelTask(id);
 	}
 
-	/*
-	 * Removes all data associated with this class.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
-	}
-
 	/**
 	 * Counts down for the player to respawn.
 	 */
@@ -56,18 +43,21 @@ public class RespawnThread {
 		player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
-				if (zap.getGame().getLevel() > level) {
-					if (time == 0) {
-						ZAPlayer zap = Data.players.get(player);
-						if (zap.getGame() == null)
+				if (Data.playerExists(player)) {
+					if (zap.getGame().getLevel() > level) {
+						if (time == 0) {
+							ZAPlayer zap = Data.players.get(player);
+							if (zap.getGame() == null)
+								cancel();
+							zap.sendToMainframe("Respawn");
+							zap.setLimbo(false);
 							cancel();
-						zap.sendToMainframe("Respawn");
-						zap.setLimbo(false);
-						cancel();
-					} else
-						player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
-					--time;
-				}
+						} else
+							player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
+						--time;
+					}
+				} else
+					cancel();
 			}
 		}, 20, 20);
 	}

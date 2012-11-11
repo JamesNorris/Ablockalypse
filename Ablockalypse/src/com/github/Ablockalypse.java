@@ -7,6 +7,9 @@ import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Implementation.GameArea;
+import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
@@ -15,7 +18,6 @@ public class Ablockalypse extends JavaPlugin {
 	public static Ablockalypse instance;
 	private static MainThreading mt;
 	private static PluginMaster pm;
-	public static boolean disable = false;
 
 	/**
 	 * Gets the PluginMaster instance for Ablockalypse. The PluginMaster instance is what manages the entire plugin.
@@ -34,13 +36,23 @@ public class Ablockalypse extends JavaPlugin {
 	}
 
 	@Override public void onDisable() {
-		disable = true;
 		External.saveData();
+		if (Data.areas != null)
+			for (GameArea a : Data.areas)
+				a.close();
+		if (Data.gamebarriers != null)
+			for (GameBarrier b : Data.gamebarriers) {
+				b.replacePanels();
+				b.getBlinkerThread().cancel();
+			}
+		if (Data.games != null)
+			for (ZAGameBase gb : Data.games.values())
+				gb.pause(true);
 	}
 
 	@Override public void onEnable() {
 		Ablockalypse.instance = this;
-		External.runResources(this);
+		External.loadExternalFiles(this);
 		pm = new PluginMaster(this);
 		Update upd = new Update(this);
 		d = new Data(this);

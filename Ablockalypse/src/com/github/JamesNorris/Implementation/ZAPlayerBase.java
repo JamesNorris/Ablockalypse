@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Implementation;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -14,37 +15,43 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.PlayerStatus;
+import com.github.JamesNorris.Util.Enumerated.PowerupType;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAPerk;
+import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
-import com.github.JamesNorris.Util.MiscUtil.PlayerStatus;
-import com.github.JamesNorris.Util.MiscUtil.PowerupType;
 import com.github.JamesNorris.Util.SoundUtil;
-import com.github.JamesNorris.Util.SoundUtil.ZASound;
 
-public class ZAPlayerBase implements ZAPlayer {
+public class ZAPlayerBase implements ZAPlayer, GameObject {
 	private Location before;
 	private ConfigurationData cd;
 	private float exp, saturation, fall, exhaust;
 	private ZAGame game;
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
-	private boolean laststand, sleepingignored, sent, limbo, teleporting;
+	private boolean laststand, sleepingignored, sent, limbo, teleporting, instakill;
 	private int level, health, food, fire, points;
 	private String name;
 	private Player player;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
+	private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -55,15 +62,50 @@ public class ZAPlayerBase implements ZAPlayer {
 	 * @param game The game this player should be in
 	 */
 	public ZAPlayerBase(Player player, ZAGame game) {
+		Data.objects.add(this);
 		cd = External.ym.getConfigurationData();
 		this.player = player;
 		name = player.getName();
 		this.game = game;
 		point = new HashMap<String, Integer>();
 		Data.players.put(player, this);
-		player.setLevel(1);
-		if (game.getLevel() == 0 && !game.isPaused()) {
-			game.nextLevel();
+		player.setLevel(game.getLevel());
+	}
+	
+	/*
+	 * Checks that the name and suffix are lower than 16 chars.
+	 * Any higher and the name is truncated.
+	 */
+	private void rename(String name, String suffix) {
+		String mod = name;
+		int cutoff = 16 - (suffix.length() + 1);
+        if (name.length() > cutoff)
+            mod = name.substring(0, cutoff);
+        player.setDisplayName(mod + " " + suffix);
+	}
+
+	/**
+	 * Adds a perk and effect to the player.
+	 * 
+	 * @param perk The type of perk to add to the player
+	 * @param duration The duration of the perk
+	 * @param power The power of the perk
+	 */
+	@Override public void addPerk(ZAPerk perk, int duration, int power) {
+		perks.add(perk);
+		switch (perk) {
+			case DAMAGE:
+				player.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, duration, power));
+			break;
+			case HEAL:
+				player.addPotionEffect(new PotionEffect(PotionEffectType.HEAL, duration, power));
+			break;
+			case REGENERATE:
+				player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, duration, power));
+			break;
+			case SPEED:
+				player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, power));
+			break;
 		}
 	}
 
@@ -80,6 +122,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		if (Data.playerPoints.containsKey(game.getName()))
 			Data.playerPoints.remove(game.getName());
 		Data.playerPoints.put(game.getName(), point);
+		rename(name, "" + points);
 	}
 
 	/**
@@ -101,6 +144,15 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
+	 * Gets a list of perks that the player has attached to them.
+	 * 
+	 * @return A list of perks used by the player
+	 */
+	@Override public ArrayList<ZAPerk> getPerks() {
+		return perks;
+	}
+
+	/**
 	 * Gets the Player instance of this ZAPlayer.
 	 * 
 	 * @return The player instance involved with this instance
@@ -119,17 +171,36 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
+	 * Gets the status of the player.
+	 * 
+	 * @return The current status of the player
+	 */
+	@Override public PlayerStatus getStatus() {
+		if (limbo)
+			return PlayerStatus.LIMBO;
+		if (laststand)
+			return PlayerStatus.LAST_STAND;
+		if (teleporting)
+			return PlayerStatus.TELEPORTING;
+		return null;
+	}
+
+	/**
 	 * Gives the player the specified powerup.
 	 * 
 	 * @param type The type of powerup to give the player
+	 * @param cause The entity that originated this event
 	 */
-	@Override public void givePowerup(PowerupType type) {
+	@Override public void givePowerup(PowerupType type, Entity cause) {
 		switch (type) {
 			case ATOM_BOMB:
+				game.broadcast(ChatColor.GRAY + "ATOM BOMB!", null);
 				for (ZAMob zam : Data.getZAMobs()) {
+					if (zam.getGame() == game) {
 					SoundUtil.generateSound(zam.getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
 					EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
 					zam.kill();
+					}
 				}
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
@@ -138,23 +209,47 @@ public class ZAPlayerBase implements ZAPlayer {
 				}
 			break;
 			case BARRIER_FIX:
-				if (Data.gamebarriers.size() >= 1) {
+				game.broadcast(ChatColor.GRAY + "BARRIERS FIXED!", null);
+				if (Data.gamebarriers.size() >= 1)
 					for (GameBarrier b : game.getBarriers())
-						b.replaceBarrier();
-				}
+						b.replacePanels();
 			break;
 			case WEAPON_FIX:
+				game.broadcast(ChatColor.GRAY + "WEAPONS FIXED!", null);
 				for (String s3 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s3);
 					Inventory i = p.getInventory();
 					for (ItemStack it : i.getContents())
-						if (MiscUtil.isWeapon(it)) {
+						if (MiscUtil.isSword(it)) {
 							it.setDurability((short) 0);
 							EffectUtil.generateEffect(p, ZAEffect.EXTINGUISH);
 						}
 				}
 			break;
+			case INSTA_KILL:
+				game.broadcast(ChatColor.GRAY + "INSTA_KILL!", null);
+				for (String s3 : game.getPlayers()) {
+					Player p = Bukkit.getPlayer(s3);
+					if (Data.playerExists(p)) {
+						final ZAPlayer zap = Data.getZAPlayer(p);
+						zap.setInstaKill(true);
+						Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+							@Override public void run() {
+								zap.setInstaKill(false);
+							}
+						}, 300);
+					}
+				}
 		}
+	}
+
+	/**
+	 * Checks if the player has insta-kill enabled.
+	 * 
+	 * @return Whether or not the player has insta-kill
+	 */
+	@Override public boolean hasInstaKill() {
+		return instakill;
 	}
 
 	/**
@@ -176,6 +271,15 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
+	 * Checks if the player is teleporting or not.
+	 * 
+	 * @return Whether or not the player is teleporting
+	 */
+	@Override public boolean isTeleporting() {
+		return teleporting;
+	}
+
+	/**
 	 * Checks if the name given is the name of a game. If not, creates a new game.
 	 * Then, adds the player to that game with all settings completed.
 	 * 
@@ -185,18 +289,22 @@ public class ZAPlayerBase implements ZAPlayer {
 		/* Use an old game to add the player to the game */
 		if (Data.games.containsKey(name)) {
 			ZAGameBase zag = Data.games.get(name);
-			int max = cd.maxplayers;
-			if (zag.getPlayers().size() < max) {
-				zag.addPlayer(player);
-				saveStatus();
-				prepForGame();
-				if (game.getMainframe() == null)
-					game.setMainframe(player.getLocation());
-				sendToMainframe("Loading player to a game");
-				player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
-				return;
-			} else
-				player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
+			GamePlayerJoinEvent GPJE = new GamePlayerJoinEvent(this, zag);
+			Bukkit.getPluginManager().callEvent(GPJE);
+			if (!GPJE.isCancelled()) {
+				int max = cd.maxplayers;
+				if (zag.getPlayers().size() < max) {
+					zag.addPlayer(player);
+					saveStatus();
+					prepForGame();
+					if (game.getMainframe() == null)
+						game.setMainframe(player.getLocation());
+					sendToMainframe("Loading player to a game");
+					player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
+					return;
+				} else
+					player.sendMessage(ChatColor.RED + "This game has " + max + "/" + max + " players!");
+			}
 		}
 	}
 
@@ -217,6 +325,7 @@ public class ZAPlayerBase implements ZAPlayer {
 		player.setFireTicks(0);
 		player.setFallDistance(0F);
 		player.setExhaustion(0F);
+		rename(name, "0");
 		// try {//TODO fix this
 		// for (String s : cd.inventory) {
 		// player.getInventory().addItem(StartingItems.seperateStartingItemsData(s));
@@ -232,10 +341,20 @@ public class ZAPlayerBase implements ZAPlayer {
 	}
 
 	/**
+	 * Removes the player completely.
+	 */
+	@Override public void remove() {
+		removeFromGame();
+	}
+
+	/**
 	 * Removes the player from the game, and removes all data from the player.
 	 */
 	@Override public void removeFromGame() {
 		restoreStatus();
+		if (game.getPlayers().contains(player.getName()))
+			game.removePlayer(player);
+		Data.objects.remove(this);
 	}
 
 	/*
@@ -245,6 +364,10 @@ public class ZAPlayerBase implements ZAPlayer {
 		if (laststand)
 			toggleLastStand();
 		if (gm != null) {
+			for (PotionEffect pe : player.getActivePotionEffects()) {
+				PotionEffectType pet = pe.getType();
+			player.removePotionEffect(pet);
+			}
 			player.setGameMode(gm);
 			player.teleport(before);
 			player.getInventory().clear();
@@ -260,6 +383,7 @@ public class ZAPlayerBase implements ZAPlayer {
 			player.setFireTicks(fire);
 			player.setFallDistance(fall);
 			player.setExhaustion(exhaust);
+			player.setDisplayName(name);
 			player.updateInventory();
 		}
 	}
@@ -298,12 +422,37 @@ public class ZAPlayerBase implements ZAPlayer {
 			c.load();
 		player.teleport(loc);
 		if (sent) {
-			SoundUtil.generateSound(player, ZASound.START);
+			SoundUtil.generateSound(loc.getWorld(), loc, ZASound.START);
 			sent = true;
 		} else
-			SoundUtil.generateSound(player, ZASound.TELEPORT);
+			SoundUtil.generateSound(loc.getWorld(), loc, ZASound.TELEPORT);
 		if (cd.DEBUG)
 			System.out.println("[Ablockalypse] [DEBUG] Mainframe TP reason: (" + game.getName() + ") " + reason);
+	}
+
+	/**
+	 * Enables insta-kill for this player.
+	 * 
+	 * @param tf Whether or not to start/cancel insta-kill
+	 */
+	@Override public void setInstaKill(boolean tf) {
+		instakill = tf;
+	}
+
+	/**
+	 * Changes the player limbo status.
+	 */
+	@Override public void setLimbo(boolean tf) {
+		limbo = tf;
+	}
+
+	/**
+	 * Changes the teleportation status of the player.
+	 * 
+	 * @param tf What to change the status to
+	 */
+	@Override public void setTeleporting(boolean tf) {
+		teleporting = tf;
 	}
 
 	/**
@@ -350,78 +499,43 @@ public class ZAPlayerBase implements ZAPlayer {
 		if (!laststand) {
 			LastStandEvent lse = new LastStandEvent(player, this, true);
 			Bukkit.getServer().getPluginManager().callEvent(lse);
-			if (!lse.isCancelled()) {
+			if (!lse.isCancelled())
 				if (!(getGame().getRemainingPlayers() <= 1)) {
 					player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
 					laststand = true;
 					Entity v = player.getVehicle();
 					if (v != null)
 						v.remove();
-					player.setFoodLevel(5);
+					rename(name, "[LS]");
+					player.setFoodLevel(0);
 					player.setHealth(5);
 					SoundUtil.generateSound(player, ZASound.LAST_STAND);
 					Breakable.setSitting(player, true);
+					game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
 					new LastStandThread(this, true);
 					if (cd.losePerksLastStand)
 						player.getActivePotionEffects().clear();
-				} else {
+					player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
+				} else
 					removeFromGame();
-				}
-			}
 		} else {
 			LastStandEvent lse = new LastStandEvent(player, this, false);
 			Bukkit.getServer().getPluginManager().callEvent(lse);
 			if (!lse.isCancelled()) {
+				for (PotionEffect pe : player.getActivePotionEffects())
+					if (pe.getType() == PotionEffectType.CONFUSION)
+						player.removePotionEffect(pe.getType());
 				player.sendMessage(ChatColor.GRAY + "You have been picked up!");
+				game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
 				laststand = false;
 				Breakable.setSitting(player, false);
 				if (player.getVehicle() != null)
 					player.getVehicle().remove();
-				player.setFoodLevel(5);
+				player.setFoodLevel(20);
 				Entity v = player.getVehicle();
 				if (v != null)
 					v.remove();
 			}
 		}
-	}
-
-	/**
-	 * Changes the player limbo status.
-	 */
-	@Override public void setLimbo(boolean tf) {
-		limbo = tf;
-	}
-
-	/**
-	 * Changes the teleportation status of the player.
-	 * 
-	 * @param tf What to change the status to
-	 */
-	@Override public void setTeleporting(boolean tf) {
-		teleporting = tf;
-	}
-
-	/**
-	 * Gets the status of the player.
-	 * 
-	 * @return The current status of the player
-	 */
-	@Override public PlayerStatus getStatus() {
-		if (limbo)
-			return PlayerStatus.LIMBO;
-		if (laststand)
-			return PlayerStatus.LAST_STAND;
-		if (teleporting)
-			return PlayerStatus.TELEPORTING;
-		return null;
-	}
-
-	/**
-	 * Checks if the player is teleporting or not.
-	 * 
-	 * @return Whether or not the player is teleporting
-	 */
-	@Override public boolean isTeleporting() {
-		return teleporting;
 	}
 }

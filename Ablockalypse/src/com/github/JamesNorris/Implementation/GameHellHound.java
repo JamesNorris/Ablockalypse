@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Implementation;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -12,20 +13,21 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.EffectUtil.ZAEffect;
+import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class GameHellHound implements HellHound, ZAMob {
+public class GameHellHound implements HellHound, GameObject {
 	private ZAGame game;
-	public boolean killed;
 	private MobTargettingThread mt;
 	private Object target;
 	private Wolf wolf;
 	private World world;
+	private int id;
+	private boolean subtracted = false;
 
 	/**
 	 * Creates a new instance of the GameWolf for ZA.
@@ -33,29 +35,53 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * @param wolf The wolf to be made into this instance
 	 */
 	public GameHellHound(Wolf wolf, ZAGame game) {
+		EffectUtil.generateEffect(wolf.getLocation().getWorld(), wolf.getLocation(), ZAEffect.LIGHTNING);
+		Data.objects.add(this);
+		Data.mobs.add(this);
 		this.wolf = wolf;
 		this.game = game;
 		world = wolf.getWorld();
 		wolf.setHealth(8);
-		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(wolf.getLocation());
+		Player p = game.getRandomLivingPlayer();
+		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
 		if (targetbarrier != null) {
 			Location gbloc = targetbarrier.getCenter();
-			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) wolf, gbloc);
-		} else {
-			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) wolf, game.getRandomLivingPlayer());
-		}
-		game.addMobCount();
+			mt = new MobTargettingThread(Ablockalypse.instance, wolf, gbloc);
+		} else
+			mt = new MobTargettingThread(Ablockalypse.instance, wolf, p);
+		game.setMobCount(game.getMobCount() + 1);
 		setAggressive(true);
 		if (!Data.hellhounds.contains(this))
 			Data.hellhounds.add(this);
+		setSpeed(0.28F);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
-			setSpeed(0.24F);
+			setSpeed(0.32F);
+		final Wolf finalwolf = wolf;
+		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
+			public void run() {
+				if (!getCreature().isDead() && Data.isZAMob(getEntity())) {
+					Location target = getGame().getRandomLivingPlayer().getLocation();
+					Location strike = getGame().getSpawnManager().findSpawnLocation(target, 5, 3);
+					finalwolf.teleport(strike);
+					EffectUtil.generateEffect(strike.getWorld(), strike, ZAEffect.LIGHTNING);
+				} else {
+					cancel();
+				}
+			}
+		}, 200, 200);
+	}
+
+	/*
+	 * Cancels the position changing task started when the wolf is instantiated.
+	 */
+	private void cancel() {
+		Bukkit.getScheduler().cancelTask(id);
 	}
 
 	/**
 	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
 	 */
-	@Override public void addEffect() {
+	@Override public void addFlames() {
 		EffectUtil.generateEffect(game.getRandomLivingPlayer(), wolf.getLocation(), ZAEffect.FLAMES);
 	}
 
@@ -63,8 +89,28 @@ public class GameHellHound implements HellHound, ZAMob {
 	 * Clears all data from this instance.
 	 */
 	@Override public void finalize() {
-		if (!killed)
-			game.subtractMobCount();
+		if (!subtracted) {
+		game.setMobCount(game.getMobCount() - 1);
+		subtracted = true;
+		}
+	}
+
+	/**
+	 * Gets the creature associated with this mob.
+	 * 
+	 * @return The creature associated with this mob
+	 */
+	@Override public Creature getCreature() {
+		return wolf;
+	}
+
+	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	@Override public Entity getEntity() {
+		return wolf;
 	}
 
 	/**
@@ -83,6 +129,15 @@ public class GameHellHound implements HellHound, ZAMob {
 	 */
 	@Override public double getSpeed() {
 		return mt.getSpeed();
+	}
+
+	/**
+	 * Gets the target of the mob.
+	 * 
+	 * @return The mobs' target as a location
+	 */
+	@Override public Location getTargetLocation() {
+		return (Location) target;
 	}
 
 	/**
@@ -127,10 +182,20 @@ public class GameHellHound implements HellHound, ZAMob {
 	 */
 	@Override public void kill() {
 		if (wolf != null) {
+			if (game.getSpawnManager().mobs.contains(this))
+				game.getSpawnManager().mobs.remove(this);
 			wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
 			wolf.remove();
 		}
+		Data.objects.remove(this);
 		finalize();
+	}
+
+	/**
+	 * Removes the hellhound completely.
+	 */
+	@Override public void remove() {
+		kill();
 	}
 
 	/**
@@ -161,34 +226,6 @@ public class GameHellHound implements HellHound, ZAMob {
 	}
 
 	/**
-	 * Sets the wolfs' target.
-	 * 
-	 * @param player The player to be made into the target
-	 */
-	@Override public void setTargetPlayer(Player player) {
-		target = player;
-		mt.setTarget(player);
-	}
-
-	/**
-	 * Gets the Entity instance of the mob.
-	 * 
-	 * @return The Entity associated with this instance
-	 */
-	@Override public Entity getEntity() {
-		return wolf;
-	}
-
-	/**
-	 * Gets the target of the mob.
-	 * 
-	 * @return The mobs' target as a location
-	 */
-	@Override public Location getTargetLocation() {
-		return (Location) target;
-	}
-
-	/**
 	 * Sets the target of this instance.
 	 * 
 	 * @param loc The location to target
@@ -199,11 +236,12 @@ public class GameHellHound implements HellHound, ZAMob {
 	}
 
 	/**
-	 * Gets the creature associated with this mob.
+	 * Sets the wolfs' target.
 	 * 
-	 * @return The creature associated with this mob
+	 * @param player The player to be made into the target
 	 */
-	@Override public Creature getCreature() {
-		return (Creature) wolf;
+	@Override public void setTargetPlayer(Player player) {
+		target = player;
+		mt.setTarget(player);
 	}
 }

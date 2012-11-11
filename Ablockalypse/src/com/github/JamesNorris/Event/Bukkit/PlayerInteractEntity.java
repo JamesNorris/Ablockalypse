@@ -1,5 +1,6 @@
 package com.github.JamesNorris.Event.Bukkit;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,6 +33,7 @@ public class PlayerInteractEntity implements Listener {
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints(cd.helppoints);
+				p.sendMessage(ChatColor.GRAY + "You helped up " + zap.getName() + "!");
 			}
 		}
 	}

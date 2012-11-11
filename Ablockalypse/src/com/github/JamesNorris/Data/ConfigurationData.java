@@ -1,7 +1,5 @@
 package com.github.JamesNorris.Data;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -11,20 +9,59 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.plugin.Plugin;
 
 public class ConfigurationData {
-	public int buyLevel, woodSwordLevel, stoneSwordLevel, ironSwordLevel, diamondSwordLevel, goldSwordLevel, grenadeLevel;
-	public int cost, enchDamageCost, enchRandomCost, powerrad;
-	public boolean DEBUG, ENABLE_AUTO_UPDATE, extraEffects, clearmobs;
-	public Enchantment enchant;
-	public int heallevel, speedlevel, damagelevel, regenlevel;
-	public int healPoints, speedPoints, damagePoints, regenPoints;
-	public String helmet, chestplate, leggings, boots;
-	public List<String> inventory;
-	public boolean losePerksLastStand, xmppGameStart, xmppGameEnd, xmppPlayerJoin, xmppPlayerLeave, xmppLastStand;
-	public int packapunchlevel, gameEndWait, teleportTime;
-	public int powerchance, atompoints;
-	public int startpoints, pointincrease, maxplayers = 4, lsthresh, duration = Integer.MAX_VALUE, mccost, helppoints, doubleSpeedLevel;
+	// TODO wish I could find a way to organize these with eclipse...
+	public int atompoints;
+	public int barrierfullfix;
+	public int barrierpartfix;
+	public boolean beacons;
+	public boolean blinkers;
+	public boolean xmppGameStart;
+	public boolean xmppGameEnd;
+	public boolean xmppPlayerJoin;
+	public boolean xmppPlayerLeave;
+	public boolean xmppLastStand;
+	public boolean clearmobs;
+	public int damagelevel;
+	public int damagePoints;
+	public boolean DEBUG;
+	public int diamondSwordCost;
+	public int diamondSwordLevel;
+	public int doubleSpeedLevel;
+	public int duration = Integer.MAX_VALUE;
+	public boolean ENABLE_AUTO_UPDATE;
+	public int enchDamageCost;
+	public int enchRandomCost;
+	public boolean extraEffects;
+	public int goldSwordCost;
+	public int goldSwordLevel;
+	public int grenadeCost;
+	public int grenadeLevel;
+	public int heallevel;
+	public int healPoints;
+	private String helmet, chestplate, leggings, boots;
+	public int helppoints;
+	private List<String> inventory;
+	public int ironSwordCost;
+	public int ironSwordLevel;
+	public boolean losePerksLastStand;
+	public int lsthresh;
+	public int maxplayers;
+	public int mccost;
+	public boolean movingchests;
+	public int packapunchlevel;
+	public int pointincrease;
+	public int powerchance;
+	public int regenlevel;
+	public int regenPoints;
+	public int speedlevel;
+	public int speedPoints;
+	public int startpoints;
+	public int stoneSwordCost;
+	public int stoneSwordLevel;
+	public int teleportTime;
 	public List<Integer> wolfLevels = new ArrayList<Integer>();
-	public int woodSwordCost, stoneSwordCost, ironSwordCost, diamondSwordCost, goldSwordCost, grenadeCost;
+	public int woodSwordCost;
+	public int woodSwordLevel;
 
 	/**
 	 * Data that is used to load all config values into data used by signs to make changes.
@@ -66,6 +103,10 @@ public class ConfigurationData {
 		boots = cf.getString("startingItems.armor.boots");
 		powerchance = cf.getInt("powerupChance");
 		atompoints = cf.getInt("pointsGivenOnAtomBomb");
+		barrierfullfix = cf.getInt("barrierCompleteFixIncrease");
+		barrierpartfix = cf.getInt("barrierPerFixIncrease");
+		mccost = cf.getInt("mysteryChestCost");
+		helppoints = cf.getInt("pointsGivenOnHelp");
 		/* XMPP */
 		xmppGameStart = cf.getBoolean("xmppAnnounceGameStart");
 		xmppGameEnd = cf.getBoolean("xmppAnnounceGameEnd");
@@ -73,28 +114,19 @@ public class ConfigurationData {
 		xmppPlayerLeave = cf.getBoolean("xmppAnnouncePlayerLeaveGame");
 		xmppLastStand = cf.getBoolean("xmppAnnounceLastStand");
 		/* OTHER */
+		blinkers = cf.getBoolean("blinkers");
 		lsthresh = cf.getInt("lastStandThreshold");
 		losePerksLastStand = cf.getBoolean("losePerksOnLastStand");
-		mccost = cf.getInt("mysteryChestCost");
-		helppoints = cf.getInt("pointsGivenOnHelp");
 		doubleSpeedLevel = cf.getInt("doubleSpeedLevel");
 		wolfLevels = cf.getIntegerList("wolfLevels");
 		extraEffects = cf.getBoolean("addedEffects");
-		powerrad = cf.getInt("powerupRadius");
 		clearmobs = cf.getBoolean("clearNearbyMobs");
 		teleportTime = cf.getInt("teleportTime");
+		movingchests = cf.getBoolean("movingChests");
+		maxplayers = cf.getInt("maxPlayers");
+		beacons = cf.getBoolean("chestBeacons");
 		ENABLE_AUTO_UPDATE = cf.getBoolean("ENABLE_AUTO_UPDATE");
 		DEBUG = cf.getBoolean("DEBUG");
-	}
-
-	/**
-	 * Clears all of the ConfigurationData.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 
 	// END OF VARIABLES

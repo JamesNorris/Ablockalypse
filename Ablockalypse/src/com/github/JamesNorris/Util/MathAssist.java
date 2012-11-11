@@ -18,19 +18,6 @@ public class MathAssist {
 	}
 
 	/**
-	 * The method for creating a line with a supplied x, m, and b.
-	 * The general equation is y = mx + b.
-	 * 
-	 * @param m The m value for the line (slope)
-	 * @param x The x value for the line (x-intercept)
-	 * @param b The b value for the line (y-intercept)
-	 * @return The current value for the y variable
-	 */
-	public static double line(double m, double x, double b) {
-		return (m * x) + b;
-	}
-
-	/**
 	 * Gets the distance between 2 sets of coords.
 	 * 
 	 * @param x The first x coord
@@ -44,5 +31,18 @@ public class MathAssist {
 	public static double distance(int x, int y, int z, int x2, int y2, int z2) {
 		int X = x2 - x, Y = y2 - y, Z = z2 - z;
 		return Math.sqrt((X * X) + (Y * Y) + (Z * Z));
+	}
+
+	/**
+	 * The method for creating a line with a supplied x, m, and b.
+	 * The general equation is y = mx + b.
+	 * 
+	 * @param m The m value for the line (slope)
+	 * @param x The x value for the line (x-intercept)
+	 * @param b The b value for the line (y-intercept)
+	 * @return The current value for the y variable
+	 */
+	public static double line(double m, double x, double b) {
+		return (m * x) + b;
 	}
 }

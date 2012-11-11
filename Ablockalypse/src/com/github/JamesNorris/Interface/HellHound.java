@@ -2,11 +2,11 @@ package com.github.JamesNorris.Interface;
 
 import org.bukkit.entity.Wolf;
 
-public interface HellHound {
+public interface HellHound extends ZAMob {
 	/**
 	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
 	 */
-	public void addEffect();
+	public void addFlames();
 
 	/**
 	 * Gets the Wolf instance associated with this instance.

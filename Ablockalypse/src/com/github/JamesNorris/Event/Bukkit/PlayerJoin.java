@@ -35,9 +35,8 @@ public class PlayerJoin implements Listener {
 					zap.subtractPoints(current);
 				zap.addPoints(i);
 			}
-			if (zag.getPlayers().size() == 0) {
+			if (zag.getPlayers().size() == 0)
 				zag.setLevel(gameLevels.get(gamename));
-			}
 		}
 	}
 }

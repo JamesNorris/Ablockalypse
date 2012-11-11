@@ -1,7 +1,6 @@
 package com.github.JamesNorris.Threading;
 
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -31,7 +30,7 @@ public class MainThreading {
 	 */
 	public MainThreading(Plugin instance, boolean wolf, boolean barrier, boolean clearmobs) {
 		this.instance = (Ablockalypse) instance;
-		this.cd = External.getYamlManager().getConfigurationData();
+		cd = External.getYamlManager().getConfigurationData();
 		if (wolf)
 			wolfFlames();
 		if (barrier)
@@ -47,14 +46,12 @@ public class MainThreading {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
 				for (GameBarrier bg : Data.barrierpanels.keySet()) {
-					for (GameUndead gu : Data.undead) {
-						if (bg.withinRadius(gu.getEntity()) && !bg.isBroken())
-							bg.breakBarrier((Creature) gu.getZombie());
-					}
-					for (GameHellHound ghh : Data.hellhounds) {
-						if (bg.withinRadius(ghh.getEntity()) && !bg.isBroken())
-							bg.breakBarrier((Creature) ghh.getWolf());
-					}
+					for (GameUndead gu : Data.undead)
+						if (bg.isWithinRadius(gu.getEntity()) && !bg.isBroken())
+							bg.breakBarrier(gu.getZombie());
+					for (GameHellHound ghh : Data.hellhounds)
+						if (bg.isWithinRadius(ghh.getEntity()) && !bg.isBroken())
+							bg.breakBarrier(ghh.getWolf());
 				}
 			}
 		}, 20, 20);
@@ -95,7 +92,7 @@ public class MainThreading {
 	 * Starts a thread that prevents slimes from going near players without dying.
 	 */
 	public void clearMobs() {
-		if (cd.clearmobs) {
+		if (cd.clearmobs)
 			id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 				@Override public void run() {
 					for (Player p : Data.players.keySet())
@@ -104,7 +101,6 @@ public class MainThreading {
 								e.remove();
 				}
 			}, 60, 60);
-		}
 	}
 
 	/**
@@ -116,7 +112,7 @@ public class MainThreading {
 				if (Data.hellhounds != null)
 					for (GameHellHound f : Data.hellhounds)
 						if (!f.getWolf().isDead())
-							f.addEffect();
+							f.addFlames();
 			}
 		}, 20, 20);
 	}

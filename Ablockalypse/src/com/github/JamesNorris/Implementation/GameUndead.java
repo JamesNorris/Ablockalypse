@@ -1,8 +1,5 @@
 package com.github.JamesNorris.Implementation;
 
-import net.minecraft.server.Entity;
-import net.minecraft.server.NBTTagCompound;
-
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -14,18 +11,17 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.Data;
 import com.github.JamesNorris.Interface.Barrier;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Threading.MobTargettingThread;
-import com.github.JamesNorris.Util.Breakable;
 
-public class GameUndead extends Entity implements Undead, ZAMob {
+public class GameUndead implements Undead, GameObject {
 	private ZAGame game;
-	public boolean killed, fireproof;
 	private MobTargettingThread mt;
 	private Object target;
 	private Zombie zombie;
+	private boolean fireproof, subtracted = false;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
@@ -33,18 +29,20 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 * @param zombie The zombie to be made into this instance
 	 */
 	public GameUndead(Zombie zombie, ZAGame game) {
-		super(Breakable.getNMSWorld(zombie.getWorld()));
+		Data.objects.add(this);
+		Data.mobs.add(this);
 		this.zombie = zombie;
 		this.game = game;
-		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(zombie.getLocation());
+		fireproof = true;
+		Player p = game.getRandomLivingPlayer();
+		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
 		if (targetbarrier != null) {
 			Location gbloc = targetbarrier.getCenter();
-			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, gbloc);
-		} else {
-			mt = new MobTargettingThread(Ablockalypse.instance, (Creature) zombie, game.getRandomLivingPlayer());
-		}
+			mt = new MobTargettingThread(Ablockalypse.instance, zombie, gbloc);
+		} else
+			mt = new MobTargettingThread(Ablockalypse.instance, zombie, p);
 		zombie.setHealth(10);
-		game.addMobCount();
+		game.setMobCount(game.getMobCount() + 1);
 		if (!Data.undead.contains(this))
 			Data.undead.add(this);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
@@ -52,26 +50,31 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	}
 
 	/**
-	 * NOTE: DO NOT USE
-	 */
-	@Override protected void a() {}
-
-	/**
-	 * NOTE: DO NOT USE
-	 */
-	@Override protected void a(NBTTagCompound arg0) {}
-
-	/**
-	 * NOTE: DO NOT USE
-	 */
-	@Override protected void b(NBTTagCompound arg0) {}
-
-	/**
 	 * Clears all data from this instance.
 	 */
 	@Override public void finalize() {
-		if (!killed)
-			game.subtractMobCount();
+		if (!subtracted) {
+		game.setMobCount(game.getMobCount() - 1);
+		subtracted = true;
+		}
+	}
+
+	/**
+	 * Gets the creature associated with this mob.
+	 * 
+	 * @return The creature associated with this mob
+	 */
+	@Override public Creature getCreature() {
+		return zombie;
+	}
+
+	/**
+	 * Gets the Entity instance of the mob.
+	 * 
+	 * @return The Entity associated with this instance
+	 */
+	@Override public org.bukkit.entity.Entity getEntity() {
+		return zombie;
 	}
 
 	/**
@@ -88,6 +91,15 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	 */
 	@Override public double getSpeed() {
 		return mt.getSpeed();
+	}
+
+	/**
+	 * Gets the target of the mob.
+	 * 
+	 * @return The mobs' target as a location
+	 */
+	@Override public Location getTargetLocation() {
+		return (Location) target;
 	}
 
 	/**
@@ -125,14 +137,42 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	}
 
 	/**
+	 * Checks whether or not the zombies is fireproof.
+	 * 
+	 * @return Whether or not the zombie is fireproof
+	 */
+	@Override public boolean isFireproof() {
+		return fireproof;
+	}
+
+	/**
 	 * Kills the undead and finalizes the instance.
 	 */
 	@Override public void kill() {
 		if (zombie != null) {
+			if (game.getSpawnManager().mobs.contains(this))
+				game.getSpawnManager().mobs.remove(this);
 			zombie.getWorld().playEffect(zombie.getLocation(), Effect.EXTINGUISH, 1);
 			zombie.remove();
 		}
 		finalize();
+	}
+
+	/**
+	 * Removes the undead completely.
+	 */
+	@Override public void remove() {
+		kill();
+		Data.objects.remove(this);
+	}
+
+	/**
+	 * Changes the fireproof ability of the zombie.
+	 * 
+	 * @param tf Whether or not the zombie should be fireproof
+	 */
+	@Override public void setFireproof(boolean tf) {
+		fireproof = tf;
 	}
 
 	/**
@@ -157,34 +197,6 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	/**
 	 * Sets the target of this instance.
 	 * 
-	 * @param p The player to target
-	 */
-	@Override public void setTargetPlayer(Player p) {
-		target = p;
-		mt.setTarget(p);
-	}
-
-	/**
-	 * Gets the Entity instance of the mob.
-	 * 
-	 * @return The Entity associated with this instance
-	 */
-	@Override public org.bukkit.entity.Entity getEntity() {
-		return zombie;
-	}
-
-	/**
-	 * Gets the target of the mob.
-	 * 
-	 * @return The mobs' target as a location
-	 */
-	@Override public Location getTargetLocation() {
-		return (Location) target;
-	}
-
-	/**
-	 * Sets the target of this instance.
-	 * 
 	 * @param loc The location to target
 	 */
 	@Override public void setTargetLocation(Location loc) {
@@ -193,11 +205,12 @@ public class GameUndead extends Entity implements Undead, ZAMob {
 	}
 
 	/**
-	 * Gets the creature associated with this mob.
+	 * Sets the target of this instance.
 	 * 
-	 * @return The creature associated with this mob
+	 * @param p The player to target
 	 */
-	@Override public Creature getCreature() {
-		return (Creature) zombie;
+	@Override public void setTargetPlayer(Player p) {
+		target = p;
+		mt.setTarget(p);
 	}
 }

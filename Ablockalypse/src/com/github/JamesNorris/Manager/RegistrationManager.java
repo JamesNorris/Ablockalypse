@@ -13,9 +13,11 @@ import com.github.JamesNorris.Event.Bukkit.EntityDeath;
 import com.github.JamesNorris.Event.Bukkit.EntityExplode;
 import com.github.JamesNorris.Event.Bukkit.EntityTarget;
 import com.github.JamesNorris.Event.Bukkit.PlayerDeath;
+import com.github.JamesNorris.Event.Bukkit.PlayerDropItem;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteractEntity;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
+import com.github.JamesNorris.Event.Bukkit.PlayerKick;
 import com.github.JamesNorris.Event.Bukkit.PlayerMove;
 import com.github.JamesNorris.Event.Bukkit.PlayerPickupItem;
 import com.github.JamesNorris.Event.Bukkit.PlayerQuit;
@@ -53,6 +55,8 @@ public class RegistrationManager {
 		pm.registerEvents(new EntityDamageByEntity(), instance);
 		pm.registerEvents(new PlayerJoin(), instance);
 		pm.registerEvents(new BlockBreak(), instance);
+		pm.registerEvents(new PlayerDropItem(), instance);
+		pm.registerEvents(new PlayerKick(), instance);
 		/* COMMANDS */
 		((Ablockalypse) instance).getCommand("za").setExecutor(new BaseCommand());
 	}

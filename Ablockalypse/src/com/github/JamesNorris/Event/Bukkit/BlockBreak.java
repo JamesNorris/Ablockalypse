@@ -14,8 +14,7 @@ public class BlockBreak implements Listener {
 	 */
 	@EventHandler public void BBE(BlockBreakEvent event) {
 		Player p = event.getPlayer();
-		if (Data.playerExists(p)) {
+		if (Data.playerExists(p))
 			event.setCancelled(true);
-		}
 	}
 }

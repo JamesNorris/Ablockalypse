@@ -33,7 +33,7 @@ public class PluginMaster {
 	}
 
 	/*
-	 * Adds the 3 main types of data to this manager.
+	 * Adds the 2 main types of data to this manager.
 	 */
 	public void addData(Data d, MainThreading mt) {
 		this.d = d;

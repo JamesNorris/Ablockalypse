@@ -1,8 +1,5 @@
 package com.github.JamesNorris.Threading;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -46,15 +43,5 @@ public class LastStandThread {
 					cancel();
 			}
 		}, 100, 100);
-	}
-
-	/*
-	 * Removes all data associated with this class.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 }

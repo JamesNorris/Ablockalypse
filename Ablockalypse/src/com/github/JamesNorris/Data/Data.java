@@ -23,9 +23,12 @@ import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
+import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.Square;
@@ -35,7 +38,7 @@ public class Data {
 	public static List<String> authors;
 	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
 	public static HashMap<Location, String> barriers = new HashMap<Location, String>();
-	public static String description;
+	protected static String description;
 	public static ArrayList<GameBarrier> gamebarriers = new ArrayList<GameBarrier>();
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
 	public static HashMap<String, ZAGameBase> games = new HashMap<String, ZAGameBase>();
@@ -45,35 +48,13 @@ public class Data {
 	public static HashMap<String, String> playergames = new HashMap<String, String>();
 	public static HashMap<String, HashMap<String, Integer>> playerPoints = new HashMap<String, HashMap<String, Integer>>();
 	public static HashMap<Player, ZAPlayerBase> players = new HashMap<Player, ZAPlayerBase>();
-	public static Ablockalypse plugin;
-	public static HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
+	protected static Ablockalypse plugin;
+	protected static HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public static ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
-	public static HashMap<ZAGameBase, Location> spawns = new HashMap<ZAGameBase, Location>();
+	public static HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
+	public static HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
+	public static ArrayList<GameObject> objects = new ArrayList<GameObject>();
 	public static String version;
-
-	/**
-	 * Gets an arraylist of spawning locations for the game provided.
-	 * 
-	 * @param gamename The game to look for
-	 * @return The arraylist of spawners for the provided game
-	 */
-	public static ArrayList<Location> getSpawns(String gamename) {
-		ArrayList<Location> locs = new ArrayList<Location>();
-		for (ZAGameBase zag : spawns.keySet()) {
-			if (zag.getName() == gamename)
-				locs.add(spawns.get(zag));
-		}
-		return locs;
-	}
-
-	/**
-	 * Gets the spawns for all games in a hashmap.
-	 * 
-	 * @return All spawns in all games
-	 */
-	public static HashMap<ZAGameBase, Location> getSpawns() {
-		return spawns;
-	}
 
 	/**
 	 * Checks if the game exists, if not, creates a new game.
@@ -89,20 +70,6 @@ public class Data {
 		else
 			zag = new ZAGameBase(name, External.ym.getConfigurationData());
 		return zag;
-	}
-
-	/**
-	 * Gets a ZAPlayer from a player without using a string, if the player exists.
-	 * 
-	 * @param p The player to check for
-	 * @return The ZAPlayer instance connected to that player
-	 */
-	public static ZAPlayer getZAPlayer(Player p) {
-		for (ZAPlayerBase zap : Data.players.values()) {
-			if (zap.getName() == p.getName())
-				return (ZAPlayer) zap;
-		}
-		return null;
 	}
 
 	/**
@@ -145,6 +112,42 @@ public class Data {
 	}
 
 	/**
+	 * Gets the chest attached to this block.
+	 * 
+	 * @param b The block to check for
+	 * @return The MysteryChest that is at the same location as this block
+	 */
+	public static MysteryChest getMysteryChest(Location loc) {
+		MysteryChest mc = null;
+		if (chests.containsKey(loc))
+		mc = chests.get(loc);
+		return mc;
+	}
+
+	/**
+	 * Gets the spawns for all games in a hashmap.
+	 * 
+	 * @return All spawns in all games
+	 */
+	public static HashMap<ZAGameBase, ZALocation> getSpawns() {
+		return spawns;
+	}
+
+	/**
+	 * Gets an arraylist of spawning locations for the game provided.
+	 * 
+	 * @param gamename The game to look for
+	 * @return The arraylist of spawners for the provided game
+	 */
+	public static ArrayList<ZALocation> getSpawns(String gamename) {
+		ArrayList<ZALocation> locs = new ArrayList<ZALocation>();
+		for (ZAGameBase zag : spawns.keySet())
+			if (zag.getName() == gamename)
+				locs.add(spawns.get(zag));
+		return locs;
+	}
+
+	/**
 	 * Gets a GameUndead instance associated with the provided entity.
 	 * 
 	 * @param e The entity to check for
@@ -182,6 +185,29 @@ public class Data {
 	 */
 	public static ArrayList<ZAMob> getZAMobs() {
 		return mobs;
+	}
+
+	/**
+	 * Gets a ZAPlayer from a player without using a string, if the player exists.
+	 * 
+	 * @param p The player to check for
+	 * @return The ZAPlayer instance connected to that player
+	 */
+	public static ZAPlayer getZAPlayer(Player p) {
+		for (ZAPlayerBase zap : Data.players.values())
+			if (zap.getName() == p.getName())
+				return zap;
+		return null;
+	}
+
+	/**
+	 * Checks if the block given is a MysteryChest instance.
+	 * 
+	 * @param b The block to check for
+	 * @return Whether or not this block is a mystery chest
+	 */
+	public static boolean isMysteryChest(Location loc) {
+		return chests.keySet().contains(loc);
 	}
 
 	/**
