@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 
 public class PlayerInteractEntity implements Listener {
@@ -27,9 +27,9 @@ public class PlayerInteractEntity implements Listener {
 	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
 		Player p = event.getPlayer();
 		Entity e = event.getRightClicked();
-		if (Data.players.containsKey(p) && Data.players.containsKey(e)) {
-			ZAPlayerBase zap = Data.players.get(e);
-			ZAPlayerBase zap2 = Data.players.get(p);
+		if (GlobalData.players.containsKey(p) && GlobalData.players.containsKey(e)) {
+			ZAPlayerBase zap = GlobalData.players.get(e);
+			ZAPlayerBase zap2 = GlobalData.players.get(p);
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints(cd.helppoints);

@@ -4,7 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 
 public class PlayerDropItem implements Listener {
 	/*
@@ -12,7 +12,7 @@ public class PlayerDropItem implements Listener {
 	 * Used mainly for disabling drops for players in games.
 	 */
 	@EventHandler public void PDIE(PlayerDropItemEvent event) {
-		if (Data.players.containsKey(event.getPlayer()))
+		if (GlobalData.players.containsKey(event.getPlayer()))
 			event.setCancelled(true);
 	}
 }

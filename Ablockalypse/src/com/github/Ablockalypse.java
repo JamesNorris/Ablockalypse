@@ -6,15 +6,17 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Implementation.ZAGameBase;
+import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
 public class Ablockalypse extends JavaPlugin {
-	private static Data d;
+	private static GlobalData d;
 	public static Ablockalypse instance;
 	private static MainThreading mt;
 	private static PluginMaster pm;
@@ -37,17 +39,25 @@ public class Ablockalypse extends JavaPlugin {
 
 	@Override public void onDisable() {
 		External.saveData();
-		if (Data.areas != null)
-			for (GameArea a : Data.areas)
+		if (GlobalData.areas != null)
+			for (GameArea a : GlobalData.areas)
 				a.close();
-		if (Data.gamebarriers != null)
-			for (GameBarrier b : Data.gamebarriers) {
+		if (GlobalData.chests != null)
+			for (MysteryChest mc : GlobalData.chests.values())
+				if (mc.isBlinking())
+					mc.setBlinking(false);
+		if (GlobalData.gamebarriers != null)
+			for (GameBarrier b : GlobalData.gamebarriers) {
 				b.replacePanels();
 				b.getBlinkerThread().cancel();
 			}
-		if (Data.games != null)
-			for (ZAGameBase gb : Data.games.values())
+		if (GlobalData.games != null)
+			for (ZAGameBase gb : GlobalData.games.values()) {
 				gb.pause(true);
+				for (GameMobSpawner gms : gb.getMobSpawners())
+					if (gms.isBlinking())
+						gms.setBlinking(false);
+			}
 	}
 
 	@Override public void onEnable() {
@@ -55,7 +65,7 @@ public class Ablockalypse extends JavaPlugin {
 		External.loadExternalFiles(this);
 		pm = new PluginMaster(this);
 		Update upd = new Update(this);
-		d = new Data(this);
+		d = new GlobalData(this);
 		ConfigurationData cd = External.getYamlManager().getConfigurationData();
 		System.out.println("[Ablockalypse] Checking for updates...");
 		if (!cd.ENABLE_AUTO_UPDATE && upd.updateCheck()) {

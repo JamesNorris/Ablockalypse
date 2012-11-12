@@ -20,7 +20,7 @@ import org.bukkit.potion.PotionEffectType;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.GameObject;
@@ -62,26 +62,14 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	 * @param game The game this player should be in
 	 */
 	public ZAPlayerBase(Player player, ZAGame game) {
-		Data.objects.add(this);
+		GlobalData.objects.add(this);
 		cd = External.ym.getConfigurationData();
 		this.player = player;
 		name = player.getName();
 		this.game = game;
 		point = new HashMap<String, Integer>();
-		Data.players.put(player, this);
+		GlobalData.players.put(player, this);
 		player.setLevel(game.getLevel());
-	}
-	
-	/*
-	 * Checks that the name and suffix are lower than 16 chars.
-	 * Any higher and the name is truncated.
-	 */
-	private void rename(String name, String suffix) {
-		String mod = name;
-		int cutoff = 16 - (suffix.length() + 1);
-        if (name.length() > cutoff)
-            mod = name.substring(0, cutoff);
-        player.setDisplayName(mod + " " + suffix);
 	}
 
 	/**
@@ -119,9 +107,9 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		if (point.containsKey(getName()))
 			point.remove(getName());
 		point.put(getName(), points);
-		if (Data.playerPoints.containsKey(game.getName()))
-			Data.playerPoints.remove(game.getName());
-		Data.playerPoints.put(game.getName(), point);
+		if (GlobalData.playerPoints.containsKey(game.getName()))
+			GlobalData.playerPoints.remove(game.getName());
+		GlobalData.playerPoints.put(game.getName(), point);
 		rename(name, "" + points);
 	}
 
@@ -195,22 +183,21 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		switch (type) {
 			case ATOM_BOMB:
 				game.broadcast(ChatColor.GRAY + "ATOM BOMB!", null);
-				for (ZAMob zam : Data.getZAMobs()) {
+				for (ZAMob zam : GlobalData.getZAMobs())
 					if (zam.getGame() == game) {
-					SoundUtil.generateSound(zam.getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
-					EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
-					zam.kill();
+						SoundUtil.generateSound(zam.getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
+						EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
+						zam.kill();
 					}
-				}
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
-					ZAPlayer zap = Data.findZAPlayer(p, game.getName());
+					ZAPlayer zap = GlobalData.findZAPlayer(p, game.getName());
 					zap.addPoints(cd.atompoints);
 				}
 			break;
 			case BARRIER_FIX:
 				game.broadcast(ChatColor.GRAY + "BARRIERS FIXED!", null);
-				if (Data.gamebarriers.size() >= 1)
+				if (GlobalData.gamebarriers.size() >= 1)
 					for (GameBarrier b : game.getBarriers())
 						b.replacePanels();
 			break;
@@ -230,8 +217,8 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 				game.broadcast(ChatColor.GRAY + "INSTA_KILL!", null);
 				for (String s3 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s3);
-					if (Data.playerExists(p)) {
-						final ZAPlayer zap = Data.getZAPlayer(p);
+					if (GlobalData.playerExists(p)) {
+						final ZAPlayer zap = GlobalData.getZAPlayer(p);
 						zap.setInstaKill(true);
 						Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
 							@Override public void run() {
@@ -287,8 +274,8 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	 */
 	@Override public void loadPlayerToGame(String name) {
 		/* Use an old game to add the player to the game */
-		if (Data.games.containsKey(name)) {
-			ZAGameBase zag = Data.games.get(name);
+		if (GlobalData.games.containsKey(name)) {
+			ZAGameBase zag = GlobalData.games.get(name);
 			GamePlayerJoinEvent GPJE = new GamePlayerJoinEvent(this, zag);
 			Bukkit.getPluginManager().callEvent(GPJE);
 			if (!GPJE.isCancelled()) {
@@ -354,7 +341,19 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		restoreStatus();
 		if (game.getPlayers().contains(player.getName()))
 			game.removePlayer(player);
-		Data.objects.remove(this);
+		GlobalData.objects.remove(this);
+	}
+
+	/*
+	 * Checks that the name and suffix are lower than 16 chars.
+	 * Any higher and the name is truncated.
+	 */
+	private void rename(String name, String suffix) {
+		String mod = name;
+		int cutoff = 16 - (suffix.length() + 1);
+		if (name.length() > cutoff)
+			mod = name.substring(0, cutoff);
+		player.setDisplayName(mod + " " + suffix);
 	}
 
 	/*
@@ -366,7 +365,7 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		if (gm != null) {
 			for (PotionEffect pe : player.getActivePotionEffects()) {
 				PotionEffectType pet = pe.getType();
-			player.removePotionEffect(pet);
+				player.removePotionEffect(pet);
 			}
 			player.setGameMode(gm);
 			player.teleport(before);

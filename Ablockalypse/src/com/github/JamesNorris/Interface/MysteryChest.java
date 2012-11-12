@@ -3,7 +3,7 @@ package com.github.JamesNorris.Interface;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public interface MysteryChest {
+public interface MysteryChest extends GameObject {
 	/**
 	 * Gets the uses that this chest has before the mystery chest moves to another location.
 	 * 
@@ -23,7 +23,14 @@ public interface MysteryChest {
 	 * 
 	 * @return The game that uses this chest
 	 */
-	public ZAGame getGame();
+	@Override public ZAGame getGame();
+
+	/**
+	 * Gets the location that the chest is located at.
+	 * 
+	 * @return The location of the chest
+	 */
+	public Location getLocation();
 
 	/**
 	 * Randomizes the contents of the MysteryChest.
@@ -38,6 +45,13 @@ public interface MysteryChest {
 	public boolean isActive();
 
 	/**
+	 * Checks if the BlinkerThread is running.
+	 * 
+	 * @return Whether or not the BlinkerThread is running
+	 */
+	public boolean isBlinking();
+
+	/**
 	 * Changes whether or not the chest will be active.
 	 * 
 	 * @param tf Whether or not the chest should be active
@@ -50,11 +64,11 @@ public interface MysteryChest {
 	 * @param i The uses before movement
 	 */
 	public void setActiveUses(int i);
-	
+
 	/**
-	 * Gets the location that the chest is located at.
+	 * Sets whether or not the chest should blink.
 	 * 
-	 * @return The location of the chest
+	 * @param tf Whether or not the chest should blink
 	 */
-	public Location getLocation();
+	public void setBlinking(boolean tf);
 }

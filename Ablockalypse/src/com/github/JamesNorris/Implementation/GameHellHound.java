@@ -11,7 +11,7 @@ import org.bukkit.entity.Wolf;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
@@ -36,8 +36,8 @@ public class GameHellHound implements HellHound, GameObject {
 	 */
 	public GameHellHound(Wolf wolf, ZAGame game) {
 		EffectUtil.generateEffect(wolf.getLocation().getWorld(), wolf.getLocation(), ZAEffect.LIGHTNING);
-		Data.objects.add(this);
-		Data.mobs.add(this);
+		GlobalData.objects.add(this);
+		GlobalData.mobs.add(this);
 		this.wolf = wolf;
 		this.game = game;
 		world = wolf.getWorld();
@@ -51,24 +51,30 @@ public class GameHellHound implements HellHound, GameObject {
 			mt = new MobTargettingThread(Ablockalypse.instance, wolf, p);
 		game.setMobCount(game.getMobCount() + 1);
 		setAggressive(true);
-		if (!Data.hellhounds.contains(this))
-			Data.hellhounds.add(this);
+		if (!GlobalData.hellhounds.contains(this))
+			GlobalData.hellhounds.add(this);
 		setSpeed(0.28F);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
 			setSpeed(0.32F);
 		final Wolf finalwolf = wolf;
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			public void run() {
-				if (!getCreature().isDead() && Data.isZAMob(getEntity())) {
+			@Override public void run() {
+				if (!getCreature().isDead() && GlobalData.isZAMob(getEntity())) {
 					Location target = getGame().getRandomLivingPlayer().getLocation();
 					Location strike = getGame().getSpawnManager().findSpawnLocation(target, 5, 3);
 					finalwolf.teleport(strike);
 					EffectUtil.generateEffect(strike.getWorld(), strike, ZAEffect.LIGHTNING);
-				} else {
+				} else
 					cancel();
-				}
 			}
 		}, 200, 200);
+	}
+
+	/**
+	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
+	 */
+	@Override public void addFlames() {
+		EffectUtil.generateEffect(game.getRandomLivingPlayer(), wolf.getLocation(), ZAEffect.FLAMES);
 	}
 
 	/*
@@ -79,19 +85,12 @@ public class GameHellHound implements HellHound, GameObject {
 	}
 
 	/**
-	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
-	 */
-	@Override public void addFlames() {
-		EffectUtil.generateEffect(game.getRandomLivingPlayer(), wolf.getLocation(), ZAEffect.FLAMES);
-	}
-
-	/**
 	 * Clears all data from this instance.
 	 */
 	@Override public void finalize() {
 		if (!subtracted) {
-		game.setMobCount(game.getMobCount() - 1);
-		subtracted = true;
+			game.setMobCount(game.getMobCount() - 1);
+			subtracted = true;
 		}
 	}
 
@@ -187,7 +186,7 @@ public class GameHellHound implements HellHound, GameObject {
 			wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
 			wolf.remove();
 		}
-		Data.objects.remove(this);
+		GlobalData.objects.remove(this);
 		finalize();
 	}
 

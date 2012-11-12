@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
@@ -39,8 +39,8 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (sender instanceof Player) {
 							Player player = (Player) sender;
 							String gameName = args[1];
-							if (Data.gameExists(gameName)) {
-								ZAPlayer zap = Data.findZAPlayer(player, gameName);
+							if (GlobalData.gameExists(gameName)) {
+								ZAPlayer zap = GlobalData.findZAPlayer(player, gameName);
 								zap.loadPlayerToGame(gameName);
 								return true;
 							} else {
@@ -60,14 +60,14 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
-				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + Data.version);
-				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + CommandUtil.implode(Data.authors.toArray(), ", ", " and "));
+				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + GlobalData.version);
+				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + CommandUtil.implode(GlobalData.authors.toArray(), ", ", " and "));
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
 					Player player = (Player) sender;
-					if (Data.players.containsKey(player)) {
-						ZAPlayerBase zap = Data.players.get(player);
+					if (GlobalData.players.containsKey(player)) {
+						ZAPlayerBase zap = GlobalData.players.get(player);
 						ZAGame zag = zap.getGame();
 						GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
 						Bukkit.getPluginManager().callEvent(GPLE);
@@ -88,7 +88,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 			} else if (args[0].equalsIgnoreCase("create")) {
 				if (args.length == 2) {
 					String gameName = args[1];
-					if (!Data.gameExists(gameName)) {
+					if (!GlobalData.gameExists(gameName)) {
 						if (!sender.hasPermission("za.create")) {
 							sender.sendMessage(CommandUtil.noMaintainPerms);
 							return true;
@@ -116,7 +116,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (args.length == 2) {
 							String gameName = args[1];
 							Player player = (Player) sender;
-							PlayerInteract.barrierPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							PlayerInteract.barrierPlayers.put(player.getName(), (ZAGameBase) GlobalData.findGame(gameName));
 							player.sendMessage(ChatColor.GRAY + "Click the center of a 3x3 section of fence to make a barrier.");
 							return true;
 						} else {
@@ -136,9 +136,9 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					Player p = (Player) sender;
 					if (args.length == 2) {
 						String gameName = args[1];
-						if (Data.gameExists(gameName)) {
+						if (GlobalData.gameExists(gameName)) {
 							if (sender.hasPermission("za.create")) {
-								ZAGame zag = Data.findGame(gameName);
+								ZAGame zag = GlobalData.findGame(gameName);
 								zag.setMainframe(p.getLocation());
 								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
 								return true;
@@ -162,8 +162,8 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 				if (sender.hasPermission("za.create")) {
 					if (args.length == 2) {
 						String gameName = args[1];
-						if (Data.gameExists(gameName)) {
-							ZAGame zag = Data.findGame(gameName);
+						if (GlobalData.gameExists(gameName)) {
+							ZAGame zag = GlobalData.findGame(gameName);
 							zag.remove();
 							sender.sendMessage(ChatColor.GRAY + "You have removed the game " + gameName);
 							return true;
@@ -186,7 +186,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (args.length == 2) {
 							String gameName = args[1];
 							Player player = (Player) sender;
-							PlayerInteract.spawnerPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							PlayerInteract.spawnerPlayers.put(player.getName(), (ZAGameBase) GlobalData.findGame(gameName));
 							player.sendMessage(ChatColor.GRAY + "Click a block to create a spawner.");
 							return true;
 						} else {
@@ -207,7 +207,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (args.length == 2) {
 							String gameName = args[1];
 							Player player = (Player) sender;
-							PlayerInteract.areaPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							PlayerInteract.areaPlayers.put(player.getName(), (ZAGameBase) GlobalData.findGame(gameName));
 							player.sendMessage(ChatColor.GRAY + "Click a block to select point 1.");
 							return true;
 						} else {
@@ -228,7 +228,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (args.length == 2) {
 							String gameName = args[1];
 							Player player = (Player) sender;
-							PlayerInteract.chestPlayers.put(player.getName(), (ZAGameBase) Data.findGame(gameName));
+							PlayerInteract.chestPlayers.put(player.getName(), (ZAGameBase) GlobalData.findGame(gameName));
 							player.sendMessage(ChatColor.GRAY + "Click a chest to turn it into a mystery chest.");
 							return true;
 						} else {

@@ -9,7 +9,7 @@ import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Area;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Threading.BlinkerThread;
@@ -33,10 +33,10 @@ public class GameArea implements Area, GameObject {
 	 * @param block The sign directly facing the area door
 	 */
 	public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
-		Data.objects.add(this);
+		GlobalData.objects.add(this);
 		this.zag = zag;
 		opened = false;
-		Data.areas.add(this);
+		GlobalData.areas.add(this);
 		calculateRectangle(loc1, loc2);
 		zag.addArea(this);
 		if (External.getYamlManager().getConfigurationData().blinkers)
@@ -93,6 +93,7 @@ public class GameArea implements Area, GameObject {
 					for (int k = modZ; k <= highZ; k++) {
 						Location l = loc1.getWorld().getBlockAt(i, j, k).getLocation();
 						locs.put(l, l.getBlock().getType());
+						GlobalData.removallocs.put(l, this);
 					}
 			// border
 			// loc1
@@ -225,8 +226,10 @@ public class GameArea implements Area, GameObject {
 	@Override public void remove() {
 		close();
 		setBlinking(false);
-		Data.areas.remove(this);
-		Data.objects.remove(this);
+		GlobalData.areas.remove(this);
+		GlobalData.objects.remove(this);
+		for (Location l : locs.keySet())
+			GlobalData.removallocs.remove(l);
 	}
 
 	/**

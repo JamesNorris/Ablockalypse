@@ -7,7 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 
@@ -25,9 +25,9 @@ public class PlayerJoin implements Listener {
 		String name = p.getName();
 		if (offlinePlayers.containsKey(name)) {
 			String gamename = offlinePlayers.get(name);
-			ZAGame zag = Data.findGame(gamename);
+			ZAGame zag = GlobalData.findGame(gamename);
 			zag.addPlayer(p);
-			ZAPlayer zap = Data.findZAPlayer(p, gamename);
+			ZAPlayer zap = GlobalData.findZAPlayer(p, gamename);
 			if (offlinePlayerPoints != null && offlinePlayerPoints.get(name) != null) {
 				int i = offlinePlayerPoints.get(name);
 				int current = zap.getPoints();

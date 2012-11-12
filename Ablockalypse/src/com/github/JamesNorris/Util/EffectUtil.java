@@ -90,11 +90,11 @@ public class EffectUtil {
 	 * @param l The location to play the effect at
 	 * @param effect The effect to play
 	 */
-	public static void generateEffect(World w, Location l, ZAEffect effect) {
+	public static void generateEffect(final World w, final Location l, ZAEffect effect) {
 		if (cd.extraEffects)
 			switch (effect) {
 				case SMOKE:
-						w.playEffect(l, Effect.SMOKE, 1);
+					w.playEffect(l, Effect.SMOKE, 1);
 				break;
 				case FLAMES:
 					w.playEffect(l, Effect.MOBSPAWNER_FLAMES, 1);

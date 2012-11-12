@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.Square;
 
-public interface Barrier {
+public interface Barrier extends GameObject {
 	/**
 	 * Slowly breaks the blocks of the barrier.
 	 * 
@@ -86,7 +86,7 @@ public interface Barrier {
 	 * 
 	 * @return The game this barrier is attached to
 	 */
-	public ZAGame getGame();
+	@Override public ZAGame getGame();
 
 	/**
 	 * Gets the radius of the barrier as an integer.
@@ -141,7 +141,7 @@ public interface Barrier {
 	/**
 	 * Removes the barrier.
 	 */
-	public void remove();
+	@Override public void remove();
 
 	/**
 	 * Replaces all holes in the barrier.

@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Util.MiscUtil;
 
@@ -20,9 +20,9 @@ public class EntityTarget implements Listener {
 		Entity entity = event.getEntity();
 		if (target instanceof Player) {
 			Player p = (Player) target;
-			if (Data.players.containsKey(p)) {
-				ZAPlayerBase zap = Data.players.get(p);
-				if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !Data.isZAMob(entity))
+			if (GlobalData.players.containsKey(p)) {
+				ZAPlayerBase zap = GlobalData.players.get(p);
+				if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !GlobalData.isZAMob(entity))
 					event.setCancelled(true);
 			}
 		}

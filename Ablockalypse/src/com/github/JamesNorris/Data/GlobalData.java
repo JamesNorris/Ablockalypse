@@ -33,7 +33,7 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.Square;
 
-public class Data {
+public class GlobalData {
 	public static ArrayList<GameArea> areas = new ArrayList<GameArea>();
 	public static List<String> authors;
 	public static HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
@@ -54,6 +54,7 @@ public class Data {
 	public static HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
 	public static HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
 	public static ArrayList<GameObject> objects = new ArrayList<GameObject>();
+	public static HashMap<Location, Object> removallocs = new HashMap<Location, Object>();
 	public static String version;
 
 	/**
@@ -65,8 +66,8 @@ public class Data {
 	 */
 	public static ZAGame findGame(String name) {
 		ZAGameBase zag;
-		if (Data.games.containsKey(name))
-			zag = Data.games.get(name);
+		if (GlobalData.games.containsKey(name))
+			zag = GlobalData.games.get(name);
 		else
 			zag = new ZAGameBase(name, External.ym.getConfigurationData());
 		return zag;
@@ -77,10 +78,10 @@ public class Data {
 	 */
 	public static ZAPlayer findZAPlayer(Player player, String gamename) {
 		ZAPlayerBase zap;
-		if (Data.players.containsKey(player))
-			zap = Data.players.get(player);
-		else if (Data.games.containsKey(gamename))
-			zap = new ZAPlayerBase(player, Data.games.get(gamename));
+		if (GlobalData.players.containsKey(player))
+			zap = GlobalData.players.get(player);
+		else if (GlobalData.games.containsKey(gamename))
+			zap = new ZAPlayerBase(player, GlobalData.games.get(gamename));
 		else
 			zap = new ZAPlayerBase(player, new ZAGameBase(gamename, External.ym.getConfigurationData()));
 		return zap;
@@ -93,7 +94,7 @@ public class Data {
 	 * @return Whether or not the game exists
 	 */
 	public static boolean gameExists(String gamename) {
-		if (Data.games.containsKey(gamename))
+		if (GlobalData.games.containsKey(gamename))
 			return true;
 		return false;
 	}
@@ -105,7 +106,7 @@ public class Data {
 	 * @return The HellHound instance of the entity
 	 */
 	public static HellHound getHellHound(Entity e) {
-		for (HellHound hh : Data.hellhounds)
+		for (HellHound hh : GlobalData.hellhounds)
 			if (hh.getWolf().getEntityId() == e.getEntityId())
 				return hh;
 		return null;
@@ -120,7 +121,7 @@ public class Data {
 	public static MysteryChest getMysteryChest(Location loc) {
 		MysteryChest mc = null;
 		if (chests.containsKey(loc))
-		mc = chests.get(loc);
+			mc = chests.get(loc);
 		return mc;
 	}
 
@@ -154,7 +155,7 @@ public class Data {
 	 * @return The GameUndead instance of the entity
 	 */
 	public static Undead getUndead(Entity e) {
-		for (GameUndead gu : Data.undead)
+		for (GameUndead gu : GlobalData.undead)
 			if (gu.getZombie().getEntityId() == e.getEntityId())
 				return gu;
 		return null;
@@ -168,11 +169,11 @@ public class Data {
 	 */
 	public static ZAMob getZAMob(Entity e) {
 		if (e instanceof Zombie) {
-			for (GameUndead gu : Data.undead)
+			for (GameUndead gu : GlobalData.undead)
 				if (gu.getZombie().getEntityId() == e.getEntityId())
 					return gu;
 		} else if (e instanceof Wolf)
-			for (GameHellHound ghh : Data.hellhounds)
+			for (GameHellHound ghh : GlobalData.hellhounds)
 				if (ghh.getWolf().getEntityId() == e.getEntityId())
 					return ghh;
 		return null;
@@ -194,7 +195,7 @@ public class Data {
 	 * @return The ZAPlayer instance connected to that player
 	 */
 	public static ZAPlayer getZAPlayer(Player p) {
-		for (ZAPlayerBase zap : Data.players.values())
+		for (ZAPlayerBase zap : GlobalData.players.values())
 			if (zap.getName() == p.getName())
 				return zap;
 		return null;
@@ -218,12 +219,12 @@ public class Data {
 	 */
 	public static boolean isZAMob(Entity e) {
 		if (e != null)
-			if ((e instanceof Wolf || e instanceof CraftWolf) && Data.hellhounds != null) {
-				for (GameHellHound gh : Data.hellhounds)
+			if ((e instanceof Wolf || e instanceof CraftWolf) && GlobalData.hellhounds != null) {
+				for (GameHellHound gh : GlobalData.hellhounds)
 					if (gh.getWolf().getEntityId() == e.getEntityId())
 						return true;
-			} else if ((e instanceof Zombie || e instanceof CraftZombie) && Data.undead != null)
-				for (GameUndead gu : Data.undead)
+			} else if ((e instanceof Zombie || e instanceof CraftZombie) && GlobalData.undead != null)
+				for (GameUndead gu : GlobalData.undead)
 					if (gu.getZombie().getEntityId() == e.getEntityId())
 						return true;
 		return false;
@@ -236,7 +237,7 @@ public class Data {
 	 * @return Whether or not the player exists
 	 */
 	public static boolean playerExists(Player player) {
-		if (Data.players.containsKey(player))
+		if (GlobalData.players.containsKey(player))
 			return true;
 		return false;
 	}
@@ -245,7 +246,7 @@ public class Data {
 	 * Refreshes the refreshable data in the Data class.
 	 */
 	public static void refresh() {
-		for (ZAPlayerBase zap : Data.players.values()) {
+		for (ZAPlayerBase zap : GlobalData.players.values()) {
 			String s1 = zap.getGame().getName();
 			String s2 = zap.getName();
 			if (!playergames.containsValue(s2))
@@ -258,11 +259,11 @@ public class Data {
 	 * 
 	 * @param plugin The instance of the Ablockalypse plugin
 	 */
-	public Data(Plugin plugin) {
-		Data.plugin = (Ablockalypse) plugin;
-		Data.authors = plugin.getDescription().getAuthors();
-		Data.description = plugin.getDescription().getDescription();
-		Data.version = plugin.getDescription().getVersion();
+	public GlobalData(Plugin plugin) {
+		GlobalData.plugin = (Ablockalypse) plugin;
+		GlobalData.authors = plugin.getDescription().getAuthors();
+		GlobalData.description = plugin.getDescription().getDescription();
+		GlobalData.version = plugin.getDescription().getVersion();
 	}
 
 	/**

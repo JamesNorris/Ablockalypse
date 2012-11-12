@@ -5,6 +5,7 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Chest;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -27,16 +28,6 @@ public class MiscUtil {
 	private static ItemManager im = new ItemManager();
 
 	/**
-	 * Checks if the entity is a mob accepted by Ablockalypse.
-	 * 
-	 * @param entity The entity to check for
-	 * @return Whether or not the entity is accepted
-	 */
-	public static boolean isAcceptedMob(Entity entity) {
-		return (entity.getType() == EntityType.ZOMBIE || entity.getType() == EntityType.WOLF);
-	}
-	
-	/**
 	 * Drops an item in the direction of the player, then has them pick it up.
 	 * 
 	 * @param from The location to drop from
@@ -56,6 +47,24 @@ public class MiscUtil {
 			}
 		}, 20);
 		return i;
+	}
+
+	public static Location getSecondChest(Location l) {// TODO annotation
+		Square s = new Square(l, 1);
+		for (Location loc : s.getLocations())
+			if (loc.getBlock().getState() instanceof Chest)
+				return loc;
+		return null;
+	}
+
+	/**
+	 * Checks if the entity is a mob accepted by Ablockalypse.
+	 * 
+	 * @param entity The entity to check for
+	 * @return Whether or not the entity is accepted
+	 */
+	public static boolean isAcceptedMob(Entity entity) {
+		return (entity.getType() == EntityType.ZOMBIE || entity.getType() == EntityType.WOLF);
 	}
 
 	/**

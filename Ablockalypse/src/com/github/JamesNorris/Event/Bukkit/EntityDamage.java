@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameUndead;
 import com.github.JamesNorris.Util.Breakable;
 
@@ -18,9 +18,9 @@ public class EntityDamage implements Listener {
 	 */
 	@EventHandler public void EDE(EntityDamageEvent event) {
 		Entity e = event.getEntity();
-		if (e != null && Data.isZAMob(e))
+		if (e != null && GlobalData.isZAMob(e))
 			if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof Zombie) {
-				GameUndead gu = (GameUndead) Data.getUndead(e);
+				GameUndead gu = (GameUndead) GlobalData.getUndead(e);
 				if (gu.isFireproof()) {
 					Breakable.getNMSEntity(e).extinguish();
 					event.setCancelled(true);

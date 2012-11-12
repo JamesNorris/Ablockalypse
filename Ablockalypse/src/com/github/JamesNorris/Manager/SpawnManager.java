@@ -337,23 +337,23 @@ public class SpawnManager {
 		if (External.getYamlManager().getConfigurationData().DEBUG)
 			System.out.println("[Ablockalypse] [DEBUG] Amount of zombies in this wave: (" + game.getName() + ") " + amt);
 		if (game.getRemainingPlayers() >= 1 && game.getMobCount() <= 0)
-			for (int i = 0; i <= amt; i++) {
-				Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance,  new Runnable() {
-					public void run() {
+			for (int i = 0; i <= amt; i++)
+				Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+					@Override public void run() {
 						if (game.getRemainingPlayers() >= 1 && !game.isPaused()) {
-				Player p = game.getRandomLivingPlayer();
-				if (game.getMobSpawners().size() > 0) {
-					ZALocation zaloc = getClosestSpawner(p);
-					game.spawn(zaloc.getBukkitLocation(), true);
-					zaloc.playEffect(ZAEffect.FLAMES);
-				} else if (game.getBarriers().size() > 0)
-					game.spawn(getClosestBarrier(p).getSpawnLocation(), true);
-				else
-					game.spawn(p.getLocation(), false);
+							Player p = game.getRandomLivingPlayer();
+							if (game.getMobSpawners().size() > 0) {
+								ZALocation zaloc = getClosestSpawner(p);
+								game.spawn(zaloc.getBukkitLocation().add(0, 2, 0), true);
+								zaloc.playEffect(ZAEffect.FLAMES);
+								zaloc.getBukkitLocation().subtract(0, 2, 0);
+							} else if (game.getBarriers().size() > 0)
+								game.spawn(getClosestBarrier(p).getSpawnLocation(), true);
+							else
+								game.spawn(p.getLocation(), false);
 						}
 					}
-				}, (i * 20));
-			}
+				}, (i * 40));
 		else
 			game.end();
 	}

@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameBarrier;
 
 public class PlayerToggleSneak implements Listener {
@@ -15,10 +15,10 @@ public class PlayerToggleSneak implements Listener {
 	 */
 	@EventHandler public void PTSE(PlayerToggleSneakEvent event) {
 		Player p = event.getPlayer();
-		if (Data.players.containsKey(p)) {
-			if (Data.players.get(p).isInLastStand())
+		if (GlobalData.players.containsKey(p)) {
+			if (GlobalData.players.get(p).isInLastStand())
 				event.setCancelled(true);
-			for (GameBarrier b : Data.barrierpanels.keySet())
+			for (GameBarrier b : GlobalData.barrierpanels.keySet())
 				if (b.isWithinRadius(p) && b.isBroken()) {
 					b.fixBarrier(p);
 					break;

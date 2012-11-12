@@ -9,7 +9,7 @@ import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.Undead;
@@ -29,8 +29,8 @@ public class GameUndead implements Undead, GameObject {
 	 * @param zombie The zombie to be made into this instance
 	 */
 	public GameUndead(Zombie zombie, ZAGame game) {
-		Data.objects.add(this);
-		Data.mobs.add(this);
+		GlobalData.objects.add(this);
+		GlobalData.mobs.add(this);
 		this.zombie = zombie;
 		this.game = game;
 		fireproof = true;
@@ -43,8 +43,8 @@ public class GameUndead implements Undead, GameObject {
 			mt = new MobTargettingThread(Ablockalypse.instance, zombie, p);
 		zombie.setHealth(10);
 		game.setMobCount(game.getMobCount() + 1);
-		if (!Data.undead.contains(this))
-			Data.undead.add(this);
+		if (!GlobalData.undead.contains(this))
+			GlobalData.undead.add(this);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
 			setSpeed(0.24F);
 	}
@@ -54,8 +54,8 @@ public class GameUndead implements Undead, GameObject {
 	 */
 	@Override public void finalize() {
 		if (!subtracted) {
-		game.setMobCount(game.getMobCount() - 1);
-		subtracted = true;
+			game.setMobCount(game.getMobCount() - 1);
+			subtracted = true;
 		}
 	}
 
@@ -163,7 +163,7 @@ public class GameUndead implements Undead, GameObject {
 	 */
 	@Override public void remove() {
 		kill();
-		Data.objects.remove(this);
+		GlobalData.objects.remove(this);
 	}
 
 	/**

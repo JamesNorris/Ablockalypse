@@ -9,7 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
@@ -30,7 +30,7 @@ public class BlockPlace implements Listener {
 		Block b = event.getBlock();
 		if (b instanceof Sign) {
 			Sign s = (Sign) b;
-			if (Data.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(ld.first)) {
+			if (GlobalData.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(ld.first)) {
 				event.setCancelled(true);
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 				p.sendMessage(ChatColor.RED + "You do not have permissions to place ZA signs!");

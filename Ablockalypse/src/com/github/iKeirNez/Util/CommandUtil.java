@@ -4,7 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 
 public class CommandUtil {
@@ -42,7 +42,7 @@ public class CommandUtil {
 	 * @param s CommandSender
 	 */
 	public static void list(CommandSender s) {
-		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(Data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
+		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(GlobalData.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
 	}
 
 	// Note: Max lines per view is 10

@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -20,18 +19,20 @@ import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Data.PerGameDataStorage;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
+import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMysteryChest;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
+import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
-import com.github.JamesNorris.Implementation.ZALocationBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class External {
 	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
@@ -104,7 +105,7 @@ public class External {
 			ArrayList<PerGameDataStorage> saved_data = External.load(filelocation + gameData);
 			for (PerGameDataStorage pgds : saved_data) {
 				String name = pgds.getName();
-				ZAGame zag = Data.findGame(name);
+				ZAGame zag = GlobalData.findGame(name);
 				zag.setMainframe(pgds.getMainframe());
 				for (String s : pgds.getPlayerPoints().keySet()) {
 					int points = pgds.getPlayerPoints().get(s);
@@ -113,11 +114,11 @@ public class External {
 						zag.addPlayer(p);
 					else
 						PlayerJoin.offlinePlayers.put(s, name);
-					ZAPlayer zap = Data.findZAPlayer(p, name);
+					ZAPlayer zap = GlobalData.findZAPlayer(p, name);
 					zap.addPoints(points);
 				}
 				for (Location l : pgds.getBarrierLocations())
-					new GameBarrier(l.getBlock(), (ZAGameBase) Data.findGame(name));
+					new GameBarrier(l.getBlock(), (ZAGameBase) GlobalData.findGame(name));
 				for (Location l : pgds.getAreaPoints().keySet()) {
 					Location l2 = pgds.getAreaPoints().get(l);
 					GameArea a = new GameArea((ZAGameBase) zag, l, l2);
@@ -126,7 +127,10 @@ public class External {
 				}
 				for (Location l : pgds.getMysteryChestLocations()) {
 					Block b = l.getBlock();
-					zag.addMysteryChest(new GameMysteryChest((Chest) b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));	
+					if (MiscUtil.getSecondChest(b.getLocation()) == null)
+						zag.addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
+					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
+						zag.addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b.getLocation()), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
 				}
 				int level = pgds.getLevel();
 				if (zag.getPlayers().size() > 0)
@@ -134,11 +138,36 @@ public class External {
 				else
 					PlayerJoin.gameLevels.put(name, level);
 				for (Location l : pgds.getMobSpawnerLocations()) {
-					ZALocationBase zaloc = new ZALocationBase(l);
-					Data.spawns.put((ZAGameBase) zag, zaloc);
+					GameMobSpawner zaloc = new GameMobSpawner(l, zag);
 					zag.addMobSpawner(zaloc);
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Runs through all config values and resources to allow for changes to be made to the plugin via external files.
+	 * 
+	 * @param instance The instance of the Ablockalypse plugin to be used in this method
+	 */
+	public static void loadExternalFiles(Plugin instance) {
+		External.instance = (Ablockalypse) instance;
+		try {
+			/* GET THE FILES */
+			/* config.yml */
+			f = new File(instance.getDataFolder(), config);
+			if (!f.exists())
+				instance.saveDefaultConfig();
+			/* game_data.bin */
+			loadResource(gameData);
+			/* local.yml */
+			loadResource(local);
+			/* CREATE DATA AND DATA MANAGERS */
+			ConfigurationData cd = new ConfigurationData(instance);
+			LocalizationData ld = new LocalizationData(l, local);
+			ym = new YamlManager(cd, ld);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -170,32 +199,6 @@ public class External {
 		if (defStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defStream);
 			fc.setDefaults(defConfig);
-		}
-	}
-
-	/**
-	 * Runs through all config values and resources to allow for changes to be made to the plugin via external files.
-	 * 
-	 * @param instance The instance of the Ablockalypse plugin to be used in this method
-	 */
-	public static void loadExternalFiles(Plugin instance) {
-		External.instance = (Ablockalypse) instance;
-		try {
-			/* GET THE FILES */
-			/* config.yml */
-			f = new File(instance.getDataFolder(), config);
-			if (!f.exists())
-				instance.saveDefaultConfig();
-			/* game_data.bin */
-			loadResource(gameData);
-			/* local.yml */
-			loadResource(local);
-			/* CREATE DATA AND DATA MANAGERS */
-			ConfigurationData cd = new ConfigurationData(instance);
-			LocalizationData ld = new LocalizationData(l, local);
-			ym = new YamlManager(cd, ld);
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -235,10 +238,10 @@ public class External {
 	 */
 	public static void saveData() {
 		try {
-			Data.refresh();
+			GlobalData.refresh();
 			/* game_data.bin */
 			ArrayList<PerGameDataStorage> pgds = new ArrayList<PerGameDataStorage>();
-			for (ZAGame zag : Data.games.values())
+			for (ZAGame zag : GlobalData.games.values())
 				pgds.add(new PerGameDataStorage(zag));
 			External.save(pgds, filelocation + gameData);
 		} catch (Exception e) {

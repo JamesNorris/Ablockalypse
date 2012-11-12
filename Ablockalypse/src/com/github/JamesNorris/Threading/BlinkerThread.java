@@ -7,8 +7,10 @@ import org.bukkit.block.Block;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Interface.Area;
 import com.github.JamesNorris.Interface.Barrier;
+import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 
 public class BlinkerThread {
@@ -18,6 +20,8 @@ public class BlinkerThread {
 	private Material type;
 	private Block b;
 	private Barrier barrier;
+	private GameMobSpawner spawner;
+	private MysteryChest chest;
 	private Area area;
 
 	/**
@@ -37,6 +41,10 @@ public class BlinkerThread {
 			area = (Area) type;
 		else if (type instanceof GameBarrier)
 			barrier = (Barrier) type;
+		else if (type instanceof GameMobSpawner)
+			spawner = (GameMobSpawner) type;
+		else if (type instanceof MysteryChest)
+			chest = (MysteryChest) type;
 		colored = false;
 		id = -1;
 		if (autorun)
@@ -51,10 +59,18 @@ public class BlinkerThread {
 			running = true;
 			id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 				@Override public void run() {
-					if (barrier != null && (barrier.getGame().hasStarted() && barrier.getGame().isPaused()))
+					if (barrier != null && (barrier.getGame().hasStarted() && !barrier.getGame().isPaused())) {
+						b.setType(Material.FENCE);
 						cancel();
-					if (area != null && (area.getGame().hasStarted() && area.getGame().isPaused()))
+					}
+					if (area != null && (area.getGame().hasStarted() && !area.getGame().isPaused()))
 						cancel();
+					if (spawner != null && (spawner.getGame().hasStarted() && !spawner.getGame().isPaused()))
+						cancel();
+					if (chest != null && (chest.getGame().hasStarted() && !chest.getGame().isPaused())) {
+						b.setType(Material.CHEST);
+						cancel();
+					}
 					if (colored) {
 						b.setType(type);
 						colored = false;

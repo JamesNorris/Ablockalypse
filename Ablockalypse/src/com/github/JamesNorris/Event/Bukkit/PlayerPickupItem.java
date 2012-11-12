@@ -4,7 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 
 public class PlayerPickupItem implements Listener {
 	/*
@@ -12,7 +12,7 @@ public class PlayerPickupItem implements Listener {
 	 * Used mainly for disabling pickups for players in games.
 	 */
 	@EventHandler public void PPIE(PlayerPickupItemEvent event) {
-		if (Data.players.containsKey(event.getPlayer()))
+		if (GlobalData.players.containsKey(event.getPlayer()))
 			event.setCancelled(true);
 	}
 }

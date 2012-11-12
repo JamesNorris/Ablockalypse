@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
@@ -23,17 +22,17 @@ import org.bukkit.material.Door;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMysteryChest;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Implementation.GameWallSign;
+import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
-import com.github.JamesNorris.Implementation.ZALocationBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.MysteryChest;
-import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
@@ -67,56 +66,60 @@ public class PlayerInteract implements Listener {
 		Player p = event.getPlayer();
 		Action a = event.getAction();
 		if (b != null)
-			if ((!Data.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) && a == Action.RIGHT_CLICK_BLOCK) {
+			if ((!GlobalData.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) && a == Action.RIGHT_CLICK_BLOCK) {
 				new GameBarrier(b, barrierPlayers.get(p.getName()));
 				p.sendMessage(ChatColor.GRAY + "Barrier created successfully!");
 				barrierPlayers.remove(p.getName());
-			} else if ((!Data.playerExists(p) && spawnerPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
-				spawnerPlayers.get(p.getName()).addMobSpawner(new ZALocationBase(b.getLocation()));
+			} else if ((!GlobalData.playerExists(p) && spawnerPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
+				spawnerPlayers.get(p.getName()).addMobSpawner(new GameMobSpawner(b.getLocation(), spawnerPlayers.get(p.getName())));
 				p.sendMessage(ChatColor.GRAY + "Spawner created successfully!");
 				spawnerPlayers.remove(p.getName());
-			} else if ((!Data.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
+			} else if ((!GlobalData.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
 				event.setUseInteractedBlock(Result.DENY);
 				ZAGameBase zag = chestPlayers.get(p.getName());
-				if (!Data.isMysteryChest(b.getLocation())) {
-				chestPlayers.get(p.getName()).addMysteryChest(new GameMysteryChest((Chest) b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
-				p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
-				} else {
+				if (!GlobalData.isMysteryChest(b.getLocation())) {
+					if (MiscUtil.getSecondChest(b.getLocation()) == null)
+						chestPlayers.get(p.getName()).addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
+					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
+						chestPlayers.get(p.getName()).addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b.getLocation()), zag.getActiveMysteryChest() == null));
+					p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
+				} else
 					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
-				}
 				chestPlayers.remove(p.getName());
-			} else if (!Data.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+			} else if (!GlobalData.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
 				String type = "null";
-				boolean worked = false;;
-				for (GameArea ga : Data.areas)
-					if (ga.getBlocks().contains(b)) {
-						ga.remove();
-						worked = true;
-						type = "area";
-						break;
+				boolean worked = false;
+				for (Location loc : GlobalData.removallocs.keySet())
+					if (loc.getBlock() == b) {
+						Object o = GlobalData.removallocs.get(loc);
+						if (o instanceof GameArea) {
+							GameArea ga = (GameArea) o;
+							type = "area";
+							worked = true;
+							ga.remove();
+						} else if (o instanceof GameBarrier) {
+							GameBarrier gb = (GameBarrier) o;
+							type = "barrier";
+							worked = true;
+							gb.remove();
+						} else if (o instanceof MysteryChest) {
+							MysteryChest gmc = (MysteryChest) o;
+							type = "mystery chest";
+							worked = true;
+							gmc.remove();
+						} else if (o instanceof GameMobSpawner) {
+							GameMobSpawner zal = (GameMobSpawner) o;
+							type = "spawner";
+							worked = true;
+							zal.remove();
+						}
 					}
-				for (GameBarrier gb : Data.barrierpanels.keySet())
-					if (gb.getBlocks().contains(b)) {
-						gb.remove();
-						worked = true;
-						type = "barrier";
-						break;
-					}
-				for (ZAGameBase zag : Data.spawns.keySet()) {
-					ZALocation loc = Data.spawns.get(zag);
-					if (loc.getBukkitBlock() == b) {
-						loc.remove();
-						worked = true;
-						type = "spawner";
-						break;
-					}
-				}
 				if (worked)
 					p.sendMessage(ChatColor.GRAY + "This " + type + " has been successfully removed!");
 				else
 					p.sendMessage(ChatColor.RED + "Removal unsuccessful");
 				removers.remove(p.getName());
-			} else if ((!Data.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
+			} else if ((!GlobalData.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
 				if (!locClickers.containsKey(p.getName())) {
 					locClickers.put(p.getName(), b.getLocation());
 					p.sendMessage(ChatColor.GRAY + "Click another block to select point 2.");
@@ -139,9 +142,9 @@ public class PlayerInteract implements Listener {
 					return;
 				}
 				return;
-			} else if (Data.players.containsKey(p)) {
+			} else if (GlobalData.players.containsKey(p)) {
 				event.setUseInteractedBlock(Result.DENY);
-				ZAPlayerBase zap = Data.players.get(p);
+				ZAPlayerBase zap = GlobalData.players.get(p);
 				if (b.getType() == Material.ENDER_PORTAL_FRAME && a == Action.RIGHT_CLICK_BLOCK) {
 					if (!zap.isTeleporting()) {
 						p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
@@ -153,23 +156,23 @@ public class PlayerInteract implements Listener {
 					}
 				} else if (b.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
 					Location l = b.getLocation();
-					if (Data.isMysteryChest(l)) {
-					MysteryChest mc = Data.getMysteryChest(l);
-					if (mc != null && mc.isActive()) {
-					if (zap.getPoints() >= cd.mccost) {
-						mc.giveRandomItem(p);
-						zap.subtractPoints(cd.mccost);
-						return;
-					} else {
-						p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cd.mccost + " points to buy this.");
-						event.setCancelled(true);
-						return;
-					}
-					}else {
-						p.sendMessage(ChatColor.RED + "That chest is not active!");
-						event.setCancelled(true);
-						return;
-					}
+					if (GlobalData.isMysteryChest(l)) {
+						MysteryChest mc = GlobalData.getMysteryChest(l);
+						if (mc != null && mc.isActive()) {
+							if (zap.getPoints() >= cd.mccost) {
+								mc.giveRandomItem(p);
+								zap.subtractPoints(cd.mccost);
+								return;
+							} else {
+								p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cd.mccost + " points to buy this.");
+								event.setCancelled(true);
+								return;
+							}
+						} else {
+							p.sendMessage(ChatColor.RED + "That chest is not active!");
+							event.setCancelled(true);
+							return;
+						}
 					}
 				} else if (b instanceof Door)
 					event.setCancelled(true);

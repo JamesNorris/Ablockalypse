@@ -14,7 +14,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -35,8 +35,8 @@ public class EntityDamageByEntity implements Listener {
 		Entity damager = event.getDamager();
 		Entity e = event.getEntity();
 		int evtdmg = event.getDamage();
-		if (Data.isZAMob(e)) {
-			ZAMob zam = Data.getZAMob(e);
+		if (GlobalData.isZAMob(e)) {
+			ZAMob zam = GlobalData.getZAMob(e);
 			if (damager instanceof Fireball) {
 				Fireball f = (Fireball) damager;
 				if (instakillids.contains(f.getUniqueId()))
@@ -59,8 +59,8 @@ public class EntityDamageByEntity implements Listener {
 				}
 			} else if (damager instanceof Player) {
 				Player p = (Player) damager;
-				if (Data.playerExists(p)) {
-					ZAPlayer zap = Data.getZAPlayer(p);
+				if (GlobalData.playerExists(p)) {
+					ZAPlayer zap = GlobalData.getZAPlayer(p);
 					if (zap.hasInstaKill())
 						event.setDamage(zam.getCreature().getHealth() * 5);
 					else {
@@ -70,15 +70,15 @@ public class EntityDamageByEntity implements Listener {
 						event.setDamage(dmg);
 					}
 				}
-			} else if (Data.isZAMob(damager) && damager instanceof Wolf)
+			} else if (GlobalData.isZAMob(damager) && damager instanceof Wolf)
 				event.setDamage(evtdmg / 3);
 		} else if (e instanceof Player) {
 			Player p = (Player) e;
-			if (Data.players.containsKey(p)) {
-				ZAPlayerBase zap = Data.players.get(p);
+			if (GlobalData.players.containsKey(p)) {
+				ZAPlayerBase zap = GlobalData.players.get(p);
 				if (damager instanceof Player) {
 					Player p2 = (Player) damager;
-					if (Data.playerExists(p2)) {
+					if (GlobalData.playerExists(p2)) {
 						if (zap.isInLastStand())
 							zap.toggleLastStand();
 						else
@@ -92,7 +92,7 @@ public class EntityDamageByEntity implements Listener {
 					event.setCancelled(true);
 				if (damager instanceof Fireball)
 					event.setCancelled(true);
-				else if (Data.isZAMob(damager) && damager instanceof Wolf)
+				else if (GlobalData.isZAMob(damager) && damager instanceof Wolf)
 					event.setDamage(evtdmg * 3);
 			}
 		}

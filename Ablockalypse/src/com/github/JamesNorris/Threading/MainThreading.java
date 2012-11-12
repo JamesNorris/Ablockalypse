@@ -10,7 +10,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
@@ -45,11 +45,11 @@ public class MainThreading {
 	public void barrier() {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				for (GameBarrier bg : Data.barrierpanels.keySet()) {
-					for (GameUndead gu : Data.undead)
+				for (GameBarrier bg : GlobalData.barrierpanels.keySet()) {
+					for (GameUndead gu : GlobalData.undead)
 						if (bg.isWithinRadius(gu.getEntity()) && !bg.isBroken())
 							bg.breakBarrier(gu.getZombie());
-					for (GameHellHound ghh : Data.hellhounds)
+					for (GameHellHound ghh : GlobalData.hellhounds)
 						if (bg.isWithinRadius(ghh.getEntity()) && !bg.isBroken())
 							bg.breakBarrier(ghh.getWolf());
 				}
@@ -95,9 +95,9 @@ public class MainThreading {
 		if (cd.clearmobs)
 			id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 				@Override public void run() {
-					for (Player p : Data.players.keySet())
+					for (Player p : GlobalData.players.keySet())
 						for (Entity e : p.getNearbyEntities(32, 32, 32))
-							if (e != null && (e.getType() == EntityType.SLIME || !Data.isZAMob(e)) && !(e instanceof Player))
+							if (e != null && (e.getType() == EntityType.SLIME || !GlobalData.isZAMob(e)) && !(e instanceof Player))
 								e.remove();
 				}
 			}, 60, 60);
@@ -109,8 +109,8 @@ public class MainThreading {
 	public void wolfFlames() {
 		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				if (Data.hellhounds != null)
-					for (GameHellHound f : Data.hellhounds)
+				if (GlobalData.hellhounds != null)
+					for (GameHellHound f : GlobalData.hellhounds)
 						if (!f.getWolf().isDead())
 							f.addFlames();
 			}

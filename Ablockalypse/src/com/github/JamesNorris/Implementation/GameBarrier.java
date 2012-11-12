@@ -17,7 +17,7 @@ import org.bukkit.entity.Player;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -51,8 +51,9 @@ public class GameBarrier implements Barrier, GameObject {
 	 * @param center The center of the barrier
 	 */
 	public GameBarrier(Block center, ZAGameBase game) {
-		Data.objects.add(this);
+		GlobalData.objects.add(this);
 		this.center = center.getLocation();
+		GlobalData.removallocs.put(this.center, this);
 		this.game = game;
 		radius = 2;
 		fixtimes = fixtimesoriginal;
@@ -79,17 +80,17 @@ public class GameBarrier implements Barrier, GameObject {
 		/* end finding spawnloc */
 		game.addBarrier(this);
 		Location l = center.getLocation();
-		if (!Data.barriers.containsKey(l))
-			Data.barriers.put(center.getLocation(), game.getName());
-		if (!Data.gamebarriers.contains(this))
-			Data.gamebarriers.add(this);
+		if (!GlobalData.barriers.containsKey(l))
+			GlobalData.barriers.put(center.getLocation(), game.getName());
+		if (!GlobalData.gamebarriers.contains(this))
+			GlobalData.gamebarriers.add(this);
 		Square s = new Square(center.getLocation(), 1);
 		for (Location loc : s.getLocations()) {
 			Block b = loc.getBlock();
 			if (b != null && !b.isEmpty() && b.getType() != null && b.getType() == Material.FENCE) {
 				blocks.add(b);
-				if (!Data.barrierpanels.containsValue(loc))
-					Data.barrierpanels.put(this, loc);
+				if (!GlobalData.barrierpanels.containsValue(loc))
+					GlobalData.barrierpanels.put(this, loc);
 				++blockamt;
 			}
 		}
@@ -198,8 +199,8 @@ public class GameBarrier implements Barrier, GameObject {
 	@Override public void fixBarrier(final LivingEntity e) {
 		if (e instanceof Player)
 			p = (Player) e;
-		if (Data.playerExists(p)) {
-			final ZAPlayer zap = Data.getZAPlayer(p);
+		if (GlobalData.playerExists(p)) {
+			final ZAPlayer zap = GlobalData.getZAPlayer(p);
 			id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 				@Override public void run() {
 					if (p != null && !p.isSneaking())
@@ -352,9 +353,10 @@ public class GameBarrier implements Barrier, GameObject {
 		if (isBlinking())
 			setBlinking(false);
 		game.removeBarrier(this);
-		Data.barriers.remove(center);
-		Data.barrierpanels.remove(this);
-		Data.objects.remove(this);
+		GlobalData.barriers.remove(center);
+		GlobalData.barrierpanels.remove(this);
+		GlobalData.objects.remove(this);
+		GlobalData.removallocs.remove(center);
 	}
 
 	/**

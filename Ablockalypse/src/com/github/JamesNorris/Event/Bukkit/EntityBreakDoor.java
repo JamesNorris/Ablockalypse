@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameUndead;
 
 public class EntityBreakDoor implements Listener {
@@ -14,7 +14,7 @@ public class EntityBreakDoor implements Listener {
 		LivingEntity e = event.getEntity();
 		if (e instanceof Zombie) {
 			Zombie z = (Zombie) e;
-			for (GameUndead gz : Data.undead)
+			for (GameUndead gz : GlobalData.undead)
 				if (gz.getZombie() == z)
 					event.setCancelled(true);
 		}

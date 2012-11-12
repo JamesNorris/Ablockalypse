@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GameSignClickEvent;
@@ -45,7 +45,7 @@ public class GameWallSign implements WallSign {
 	 */
 	public GameWallSign(Sign sign, YamlManager ym) {
 		this.sign = sign;
-		this.im = new ItemManager();
+		im = new ItemManager();
 		ld = ym.getLocalizationData();
 		cd = ym.getConfigurationData();
 		this.ym = ym;
@@ -66,7 +66,7 @@ public class GameWallSign implements WallSign {
 		int distance = Integer.MAX_VALUE;
 		Location loc = b.getLocation();
 		GameArea lp = null;
-		for (GameArea a : Data.areas)
+		for (GameArea a : GlobalData.areas)
 			if (a.getGame() == zag) {
 				Location l = a.getPoint(1);
 				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
@@ -139,12 +139,12 @@ public class GameWallSign implements WallSign {
 			Bukkit.getPluginManager().callEvent(gsce);
 			if (!gsce.isCancelled())
 				/* Attempts to add the player to a game if the second line has the join string */
-				if (l2.equalsIgnoreCase(ld.joingame) && !Data.players.containsKey(player)) {
-					if (player.hasPermission("za.create") && !Data.games.containsKey(l3)) {
+				if (l2.equalsIgnoreCase(ld.joingame) && !GlobalData.players.containsKey(player)) {
+					if (player.hasPermission("za.create") && !GlobalData.games.containsKey(l3)) {
 						setupPlayerWithGame(l3, player);
 						player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
 						return;
-					} else if (Data.games.containsKey(l3)) {
+					} else if (GlobalData.games.containsKey(l3)) {
 						setupPlayerWithGame(l3, player);
 						EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 						return;
@@ -153,8 +153,8 @@ public class GameWallSign implements WallSign {
 						return;
 					}
 					/* Otherwise, checks for enough points, then attempts to purchase something for the player */
-				} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap != null && Data.players != null && Data.players.containsKey(player)) {
-					ZAPlayerBase zap = Data.players.get(player);
+				} else if (!l2.equalsIgnoreCase(ld.joingame) && l3 != null && ym.levelmap != null && GlobalData.players != null && GlobalData.players.containsKey(player)) {
+					ZAPlayerBase zap = GlobalData.players.get(player);
 					int n = zap.getPoints();
 					if (ym.levelmap.get(l3) == null || player.getLevel() >= ym.levelmap.get(l3)) {
 						/* PERKS */
@@ -257,10 +257,10 @@ public class GameWallSign implements WallSign {
 	 * Checks for the game and player to create a new game instance and player instance.
 	 */
 	private void setupPlayerWithGame(String name, Player player) {
-		ZAGame zag = Data.findGame(l3);
+		ZAGame zag = GlobalData.findGame(l3);
 		if (zag.getMainframe() == null)
 			zag.setMainframe(player.getLocation());
-		ZAPlayer zap = Data.findZAPlayer(player, l3);
+		ZAPlayer zap = GlobalData.findZAPlayer(player, l3);
 		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
 		Bukkit.getServer().getPluginManager().callEvent(gce);
 		if (!gce.isCancelled())

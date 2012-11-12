@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Threading.RespawnThread;
 
 public class PlayerRespawn implements Listener {
@@ -15,7 +15,7 @@ public class PlayerRespawn implements Listener {
 	 */
 	@EventHandler public void PRE(PlayerRespawnEvent event) {
 		Player p = event.getPlayer();
-		if (Data.players.containsKey(p))
+		if (GlobalData.players.containsKey(p))
 			new RespawnThread(p, 5, true);
 	}
 }

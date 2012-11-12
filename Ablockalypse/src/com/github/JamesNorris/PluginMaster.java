@@ -5,7 +5,7 @@ import java.io.File;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
@@ -16,7 +16,7 @@ import com.github.JamesNorris.Threading.MainThreading;
 public class PluginMaster {
 	private String ablockalypse = "Ablockalypse";
 	private String address = "http://api.bukget.org/api2/bukkit/plugin/" + ablockalypse + "/latest";
-	private Data d;
+	private GlobalData d;
 	private Ablockalypse instance;
 	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private MainThreading mt;
@@ -35,7 +35,7 @@ public class PluginMaster {
 	/*
 	 * Adds the 2 main types of data to this manager.
 	 */
-	public void addData(Data d, MainThreading mt) {
+	public void addData(GlobalData d, MainThreading mt) {
 		this.d = d;
 		this.mt = mt;
 	}
@@ -58,7 +58,7 @@ public class PluginMaster {
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(getIssuesURL());
 		System.err.println("--------------------------[ERROR REPORT]--------------------------");
-		System.err.println("VERSION: " + Data.version);
+		System.err.println("VERSION: " + GlobalData.version);
 		System.err.println("BREAK REASON: " + reason);
 		System.err.println("---------------------------[END REPORT]---------------------------");
 		if (!disable)
@@ -74,7 +74,7 @@ public class PluginMaster {
 	 * 
 	 * @return The primary Data instance
 	 */
-	public Data getData() {
+	public GlobalData getData() {
 		return d;
 	}
 

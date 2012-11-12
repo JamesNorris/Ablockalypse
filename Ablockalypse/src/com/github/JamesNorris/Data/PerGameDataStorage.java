@@ -16,30 +16,30 @@ import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.SerializableLocation;
 
-public class PerGameDataStorage implements Serializable {//TODO annotations
+public class PerGameDataStorage implements Serializable {// TODO annotations
 	private static final long serialVersionUID = 7825383085566172198L;
 	private final String name;
 	private SerializableLocation activechest = null;
 	private final SerializableLocation mainframe;
 	private final ArrayList<SerializableLocation> chests = new ArrayList<SerializableLocation>();
-	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>(); 
+	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> spawns = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> openedareas = new ArrayList<SerializableLocation>();
 	private final int level;
 	private final HashMap<String, Integer> points = new HashMap<String, Integer>();
 	private final HashMap<SerializableLocation, SerializableLocation> areapoints = new HashMap<SerializableLocation, SerializableLocation>();
-	
+
 	public PerGameDataStorage(ZAGame game) {
 		name = game.getName();
 		if (game.getActiveMysteryChest() != null)
-		activechest = new SerializableLocation(game.getActiveMysteryChest().getLocation());
+			activechest = new SerializableLocation(game.getActiveMysteryChest().getLocation());
 		for (MysteryChest mc : game.getMysteryChests())
 			chests.add(new SerializableLocation(mc.getLocation()));
 		mainframe = new SerializableLocation(game.getMainframe());
 		level = game.getLevel();
 		for (String s : game.getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			ZAPlayer zap = Data.getZAPlayer(p);
+			ZAPlayer zap = GlobalData.getZAPlayer(p);
 			points.put(zap.getName(), zap.getPoints());
 		}
 		for (GameBarrier gb : game.getBarriers())
@@ -53,55 +53,13 @@ public class PerGameDataStorage implements Serializable {//TODO annotations
 		for (ZALocation l : game.getMobSpawners())
 			spawns.add(new SerializableLocation(l.getBukkitLocation()));
 	}
-	
-	public String getName() {
-		return name;
-	}
-	
+
 	public Location getActiveChest() {
-		return SerializableLocation.returnLocation(activechest);
+		if (activechest != null)
+			return SerializableLocation.returnLocation(activechest);
+		return null;
 	}
-	
-	public Location getMainframe() {
-		return SerializableLocation.returnLocation(mainframe);
-	}
-	
-	public int getLevel() {
-		return level;
-	}
-	
-	public ArrayList<Location> getMysteryChestLocations() {
-		ArrayList<Location> save = new ArrayList<Location>();
-		for (SerializableLocation sl : chests)
-			save.add(SerializableLocation.returnLocation(sl));
-		return save;
-	}
-	
-	public ArrayList<Location> getBarrierLocations() {
-		ArrayList<Location> save = new ArrayList<Location>();
-		for (SerializableLocation sl : barriers)
-			save.add(SerializableLocation.returnLocation(sl));
-		return save;
-	}
-	
-	public ArrayList<Location> getMobSpawnerLocations() {
-		ArrayList<Location> save = new ArrayList<Location>();
-		for (SerializableLocation sl : spawns)
-			save.add(SerializableLocation.returnLocation(sl));
-		return save;
-	}
-	
-	public ArrayList<String> getPlayers() {
-		ArrayList<String> save = new ArrayList<String>();
-		for (String s : points.keySet())
-			save.add(s);
-		return save;
-	}
-	
-	public HashMap<String, Integer> getPlayerPoints() {
-		return points;
-	}
-	
+
 	public HashMap<Location, Location> getAreaPoints() {
 		HashMap<Location, Location> save = new HashMap<Location, Location>();
 		for (SerializableLocation sl : areapoints.keySet()) {
@@ -112,7 +70,51 @@ public class PerGameDataStorage implements Serializable {//TODO annotations
 		}
 		return save;
 	}
-	
+
+	public ArrayList<Location> getBarrierLocations() {
+		ArrayList<Location> save = new ArrayList<Location>();
+		for (SerializableLocation sl : barriers)
+			save.add(SerializableLocation.returnLocation(sl));
+		return save;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public Location getMainframe() {
+		return SerializableLocation.returnLocation(mainframe);
+	}
+
+	public ArrayList<Location> getMobSpawnerLocations() {
+		ArrayList<Location> save = new ArrayList<Location>();
+		for (SerializableLocation sl : spawns)
+			save.add(SerializableLocation.returnLocation(sl));
+		return save;
+	}
+
+	public ArrayList<Location> getMysteryChestLocations() {
+		ArrayList<Location> save = new ArrayList<Location>();
+		for (SerializableLocation sl : chests)
+			save.add(SerializableLocation.returnLocation(sl));
+		return save;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public HashMap<String, Integer> getPlayerPoints() {
+		return points;
+	}
+
+	public ArrayList<String> getPlayers() {
+		ArrayList<String> save = new ArrayList<String>();
+		for (String s : points.keySet())
+			save.add(s);
+		return save;
+	}
+
 	public boolean isAreaOpen(Location loc1) {
 		for (SerializableLocation sl : openedareas) {
 			Location l = SerializableLocation.returnLocation(sl);

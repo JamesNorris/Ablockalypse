@@ -12,7 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Event.GameEndEvent;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -33,8 +33,8 @@ public class ZAGameBase implements ZAGame {
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
 	private ArrayList<GameBarrier> barriers = new ArrayList<GameBarrier>();
 	private ArrayList<GameArea> areas = new ArrayList<GameArea>();
-	private ArrayList<ZALocation> spawners = new ArrayList<ZALocation>();
-	private ArrayList<GameMysteryChest> chests = new ArrayList<GameMysteryChest>();
+	private ArrayList<GameMobSpawner> spawners = new ArrayList<GameMobSpawner>();
+	private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
 	private Random rand;
 	private Location mainframe;
 	private SpawnManager spawnManager;
@@ -55,7 +55,7 @@ public class ZAGameBase implements ZAGame {
 		rand = new Random();
 		paused = false;
 		started = false;
-		Data.games.put(name, this);
+		GlobalData.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
@@ -78,9 +78,9 @@ public class ZAGameBase implements ZAGame {
 	 * 
 	 * @param l The location to put the spawner at
 	 */
-	@Override public void addMobSpawner(ZALocation l) {
+	@Override public void addMobSpawner(GameMobSpawner l) {
 		spawners.add(l);
-		Data.spawns.put(this, l);
+		GlobalData.spawns.put(this, l);
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class ZAGameBase implements ZAGame {
 	 * 
 	 * @param mc The chest to add to the game
 	 */
-	@Override public void addMysteryChest(GameMysteryChest mc) {
+	@Override public void addMysteryChest(MysteryChest mc) {
 		chests.add(mc);
 	}
 
@@ -99,7 +99,7 @@ public class ZAGameBase implements ZAGame {
 	 * @param player The player to be added to the game
 	 */
 	@Override public void addPlayer(Player player) {
-		if (!Data.players.containsKey(player)) {
+		if (!GlobalData.players.containsKey(player)) {
 			ZAPlayerBase zap = new ZAPlayerBase(player, this);
 			zap.loadPlayerToGame(name);
 			zap.addPoints(cd.startpoints);
@@ -135,7 +135,7 @@ public class ZAGameBase implements ZAGame {
 			Player p = Bukkit.getPlayer(s);
 			for (String s2 : getPlayers()) {
 				Player p2 = Bukkit.getPlayer(s2);
-				ZAPlayer zap = Data.getZAPlayer(p2);
+				ZAPlayer zap = GlobalData.getZAPlayer(p2);
 				p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
 			}
 		}
@@ -157,15 +157,15 @@ public class ZAGameBase implements ZAGame {
 				mobcount = 0;
 				if (nlt != null && nlt.isRunning())
 					nlt.cancel();
-				for (GameUndead gu : Data.undead)
+				for (GameUndead gu : GlobalData.undead)
 					if (gu.getGame() == this)
 						gu.kill();
-				for (GameHellHound ghh : Data.hellhounds)
+				for (GameHellHound ghh : GlobalData.hellhounds)
 					if (ghh.getGame() == this)
 						ghh.kill();
 				for (String name : getPlayers()) {
 					Player player = Bukkit.getServer().getPlayer(name);
-					ZAPlayerBase zap = Data.players.get(player);
+					ZAPlayerBase zap = GlobalData.players.get(player);
 					player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
 					SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 					removePlayer(player);
@@ -178,8 +178,10 @@ public class ZAGameBase implements ZAGame {
 					ga.close();
 					ga.setBlinking(true);
 				}
-				for (MysteryChest mc : chests)
+				for (MysteryChest mc : chests) {
 					mc.setActive(false);
+					mc.setBlinking(false);
+				}
 				for (ZALocation zal : spawners)
 					zal.setBlinking(true);
 			}
@@ -254,7 +256,7 @@ public class ZAGameBase implements ZAGame {
 	 * 
 	 * @return The spawn locations as an arraylist for this game
 	 */
-	@Override public ArrayList<ZALocation> getMobSpawners() {
+	@Override public ArrayList<GameMobSpawner> getMobSpawners() {
 		return spawners;
 	}
 
@@ -263,7 +265,7 @@ public class ZAGameBase implements ZAGame {
 	 * 
 	 * @return The chests in this game
 	 */
-	@Override public ArrayList<GameMysteryChest> getMysteryChests() {
+	@Override public ArrayList<MysteryChest> getMysteryChests() {
 		return chests;
 	}
 
@@ -316,7 +318,7 @@ public class ZAGameBase implements ZAGame {
 			ArrayList<ZAPlayerBase> zaps = new ArrayList<ZAPlayerBase>();
 			for (String s : getPlayers()) {
 				Player p = Bukkit.getServer().getPlayer(s);
-				ZAPlayerBase zap = (ZAPlayerBase) Data.getZAPlayer(p);
+				ZAPlayerBase zap = (ZAPlayerBase) GlobalData.getZAPlayer(p);
 				if (!p.isDead() && !zap.isInLastStand() && !zap.isInLimbo())
 					zaps.add(zap);
 			}
@@ -351,7 +353,7 @@ public class ZAGameBase implements ZAGame {
 		int i = 0;
 		for (String s : getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			if (!p.isDead() && !Data.players.get(p).isInLimbo() && !Data.players.get(p).isInLastStand())
+			if (!p.isDead() && !GlobalData.players.get(p).isInLimbo() && !GlobalData.players.get(p).isInLastStand())
 				++i;
 		}
 		return i;
@@ -407,14 +409,14 @@ public class ZAGameBase implements ZAGame {
 				setActiveMysteryChest(mc);
 			}
 		}
-		if (Data.gameLevels.containsKey(getName()))
-			Data.gameLevels.remove(getName());
-		Data.gameLevels.put(getName(), level);
+		if (GlobalData.gameLevels.containsKey(getName()))
+			GlobalData.gameLevels.remove(getName());
+		GlobalData.gameLevels.put(getName(), level);
 		for (GameBarrier gb : barriers)
 			gb.setBlinking(false);
 		for (GameArea ga : areas)
 			ga.setBlinking(false);
-		for (ZAMob zam : Data.getZAMobs())
+		for (ZAMob zam : GlobalData.getZAMobs())
 			if (zam.getGame() == this)
 				zam.kill();
 		for (ZALocation zal : spawners)
@@ -457,7 +459,9 @@ public class ZAGameBase implements ZAGame {
 			ga.setBlinking(false);
 		for (ZALocation zal : spawners)
 			zal.setBlinking(false);
-		Data.games.remove(name);
+		for (MysteryChest mc : chests)
+			mc.setBlinking(false);
+		GlobalData.games.remove(name);
 	}
 
 	/**
@@ -477,8 +481,12 @@ public class ZAGameBase implements ZAGame {
 	/**
 	 * Removes a mob spawner from this game.
 	 */
-	@Override public void removeMobSpawner(ZALocation l) {
+	@Override public void removeMobSpawner(GameMobSpawner l) {
 		spawners.remove(l);
+	}
+
+	@Override public void removeMysteryChest(MysteryChest mc) {
+		chests.remove(mc);
 	}
 
 	/**
@@ -489,11 +497,11 @@ public class ZAGameBase implements ZAGame {
 	@Override public void removePlayer(Player player) {
 		if (players.containsKey(player.getName()))
 			players.remove(player.getName());
-		ZAPlayer zap = Data.getZAPlayer(player);
+		ZAPlayer zap = GlobalData.getZAPlayer(player);
 		if (zap != null) {
 			zap.removeFromGame();
-			Data.players.get(player).removeFromGame();
-			Data.players.remove(player);
+			GlobalData.players.get(player).removeFromGame();
+			GlobalData.players.remove(player);
 			if (players.size() == 0) {
 				pause(true);
 				end();
@@ -508,13 +516,13 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void setActiveMysteryChest(MysteryChest mc) {
 		if (cd.movingchests) {
-		active = mc;
-		for (MysteryChest chest : chests)
-			chest.setActive(false);
-		if (!mc.isActive()) {
-			mc.setActive(true);
-			mc.setActiveUses(rand.nextInt(8) + 2);
-		}
+			active = mc;
+			for (MysteryChest chest : chests)
+				chest.setActive(false);
+			if (!mc.isActive()) {
+				mc.setActive(true);
+				mc.setActiveUses(rand.nextInt(8) + 2);
+			}
 		}
 	}
 
@@ -533,13 +541,13 @@ public class ZAGameBase implements ZAGame {
 	 * @param location The location to be made into the spawn
 	 */
 	@Override public void setMainframe(Location location) {
-		if (!Data.mainframes.containsValue(location)) {
+		if (!GlobalData.mainframes.containsValue(location)) {
 			mainframe = location;
-			Data.mainframes.put(getName(), location);
+			GlobalData.mainframes.put(getName(), location);
 		} else {
-			Data.mainframes.remove(location);
+			GlobalData.mainframes.remove(location);
 			mainframe = location;
-			Data.mainframes.put(getName(), location);
+			GlobalData.mainframes.put(getName(), location);
 		}
 		if (spawnManager == null || spawnManager.getWorld() != location.getWorld())
 			spawnManager = new SpawnManager(this, location.getWorld());

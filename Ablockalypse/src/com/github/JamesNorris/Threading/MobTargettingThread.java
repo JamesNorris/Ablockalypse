@@ -10,21 +10,20 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public class MobTargettingThread {
 	private final Plugin plugin;
 	private Player p;
 	private Creature c;
 	private Location location;
-	private int id;
+	private int id, wait = 0;
 	private boolean hasTarget = false;
 	private float speed = 0.18F;
 	private float radius = 16.0F;
+	private ZAMob zam;
 
 	/**
 	 * Creates a new mobtargetter, that can target specific locations.
@@ -36,6 +35,10 @@ public class MobTargettingThread {
 	public MobTargettingThread(Plugin plugin, Creature c, Location loc) {
 		this.plugin = plugin;
 		this.c = c;
+		if (GlobalData.isZAMob(c))
+			zam = (ZAMob) (c);
+		else
+			zam = null;
 		location = loc;
 		setTarget(loc);
 	}
@@ -50,6 +53,10 @@ public class MobTargettingThread {
 	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
 		this.plugin = plugin;
 		this.c = c;
+		if (GlobalData.isZAMob(c))
+			zam = (ZAMob) (c);
+		else
+			zam = null;
 		this.p = p;
 		setTarget(p);
 	}
@@ -60,6 +67,27 @@ public class MobTargettingThread {
 	protected void cancel() {
 		hasTarget = false;
 		plugin.getServer().getScheduler().cancelTask(id);
+	}
+
+	/*
+	 * Finds a local checkpoint towards the target.
+	 */
+	private void checkpoint(Location loc) {// TODO test
+		Location l = c.getLocation();
+		int X = l.getBlockX();
+		int Z = l.getBlockZ();
+		double modX = 0;
+		double modZ = 0;
+		if (X < loc.getBlockX())
+			modX = speed;
+		else
+			modX = -speed;
+		if (Z < loc.getBlockZ())
+			modZ = speed;
+		else
+			modZ = -speed;
+		EntityCreature mob = ((CraftCreature) c).getHandle();
+		mob.setPosition(l.getX() + modX, l.getY(), l.getZ() + modZ);
 	}
 
 	/**
@@ -81,25 +109,22 @@ public class MobTargettingThread {
 	}
 
 	/*
-	 * Finds a local checkpoint towards the target.
+	 * Moves the mob towards the target.
 	 */
-	private Location checkpoint(Location loc) {// TODO test
-		Location l = c.getLocation();
-		double X = l.getX();
-		double Z = l.getZ();
-		double modX = 0;
-		double modZ = 0;
-		if (X < loc.getX())
-			modX = X + 5;
-		else
-			modX = X - 5;
-		if (Z < loc.getZ())
-			modZ = Z + 5;
-		else
-			modZ = Z - 5;
-		Location target = l.add(modX, 0, modZ);
-		EffectUtil.generateEffect(l.getWorld(), target, ZAEffect.FLAMES);//TODO remove on beta - Meant to test the target of the mob
-		return target;
+	private void moveMob(Location loc) {
+		if (p != null || location != null) {
+			EntityCreature mob = ((CraftCreature) c).getHandle();
+			PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
+			mob.setPathEntity(path);
+			mob.getNavigation().a(path, speed);
+		}
+		if (GlobalData.barriers.containsKey(location) && location.getBlock().isEmpty() && GlobalData.isZAMob(c)) {
+			ZAMob zam = GlobalData.getZAMob(c);
+			if (zam.getGame().getRandomLivingPlayer() != null)
+				zam.setTargetPlayer(zam.getGame().getRandomLivingPlayer());
+		}
+		if (p != null && !GlobalData.players.containsKey(p))
+			cancel();
 	}
 
 	/*
@@ -107,8 +132,8 @@ public class MobTargettingThread {
 	 */
 	private Location refreshTarget() {
 		Location loc = null;
-		if (p != null && p.isDead() && Data.playerExists(p)) {
-			ZAPlayer zap = Data.getZAPlayer(p);
+		if (p != null && p.isDead() && GlobalData.playerExists(p)) {
+			ZAPlayer zap = GlobalData.getZAPlayer(p);
 			p = zap.getGame().getRandomLivingPlayer();
 		}
 		if (p != null)
@@ -119,22 +144,27 @@ public class MobTargettingThread {
 	}
 
 	/*
-	 * Moves the mob towards the target.
+	 * Checks if the distance to target is too great to go directly there.
 	 */
-	private void moveMob(Location loc) {
-		if (p != null || location != null) {
-			EntityCreature mob = ((CraftCreature) c).getHandle();
-			PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
-			mob.setPathEntity(path);
-			mob.getNavigation().a(path, speed);
+	private boolean requiresCheckpoint(Location loc, Location target) {
+		int highX = loc.getBlockX(), highY = loc.getBlockY(), highZ = loc.getBlockZ();
+		int lowX = target.getBlockX(), lowY = target.getBlockY(), lowZ = target.getBlockZ();
+		if (loc.getBlockX() < target.getBlockX()) {
+			lowX = loc.getBlockX();
+			highX = target.getBlockX();
 		}
-		if (Data.barriers.containsKey(location) && location.getBlock().isEmpty() && Data.isZAMob(c)) {
-			ZAMob zam = Data.getZAMob(c);
-			if (zam.getGame().getRandomLivingPlayer() != null)
-				zam.setTargetPlayer(zam.getGame().getRandomLivingPlayer());
+		if (loc.getBlockY() < target.getBlockY()) {
+			lowY = loc.getBlockY();
+			highY = target.getBlockY();
 		}
-		if (p != null && !Data.players.containsKey(p))
-			cancel();
+		if (loc.getBlockZ() < target.getBlockZ()) {
+			lowZ = loc.getBlockZ();
+			highZ = target.getBlockZ();
+		}
+		int Xdif = highX - lowX;
+		int Ydif = highY - lowY;
+		int Zdif = highZ - lowZ;
+		return (Xdif > 15 || Ydif > 15 || Zdif > 15);
 	}
 
 	/**
@@ -179,12 +209,21 @@ public class MobTargettingThread {
 				if (!c.isDead() && (p == null || !p.isDead())) {
 					Location target = refreshTarget();
 					Location loc = c.getLocation();
-					double Xdif = Math.abs(loc.getX() - target.getX());
-					double Ydif = Math.abs(loc.getY() - target.getY());
-					double Zdif = Math.abs(loc.getY() - target.getY());
-					if (Xdif > 15 || Ydif > 15 || Zdif > 15)
-						target = checkpoint(target);
-					moveMob(target);
+					if (requiresCheckpoint(loc, target))
+						checkpoint(target);
+					else
+						moveMob(target);
+					Location newloc = c.getLocation();
+					if (zam != null && p != null) {
+						if ((newloc.getBlockX() == loc.getBlockX()) && (newloc.getBlockZ() == loc.getBlockZ()))
+							++wait;
+						else
+							wait = 0;
+						if (wait >= 80) {
+							wait = 0;
+							setTarget(zam.getGame().getSpawnManager().getClosestBarrier(p).getCenter());
+						}
+					}
 				} else
 					cancel();
 			}

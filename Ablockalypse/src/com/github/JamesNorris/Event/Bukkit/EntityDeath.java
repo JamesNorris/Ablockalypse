@@ -8,7 +8,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Util.MiscUtil;
 
@@ -26,12 +26,12 @@ public class EntityDeath implements Listener {
 	@EventHandler public void EDE(EntityDeathEvent event) {
 		Entity e = event.getEntity();
 		Player p = event.getEntity().getKiller();
-		if (Data.isZAMob(e)) {
+		if (GlobalData.isZAMob(e)) {
 			event.getDrops().clear();
 			event.setDroppedExp(0);
-			Data.getZAMob(e).kill();
-			if (Data.players.containsKey(p)) {
-				ZAPlayerBase zap = Data.players.get(p);
+			GlobalData.getZAMob(e).kill();
+			if (GlobalData.players.containsKey(p)) {
+				ZAPlayerBase zap = GlobalData.players.get(p);
 				zap.addPoints(cd.pointincrease);
 				int food = p.getFoodLevel();
 				if (food < 20)

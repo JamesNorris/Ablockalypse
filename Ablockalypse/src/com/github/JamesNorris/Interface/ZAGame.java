@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMysteryChest;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Manager.SpawnManager;
 
 public interface ZAGame {
@@ -17,9 +17,9 @@ public interface ZAGame {
 
 	public void addBarrier(GameBarrier gb);
 
-	public void addMobSpawner(ZALocation l);
+	public void addMobSpawner(GameMobSpawner l);
 
-	public void addMysteryChest(GameMysteryChest mc);
+	public void addMysteryChest(MysteryChest mc);
 
 	public void addPlayer(Player player);
 
@@ -43,9 +43,9 @@ public interface ZAGame {
 
 	public ArrayList<ZAMob> getMobs();
 
-	public ArrayList<ZALocation> getMobSpawners();
+	public ArrayList<GameMobSpawner> getMobSpawners();
 
-	public ArrayList<GameMysteryChest> getMysteryChests();
+	public ArrayList<MysteryChest> getMysteryChests();
 
 	public String getName();
 
@@ -79,7 +79,9 @@ public interface ZAGame {
 
 	public void removeBarrier(GameBarrier gb);
 
-	public void removeMobSpawner(ZALocation l);
+	public void removeMobSpawner(GameMobSpawner l);
+
+	public void removeMysteryChest(MysteryChest mc);
 
 	public void removePlayer(Player player);
 

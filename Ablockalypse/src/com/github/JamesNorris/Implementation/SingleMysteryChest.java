@@ -7,7 +7,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
-import org.bukkit.block.DoubleChest;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
@@ -15,18 +14,20 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.ItemManager;
+import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Util.Enumerated.ZAColor;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 import com.github.JamesNorris.Util.Enumerated.ZASound;
+import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class GameMysteryChest implements MysteryChest, GameObject {
+public class SingleMysteryChest implements MysteryChest, GameObject {
 	private ConfigurationData cd;
 	private Object chest;
 	private Random rand;
@@ -37,23 +38,29 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 	private ZAGame game;
 	private ArrayList<ItemStack> its = new ArrayList<ItemStack>();
 	private ItemManager im;
+	private BlinkerThread bt;
 
 	/**
 	 * Creates a new instance of the MysteryChest.
 	 * 
 	 * @param chest The chest to be made into this instance
 	 */
-	public GameMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
-		Data.objects.add(this);
-		Data.chests.put(loc, this);
+	public SingleMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
+		GlobalData.objects.add(this);
+		GlobalData.chests.put(loc, this);
+		GlobalData.removallocs.put(loc, this);
 		this.chest = chest;
-		this.im = new ItemManager();
+		im = new ItemManager();
 		rand = new Random();
 		this.game = game;
+		game.addMysteryChest(this);
 		this.loc = loc;
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
 		cd = External.getYamlManager().getConfigurationData();
+		bt = new BlinkerThread(loc.getBlock(), ZAColor.BLUE, false, 60, this);
+		if (cd.blinkers)
+			bt.blink();
 	}
 
 	/**
@@ -72,9 +79,7 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 	 */
 	@Override public Object getChest() {
 		if (chest instanceof Chest)
-		return (Chest) chest;
-		else if (chest instanceof DoubleChest)
-			return (DoubleChest) chest;
+			return chest;
 		return null;
 	}
 
@@ -85,6 +90,15 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 	 */
 	@Override public ZAGame getGame() {
 		return game;
+	}
+
+	/**
+	 * Gets the location that the chest is located at.
+	 * 
+	 * @return The location of the chest
+	 */
+	@Override public Location getLocation() {
+		return loc;
 	}
 
 	/**
@@ -124,12 +138,11 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 			}
 			p.updateInventory();
-			if (uses == 0) {
+			if (uses == 0)
 				if (cd.movingchests) {
-				setActive(false);
-				game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
+					setActive(false);
+					game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 				}
-			}
 		} else
 			p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
 	}
@@ -144,12 +157,24 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 	}
 
 	/**
+	 * Checks if the BlinkerThread is running.
+	 * 
+	 * @return Whether or not the BlinkerThread is running
+	 */
+	@Override public boolean isBlinking() {
+		return bt.isRunning();
+	}
+
+	/**
 	 * Removes the mystery chest completely.
 	 */
 	@Override public void remove() {
 		setActive(false);
-		Data.objects.remove(this);
-		Data.chests.remove(loc);
+		game.removeMysteryChest(this);
+		GlobalData.objects.remove(this);
+		GlobalData.chests.remove(loc);
+		GlobalData.removallocs.remove(loc);
+		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 	}
 
 	/**
@@ -161,11 +186,9 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 		if (tf) {
 			if (uses == 0)
 				uses = rand.nextInt(8) + 2;
-//			if (cd.beacons)//TODO beacons
-			if (chest instanceof DoubleChest)
-			EffectUtil.generateEffect(((DoubleChest) chest).getWorld(), ((DoubleChest) chest).getLocation(), ZAEffect.BEACON);
-			else if (chest instanceof Chest)
-			EffectUtil.generateEffect(((Chest) chest).getWorld(), ((Chest) chest).getLocation(), ZAEffect.BEACON);
+			// if (cd.beacons)//TODO beacons
+			if (chest instanceof Chest)
+				EffectUtil.generateEffect(((Chest) chest).getWorld(), ((Chest) chest).getLocation(), ZAEffect.BEACON);
 		}
 		active = tf;
 	}
@@ -178,13 +201,11 @@ public class GameMysteryChest implements MysteryChest, GameObject {
 	@Override public void setActiveUses(int i) {
 		uses = i;
 	}
-	
-	/**
-	 * Gets the location that the chest is located at.
-	 * 
-	 * @return The location of the chest
-	 */
-	public Location getLocation() {
-		return loc;
+
+	@Override public void setBlinking(boolean tf) {
+		if (bt.isRunning())
+			bt.cancel();
+		if (tf)
+			bt.blink();
 	}
 }

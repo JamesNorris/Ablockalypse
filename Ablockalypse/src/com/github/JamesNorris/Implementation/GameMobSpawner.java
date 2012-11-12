@@ -6,7 +6,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -15,18 +15,20 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class ZALocationBase implements ZALocation {// TODO annotations
+public class GameMobSpawner implements ZALocation {// TODO annotations
 	private Location loc;
 	private Block block;
 	private World world;
 	private double X, Y, Z;
 	private int x, y, z;
-	private boolean spawner, blinkers;
+	private boolean blinkers;
 	private ZAGame game;
 	private BlinkerThread bt;
 
-	public ZALocationBase(Location loc) {
+	public GameMobSpawner(Location loc, ZAGame game) {
 		this.loc = loc;
+		this.game = game;
+		GlobalData.removallocs.put(loc, this);
 		block = loc.getBlock();
 		world = loc.getWorld();
 		X = loc.getX();
@@ -35,9 +37,11 @@ public class ZALocationBase implements ZALocation {// TODO annotations
 		x = loc.getBlockX();
 		y = loc.getBlockY();
 		z = loc.getBlockZ();
-		spawner = false;
 		blinkers = External.getYamlManager().getConfigurationData().blinkers;
 		bt = new BlinkerThread(block, ZAColor.BLUE, false, 60, this);
+		game.addMobSpawner(this);
+		if (blinkers)
+			bt.blink();
 	}
 
 	@Override public ZALocation add(double x, double y, double z) {
@@ -69,6 +73,10 @@ public class ZALocationBase implements ZALocation {// TODO annotations
 		return loc;
 	}
 
+	public ZAGame getGame() {
+		return game;
+	}
+
 	@Override public double getX() {
 		return X;
 	}
@@ -90,10 +98,6 @@ public class ZALocationBase implements ZALocation {// TODO annotations
 		return bt.isRunning();
 	}
 
-	@Override public boolean isSpawner() {
-		return spawner;
-	}
-
 	@Override public void playEffect(ZAEffect effect) {
 		EffectUtil.generateEffect(world, loc, effect);
 	}
@@ -101,11 +105,10 @@ public class ZALocationBase implements ZALocation {// TODO annotations
 	@Override public void remove() {
 		if (isBlinking())
 			setBlinking(false);
-		for (ZAGameBase zag : Data.spawns.keySet()) {
-			ZALocation loc = Data.spawns.get(zag);
-			if (loc == this && loc.isSpawner())
-				zag.removeMobSpawner(loc);
-		}
+		game.removeMobSpawner(this);
+		if (blinkers)
+			bt.cancel();
+		GlobalData.removallocs.remove(loc);
 	}
 
 	/**
@@ -123,23 +126,8 @@ public class ZALocationBase implements ZALocation {// TODO annotations
 		block.setType(m);
 	}
 
-	@Override public void setSpawner(boolean tf, ZAGame game) {
-		if (tf) {
-			game.addMobSpawner(this);
-			if (blinkers)
-				bt.blink();
-			spawner = true;
-		} else {
-			game.removeMobSpawner(this);
-			if (blinkers)
-			bt.cancel();
-			spawner = false;
-		}
-	}
-
 	@Override public void spawn(ZAMob mob) {
-		if (spawner)
-			game.getSpawnManager().spawn(loc, true);
+		game.getSpawnManager().spawn(loc, true);
 	}
 
 	@Override public ZALocation subtract(double x, double y, double z) {

@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 
 public class BlockBreak implements Listener {
 	/*
@@ -14,7 +14,7 @@ public class BlockBreak implements Listener {
 	 */
 	@EventHandler public void BBE(BlockBreakEvent event) {
 		Player p = event.getPlayer();
-		if (Data.playerExists(p))
+		if (GlobalData.playerExists(p))
 			event.setCancelled(true);
 	}
 }

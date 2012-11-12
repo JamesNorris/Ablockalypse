@@ -6,7 +6,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerKickEvent;
 
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -18,8 +18,8 @@ public class PlayerKick implements Listener {
 	 */
 	@EventHandler public void PKE(PlayerKickEvent event) {
 		Player p = event.getPlayer();
-		if (Data.playerExists(p)) {
-			ZAPlayer zap = Data.getZAPlayer(p);
+		if (GlobalData.playerExists(p)) {
+			ZAPlayer zap = GlobalData.getZAPlayer(p);
 			ZAGame zag = zap.getGame();
 			GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
 			Bukkit.getPluginManager().callEvent(GPLE);

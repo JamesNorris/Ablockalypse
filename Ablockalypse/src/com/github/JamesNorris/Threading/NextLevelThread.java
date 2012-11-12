@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.Data;
+import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.Enumerated.ZASound;
@@ -58,13 +58,13 @@ public class NextLevelThread {
 			@Override public void run() {
 				if (game.isPaused())
 					cancel();
-				if (Data.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && !game.isPaused()) {
+				if (GlobalData.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && !game.isPaused()) {
 					--counter;
 					if (!played) {
 						played = true;
 						if (game.getLevel() != 0) {
 							for (String s : game.getPlayers()) {
-								ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
+								ZAPlayer zap = GlobalData.findZAPlayer(Bukkit.getPlayer(s), game.getName());
 								SoundUtil.generateSound(zap.getPlayer(), ZASound.PREV_LEVEL);
 								Player p = zap.getPlayer();
 								p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + game.getLevel() + ChatColor.RESET + ChatColor.BOLD + " over... Next level: " + ChatColor.RED + (game.getLevel() + 1));
@@ -78,7 +78,7 @@ public class NextLevelThread {
 							game.setWolfRound(false);
 						game.nextLevel();
 						for (String s : game.getPlayers()) {
-							ZAPlayer zap = Data.findZAPlayer(Bukkit.getPlayer(s), game.getName());
+							ZAPlayer zap = GlobalData.findZAPlayer(Bukkit.getPlayer(s), game.getName());
 							SoundUtil.generateSound(zap.getPlayer(), ZASound.NEXT_LEVEL);
 						}
 						cancel();

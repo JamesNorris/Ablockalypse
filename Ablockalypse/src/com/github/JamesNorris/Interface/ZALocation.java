@@ -30,8 +30,6 @@ public interface ZALocation {
 
 	boolean isBlinking();
 
-	public boolean isSpawner();
-
 	public void playEffect(ZAEffect effect);
 
 	public void remove();
@@ -39,8 +37,6 @@ public interface ZALocation {
 	void setBlinking(boolean tf);
 
 	public void setBlock(Material m);
-
-	public void setSpawner(boolean tf, ZAGame game);
 
 	public void spawn(ZAMob mob);
 

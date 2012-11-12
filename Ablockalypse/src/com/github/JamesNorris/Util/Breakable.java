@@ -24,6 +24,48 @@ import com.github.JamesNorris.Data.ByteData;
  * The class for all breakable methods and code.
  */
 public class Breakable {
+	public class ItemNameManager {// TODO annotations
+		private final ItemStack itemStack;
+
+		public ItemNameManager(ItemStack itemStack) {
+			this.itemStack = itemStack;
+			CraftItemStack is = ((CraftItemStack) this.itemStack);
+			NBTTagCompound tag = is.getHandle().getTag();
+			if (tag == null)
+				is.getHandle().setTag(new NBTTagCompound());
+		}
+
+		private void addDisplay() {
+			((CraftItemStack) itemStack).getHandle().getTag().setCompound("display", new NBTTagCompound());
+		}
+
+		private NBTTagCompound getDisplay() {
+			return ((CraftItemStack) itemStack).getHandle().getTag().getCompound("display");
+		}
+
+		public String getName() {
+			if (hasDisplay() == false)
+				return null;
+			String name = getDisplay().getString("Name");
+			if (name.equals(""))
+				return null;
+			return name;
+		}
+
+		private boolean hasDisplay() {
+			return ((CraftItemStack) itemStack).getHandle().getTag().hasKey("display");
+		}
+
+		public void setName(String name) {
+			if (hasDisplay() == false)
+				this.addDisplay();
+			NBTTagCompound display = this.getDisplay();
+			if (name == null)
+				display.remove("Name");
+			display.setString("Name", name);
+		}
+	}
+
 	/**
 	 * Gets the Entity from the NMS code for the specified entity.
 	 * 
@@ -80,52 +122,5 @@ public class Breakable {
 		}
 		if (tf)
 			player.teleport(player.getLocation().subtract(0, .5, 0));
-	}
-
-	public class ItemNameManager {//TODO annotations
-		private final ItemStack itemStack;
-
-		public ItemNameManager(ItemStack itemStack) {
-			this.itemStack = itemStack;
-			CraftItemStack is = ((CraftItemStack) this.itemStack);
-			NBTTagCompound tag = is.getHandle().getTag();
-			if (tag == null) {
-				is.getHandle().setTag(new NBTTagCompound());
-			}
-		}
-
-		private boolean hasDisplay() {
-			return ((CraftItemStack) this.itemStack).getHandle().getTag().hasKey("display");
-		}
-
-		private NBTTagCompound getDisplay() {
-			return ((CraftItemStack) this.itemStack).getHandle().getTag().getCompound("display");
-		}
-
-		private void addDisplay() {
-			((CraftItemStack) this.itemStack).getHandle().getTag().setCompound("display", new NBTTagCompound());
-		}
-
-		public String getName() {
-			if (hasDisplay() == false) {
-				return null;
-			}
-			String name = getDisplay().getString("Name");
-			if (name.equals("")) {
-				return null;
-			}
-			return name;
-		}
-
-		public void setName(String name) {
-			if (hasDisplay() == false) {
-				this.addDisplay();
-			}
-			NBTTagCompound display = this.getDisplay();
-			if (name == null) {
-				display.remove("Name");
-			}
-			display.setString("Name", name);
-		}
 	}
 }
