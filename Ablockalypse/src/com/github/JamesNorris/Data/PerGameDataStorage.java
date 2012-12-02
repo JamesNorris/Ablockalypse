@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
@@ -19,14 +20,13 @@ import com.github.JamesNorris.Util.SerializableLocation;
 public class PerGameDataStorage implements Serializable {// TODO annotations
 	private static final long serialVersionUID = 7825383085566172198L;
 	private final String name;
-	private SerializableLocation activechest = null;
-	private final SerializableLocation mainframe;
+	private SerializableLocation activechest = null, mainframe = null;
 	private final ArrayList<SerializableLocation> chests = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> spawns = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> openedareas = new ArrayList<SerializableLocation>();
 	private final int level;
-	private final HashMap<String, Integer> points = new HashMap<String, Integer>();
+	private final ArrayList<PerPlayerDataStorage> playerStorage = new ArrayList<PerPlayerDataStorage>();
 	private final HashMap<SerializableLocation, SerializableLocation> areapoints = new HashMap<SerializableLocation, SerializableLocation>();
 
 	public PerGameDataStorage(ZAGame game) {
@@ -35,20 +35,26 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 			activechest = new SerializableLocation(game.getActiveMysteryChest().getLocation());
 		for (MysteryChest mc : game.getMysteryChests())
 			chests.add(new SerializableLocation(mc.getLocation()));
-		mainframe = new SerializableLocation(game.getMainframe());
+		Location mf = game.getMainframe();
+		if (mf != null)
+			mainframe = new SerializableLocation(mf);
 		level = game.getLevel();
 		for (String s : game.getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
 			ZAPlayer zap = GlobalData.getZAPlayer(p);
-			points.put(zap.getName(), zap.getPoints());
+			playerStorage.add(new PerPlayerDataStorage((ZAPlayerBase) zap));
 		}
 		for (GameBarrier gb : game.getBarriers())
 			barriers.add(new SerializableLocation(gb.getCenter()));
 		for (GameArea ga : game.getAreas()) {
-			SerializableLocation point1 = new SerializableLocation(ga.getPoint(1));
-			areapoints.put(point1, new SerializableLocation(ga.getPoint(2)));
-			if (ga.isOpened())
-				openedareas.add(point1);
+			Location pt1 = ga.getPoint(1);
+			Location pt2 = ga.getPoint(2);
+			if (pt1 != null && pt2 != null) {
+				SerializableLocation point1 = new SerializableLocation(pt1);
+				areapoints.put(point1, new SerializableLocation(pt2));
+				if (ga.isOpened())
+					openedareas.add(point1);
+			}
 		}
 		for (ZALocation l : game.getMobSpawners())
 			spawns.add(new SerializableLocation(l.getBukkitLocation()));
@@ -104,15 +110,8 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 		return name;
 	}
 
-	public HashMap<String, Integer> getPlayerPoints() {
-		return points;
-	}
-
-	public ArrayList<String> getPlayers() {
-		ArrayList<String> save = new ArrayList<String>();
-		for (String s : points.keySet())
-			save.add(s);
-		return save;
+	public ArrayList<PerPlayerDataStorage> getPlayerData() {
+		return playerStorage;
 	}
 
 	public boolean isAreaOpen(Location loc1) {

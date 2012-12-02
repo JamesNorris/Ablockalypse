@@ -2,6 +2,7 @@ package com.github.JamesNorris.Threading;
 
 import net.minecraft.server.EntityCreature;
 import net.minecraft.server.PathEntity;
+import net.minecraft.server.PathPoint;
 
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftCreature;
@@ -21,8 +22,9 @@ public class MobTargettingThread {
 	private Location location;
 	private int id, wait = 0;
 	private boolean hasTarget = false;
-	private float speed = 0.18F;
-	private float radius = 16.0F;
+	private float speed = 0.18F;// The default speed of the mob
+	private float radius = 16.0F;// the radius of the path (if set above 16, will cause weird behavior)
+	private int standStill = 5;// time in seconds before the mob should rethink the path (if it is standing still)
 	private ZAMob zam;
 
 	/**
@@ -200,6 +202,18 @@ public class MobTargettingThread {
 	}
 
 	/*
+	 * Checks if all pathpoints to the player are clear.
+	 */
+	private boolean pathIsClear(PathEntity pe) {// TODO test
+		for (int i = 0; i < 16; i++) {
+			PathPoint pt = pe.a(i);
+			if (pt != null && !c.getWorld().getBlockAt(pt.a, pt.b, pt.c).isEmpty())
+				return false;
+		}
+		return true;
+	}
+
+	/*
 	 * Begins the targetting thread.
 	 */
 	private void target() {
@@ -213,13 +227,14 @@ public class MobTargettingThread {
 						checkpoint(target);
 					else
 						moveMob(target);
+					PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
 					Location newloc = c.getLocation();
 					if (zam != null && p != null) {
-						if ((newloc.getBlockX() == loc.getBlockX()) && (newloc.getBlockZ() == loc.getBlockZ()))
+						if (((newloc.getBlockX() == loc.getBlockX()) && (newloc.getBlockZ() == loc.getBlockZ())) || (pe != null && !pathIsClear(pe)))
 							++wait;
 						else
 							wait = 0;
-						if (wait >= 80) {
+						if (wait >= (standStill * 20)) {
 							wait = 0;
 							setTarget(zam.getGame().getSpawnManager().getClosestBarrier(p).getCenter());
 						}

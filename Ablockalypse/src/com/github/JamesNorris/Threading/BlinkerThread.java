@@ -1,50 +1,46 @@
 package com.github.JamesNorris.Threading;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Implementation.GameArea;
-import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMobSpawner;
-import com.github.JamesNorris.Interface.Area;
-import com.github.JamesNorris.Interface.Barrier;
-import com.github.JamesNorris.Interface.MysteryChest;
+import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Implementation.ZAGameBase;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 
 public class BlinkerThread {
 	private int id, delay;
 	private ZAColor color;
 	private boolean colored, running;
-	private Material type;
-	private Block b;
-	private Barrier barrier;
-	private GameMobSpawner spawner;
-	private MysteryChest chest;
-	private Area area;
+	private HashMap<Block, Byte> blockdata = new HashMap<Block, Byte>();
+	private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
+	private ZAGameBase game = null;
+	private Object type;
 
 	/**
 	 * Creates a new thread that makes a block blink a colored wool.
 	 * 
-	 * @param b The block to flicker
+	 * @param b The blocks to flicker
 	 * @param color The color to blink
 	 * @param autorun Whether or not to automatically run the thread
 	 * @param delay The delay between blinks
 	 */
-	public BlinkerThread(Block b, ZAColor color, final boolean autorun, int delay, Object type) {
-		this.b = b;
+	public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, int delay, Object type) {
+		GlobalData.blinkers.add(this);
+		for (Block b : blocks) {
+			this.blocks.put(b, b.getType());
+			this.blockdata.put(b, b.getData());
+		}
 		this.delay = delay;
-		this.type = b.getType();
 		this.color = color;
-		if (type instanceof GameArea)
-			area = (Area) type;
-		else if (type instanceof GameBarrier)
-			barrier = (Barrier) type;
-		else if (type instanceof GameMobSpawner)
-			spawner = (GameMobSpawner) type;
-		else if (type instanceof MysteryChest)
-			chest = (MysteryChest) type;
+		this.type = type;
+		if (type instanceof GameObject)
+			game = (ZAGameBase) ((GameObject) type).getGame();
 		colored = false;
 		id = -1;
 		if (autorun)
@@ -59,40 +55,57 @@ public class BlinkerThread {
 			running = true;
 			id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 				@Override public void run() {
-					if (barrier != null && (barrier.getGame().hasStarted() && !barrier.getGame().isPaused())) {
-						b.setType(Material.FENCE);
+					if (game != null && (game.hasStarted() && !game.isPaused()))
 						cancel();
-					}
-					if (area != null && (area.getGame().hasStarted() && !area.getGame().isPaused()))
-						cancel();
-					if (spawner != null && (spawner.getGame().hasStarted() && !spawner.getGame().isPaused()))
-						cancel();
-					if (chest != null && (chest.getGame().hasStarted() && !chest.getGame().isPaused())) {
-						b.setType(Material.CHEST);
-						cancel();
-					}
-					if (colored) {
-						b.setType(type);
-						colored = false;
-					} else {
-						b.setType(Material.WOOL);
-						switch (color) {
-							case RED:
-								b.setData((byte) 14);
-							break;
-							case BLUE:
-								b.setData((byte) 11);
-							break;
-							case GREEN:
-								b.setData((byte) 5);
-							break;
+					else {
+						if (colored) {
+							revertBlocks();
+						} else {
+							setBlocks(Material.WOOL);
+							setBlocksData(color.getData());
 						}
-						colored = true;
 					}
 				}
 			}, delay, delay);
 		} else
-			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A BlinkerThread has been told to run over the same repeating task, therefore this action has been cancelled to be safe.", false);
+			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A BlinkerThread has been told to run over the same repeating task, therefore this action has been cancelled to maintain safety.", false);
+	}
+
+	/**
+	 * Sets the material of all blocks.
+	 * 
+	 * @param m The material to set the blocks to
+	 */
+	public void setBlocks(Material m) {
+		for (Block b : blocks.keySet()) {
+			if (m != b.getType())
+				colored = true;
+			b.setType(m);
+		}
+	}
+
+	/**
+	 * Sets the data of all blocks.
+	 * 
+	 * @param by The data of the blocks
+	 */
+	public void setBlocksData(byte by) {
+		for (Block b : blocks.keySet()) {
+			if (by != b.getData())
+				colored = true;
+			b.setData(by);
+		}
+	}
+
+	/**
+	 * Reverts the blocks to original state.
+	 */
+	public void revertBlocks() {
+		colored = false;
+		for (Block b : blocks.keySet()) {
+			b.setType(blocks.get(b));
+			b.setData(blockdata.get(b));
+		}
 	}
 
 	/**
@@ -100,7 +113,7 @@ public class BlinkerThread {
 	 */
 	public void cancel() {
 		running = false;
-		b.setType(type);
+		revertBlocks();
 		Bukkit.getScheduler().cancelTask(id);
 		id = -1;
 	}
@@ -133,11 +146,11 @@ public class BlinkerThread {
 	}
 
 	/**
-	 * Sets the block that re-appears after breakage.
+	 * Gets the associated type to this blinker.
 	 * 
-	 * @param type The type of the block
+	 * @return The associated object
 	 */
-	public void setUnderlay(Material type) {
-		this.type = type;
+	public Object getAssociate() {
+		return type;
 	}
 }

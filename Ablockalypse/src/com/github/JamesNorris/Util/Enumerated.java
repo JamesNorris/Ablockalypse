@@ -26,7 +26,16 @@ public class Enumerated {
 	 * An enumerated type used for blinker colors.
 	 */
 	public enum ZAColor {
-		RED, GREEN, BLUE;
+		RED((byte) 14), GREEN((byte) 5), BLUE((byte) 11);
+		private final byte data;
+
+		ZAColor(byte data) {
+			this.data = data;
+		}
+
+		public byte getData() {
+			return data;
+		}
 	}
 
 	/**
@@ -40,7 +49,30 @@ public class Enumerated {
 	 * An enumerated type used for storing perk data.
 	 */
 	public enum ZAPerk {
-		HEAL, SPEED, DAMAGE, REGENERATE;
+		HEAL(1), SPEED(2), DAMAGE(3), REGENERATE(4);
+		private final int id;
+
+		ZAPerk(int id) {
+			this.id = id;
+		}
+
+		public ZAPerk getById(int id) {
+			switch (id) {
+				case 1:
+					return ZAPerk.HEAL;
+				case 2:
+					return ZAPerk.SPEED;
+				case 3:
+					return ZAPerk.DAMAGE;
+				case 4:
+					return ZAPerk.REGENERATE;
+			}
+			return null;
+		}
+
+		public int byId() {
+			return id;
+		}
 	}
 
 	/**

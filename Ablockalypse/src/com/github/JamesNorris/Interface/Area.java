@@ -6,20 +6,12 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 import com.github.JamesNorris.Implementation.ZAGameBase;
-import com.github.JamesNorris.Threading.BlinkerThread;
 
 public interface Area {
 	/**
 	 * Closes the area.
 	 */
 	public void close();
-
-	/**
-	 * Gets all BlinkerThreads attached to this instance.
-	 * 
-	 * @return The BlinkerThreads attached to this instance
-	 */
-	public ArrayList<BlinkerThread> getBlinkerThreads();
 
 	/**
 	 * Gets a list of blocks for this area.
@@ -51,13 +43,6 @@ public interface Area {
 	public Location getPoint(int i);
 
 	/**
-	 * Checks if the BlinkerThreads are running.
-	 * 
-	 * @return Whether or not the area is blinking
-	 */
-	public boolean isBlinking();
-
-	/**
 	 * Returns if the area is purchased or not.
 	 * 
 	 * @return Whether or not the area has been purchased
@@ -73,13 +58,6 @@ public interface Area {
 	 * Removes the area.
 	 */
 	public void remove();
-
-	/**
-	 * Stops/Starts the blinker for this area.
-	 * 
-	 * @param tf Whether or not this area should blink
-	 */
-	public void setBlinking(boolean tf);
 
 	/**
 	 * Sets the first or second location of the area.

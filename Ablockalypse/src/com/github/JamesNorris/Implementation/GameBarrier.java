@@ -19,6 +19,7 @@ import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
+import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -31,7 +32,7 @@ import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.Square;
 
-public class GameBarrier implements Barrier, GameObject {
+public class GameBarrier implements Barrier, GameObject, Blinkable {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 	private Location center, spawnloc;
 	private int radius, blockamt, id, id2;
@@ -53,7 +54,6 @@ public class GameBarrier implements Barrier, GameObject {
 	public GameBarrier(Block center, ZAGameBase game) {
 		GlobalData.objects.add(this);
 		this.center = center.getLocation();
-		GlobalData.removallocs.put(this.center, this);
 		this.game = game;
 		radius = 2;
 		fixtimes = fixtimesoriginal;
@@ -95,22 +95,30 @@ public class GameBarrier implements Barrier, GameObject {
 			}
 		}
 		cd = External.getYamlManager().getConfigurationData();
-		bt = new BlinkerThread(this.center.getBlock(), ZAColor.BLUE, false, 30, this);
-		if (cd.blinkers) {
-			bt.blink();
-			if (blockamt == 9) {
-				bt.setColor(ZAColor.GREEN);
-				correct = true;
-			} else {
-				bt.setColor(ZAColor.RED);
-				correct = false;
-			}
-			Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
-				@Override public void run() {
-					bt.setColor(ZAColor.BLUE);
-				}
-			}, 200);
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(this.center.getBlock());
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 30, this);
+		if (blockamt == 9) {
+			bt.setColor(ZAColor.GREEN);
+			correct = true;
+		} else {
+			bt.setColor(ZAColor.RED);
+			correct = false;
 		}
+		Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+			@Override public void run() {
+				bt.setColor(ZAColor.BLUE);
+			}
+		}, 200);
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return (Block[]) blocks.toArray();
 	}
 
 	/**
@@ -128,6 +136,8 @@ public class GameBarrier implements Barrier, GameObject {
 	 * @param e The entityliving that is breaking the barrier
 	 */
 	@Override public void breakBarrier(final LivingEntity e) {
+		if (bt.isRunning())
+			bt.cancel();
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
 				if (!e.isDead() && isWithinRadius(e) && !isBroken()) {
@@ -162,7 +172,6 @@ public class GameBarrier implements Barrier, GameObject {
 			Block b = blocks.iterator().next();
 			blocks.remove(b);
 			b.setType(Material.AIR);
-			bt.setUnderlay(Material.AIR);
 			EffectUtil.generateEffect(b.getWorld(), b.getLocation(), ZAEffect.SMOKE);
 			blocks.add(b);
 		}
@@ -197,6 +206,8 @@ public class GameBarrier implements Barrier, GameObject {
 	 * @param e The livingentity that is fixing the barrier
 	 */
 	@Override public void fixBarrier(final LivingEntity e) {
+		if (bt.isRunning())
+			bt.cancel();
 		if (e instanceof Player)
 			p = (Player) e;
 		if (GlobalData.playerExists(p)) {
@@ -300,15 +311,6 @@ public class GameBarrier implements Barrier, GameObject {
 	}
 
 	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the barrier is blinking
-	 */
-	@Override public boolean isBlinking() {
-		return bt.isRunning();
-	}
-
-	/**
 	 * Tells whether or not the barrier has any missing blocks.
 	 * 
 	 * @return Whether or not the barrier is broken
@@ -350,13 +352,12 @@ public class GameBarrier implements Barrier, GameObject {
 	 */
 	@Override public void remove() {
 		replacePanels();
-		if (isBlinking())
+		if (bt.isRunning())
 			setBlinking(false);
 		game.removeBarrier(this);
 		GlobalData.barriers.remove(center);
 		GlobalData.barrierpanels.remove(this);
 		GlobalData.objects.remove(this);
-		GlobalData.removallocs.remove(center);
 	}
 
 	/**
@@ -367,7 +368,6 @@ public class GameBarrier implements Barrier, GameObject {
 			Block b = blocks.iterator().next();
 			blocks.remove(b);
 			b.setType(Material.FENCE);
-			bt.setUnderlay(Material.FENCE);
 			EffectUtil.generateEffect(b.getWorld(), b.getLocation(), ZAEffect.SMOKE);
 			blocks.add(b);
 		}
@@ -380,7 +380,8 @@ public class GameBarrier implements Barrier, GameObject {
 	 * @param tf Whether or not this barrier should blink
 	 */
 	@Override public void setBlinking(boolean tf) {
-		bt.cancel();
+		if (bt.isRunning())
+			bt.cancel();
 		if (tf)
 			bt.blink();
 	}

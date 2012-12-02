@@ -1,14 +1,13 @@
 package com.github.JamesNorris.Interface;
 
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.Threading.MobTargettingThread;
 
-public interface ZAMob {
+public interface ZAMob extends ZALiving {
 	/**
 	 * Gets the creature associated with this mob.
 	 * 
@@ -22,13 +21,6 @@ public interface ZAMob {
 	 * @return The Entity associated with this instance
 	 */
 	public Entity getEntity();
-
-	/**
-	 * Gets the game this mob is in.
-	 * 
-	 * @return The game the mob is in.
-	 */
-	public ZAGame getGame();
 
 	/**
 	 * Gets the speed of the entity.
@@ -57,13 +49,6 @@ public interface ZAMob {
 	 * @return The targetter attached to this instance
 	 */
 	public MobTargettingThread getTargetter();
-
-	/**
-	 * Gets the world this mob is located in.
-	 * 
-	 * @return The world the mob is located in
-	 */
-	public World getWorld();
 
 	/**
 	 * Kills the undead and finalized the instance.

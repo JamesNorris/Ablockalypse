@@ -4,13 +4,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public interface ZALocation {
 	public ZALocation add(double x, double y, double z);
-
-	public BlinkerThread getBlinkerThread();
 
 	public int getBlockX();
 
@@ -28,13 +25,9 @@ public interface ZALocation {
 
 	public double getZ();
 
-	boolean isBlinking();
-
 	public void playEffect(ZAEffect effect);
 
 	public void remove();
-
-	void setBlinking(boolean tf);
 
 	public void setBlock(Material m);
 

@@ -9,7 +9,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.Square;
 
 public interface Barrier extends GameObject {
@@ -61,13 +60,6 @@ public interface Barrier extends GameObject {
 	public void fixBarrier(Player p);
 
 	/**
-	 * Gets the BlinkerThread attached to this instance.
-	 * 
-	 * @return The BlinkerThread attached to this instance
-	 */
-	public BlinkerThread getBlinkerThread();
-
-	/**
 	 * Returns the list of blocks in the barrier.
 	 * 
 	 * @return A list of blocks located in the barrier
@@ -110,13 +102,6 @@ public interface Barrier extends GameObject {
 	public Square getSquare();
 
 	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the barrier is blinking
-	 */
-	public boolean isBlinking();
-
-	/**
 	 * Tells whether or not the barrier has any missing fence blocks.
 	 * 
 	 * @return Whether or not the barrier is broken
@@ -147,13 +132,6 @@ public interface Barrier extends GameObject {
 	 * Replaces all holes in the barrier.
 	 */
 	public void replacePanels();
-
-	/**
-	 * Stops/Starts the blinker for this barrier.
-	 * 
-	 * @param tf Whether or not this barrier should blink
-	 */
-	public void setBlinking(boolean tf);
 
 	/**
 	 * Sets the amount of fix rounds to wait before fixing the barrier.

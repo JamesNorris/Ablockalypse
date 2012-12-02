@@ -15,6 +15,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -42,8 +43,8 @@ public class EntityDamageByEntity implements Listener {
 				if (instakillids.contains(f.getUniqueId()))
 					event.setDamage(zam.getCreature().getHealth() * 10);
 				else {
-					int dmg = 40 - (zam.getGame().getLevel());
-					if (dmg <= 9)
+					int dmg = 40 - zam.getHitAbsorption();
+					if (dmg < 9)
 						dmg = 9;
 					event.setDamage(dmg);
 				}
@@ -52,7 +53,7 @@ public class EntityDamageByEntity implements Listener {
 				if (instakillids.contains(a.getUniqueId()))
 					event.setDamage(zam.getCreature().getHealth() * 10);
 				else {
-					int dmg = 25 - (zam.getGame().getLevel());
+					int dmg = 25 - zam.getHitAbsorption();
 					if (dmg <= 8)
 						dmg = 8;
 					event.setDamage(dmg);
@@ -64,7 +65,7 @@ public class EntityDamageByEntity implements Listener {
 					if (zap.hasInstaKill())
 						event.setDamage(zam.getCreature().getHealth() * 5);
 					else {
-						int dmg = evtdmg - (zam.getGame().getLevel() / 6);
+						int dmg = evtdmg - zam.getHitAbsorption();
 						if (dmg <= 4)
 							dmg = 4;
 						event.setDamage(dmg);
@@ -76,12 +77,13 @@ public class EntityDamageByEntity implements Listener {
 			Player p = (Player) e;
 			if (GlobalData.players.containsKey(p)) {
 				ZAPlayerBase zap = GlobalData.players.get(p);
+				ZAGameBase zag = (ZAGameBase) zap.getGame();
 				if (damager instanceof Player) {
 					Player p2 = (Player) damager;
 					if (GlobalData.playerExists(p2)) {
 						if (zap.isInLastStand())
 							zap.toggleLastStand();
-						else
+						else if (!zag.friendlyFireEnabled())
 							event.setCancelled(true);
 					} else
 						event.setCancelled(true);
@@ -91,9 +93,10 @@ public class EntityDamageByEntity implements Listener {
 				} else if (zap.isInLastStand())
 					event.setCancelled(true);
 				if (damager instanceof Fireball)
-					event.setCancelled(true);
-				else if (GlobalData.isZAMob(damager) && damager instanceof Wolf)
-					event.setDamage(evtdmg * 3);
+					if (zag.friendlyFireEnabled())
+						event.setCancelled(true);
+					else if (GlobalData.isZAMob(damager) && damager instanceof Wolf)
+						event.setDamage((int) (evtdmg * 2.5));
 			}
 		}
 	}

@@ -3,7 +3,7 @@ package com.github.JamesNorris.Implementation;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -25,9 +25,9 @@ public class GameHellHound implements HellHound, GameObject {
 	private MobTargettingThread mt;
 	private Object target;
 	private Wolf wolf;
-	private World world;
 	private int id;
 	private boolean subtracted = false;
+	private int absorption = 0;
 
 	/**
 	 * Creates a new instance of the GameWolf for ZA.
@@ -40,7 +40,7 @@ public class GameHellHound implements HellHound, GameObject {
 		GlobalData.mobs.add(this);
 		this.wolf = wolf;
 		this.game = game;
-		world = wolf.getWorld();
+		absorption = (int) ((.75 / 2) * game.getLevel() + 1);// slightly more than undead, raises .75 every round
 		wolf.setHealth(8);
 		Player p = game.getRandomLivingPlayer();
 		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
@@ -68,6 +68,34 @@ public class GameHellHound implements HellHound, GameObject {
 					cancel();
 			}
 		}, 200, 200);
+	}
+
+	/**
+	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
+	 * 
+	 * @param i The damage absorption of this mob
+	 */
+	public void setHitAbsorption(int i) {
+		absorption = i;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this mob.
+	 * 
+	 * @return The amount of damage to be absorbed each time this mob is hit
+	 */
+	public int getHitAbsorption() {
+		return absorption;
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return new Block[] {null};
 	}
 
 	/**
@@ -164,16 +192,6 @@ public class GameHellHound implements HellHound, GameObject {
 	 */
 	@Override public Wolf getWolf() {
 		return wolf;
-	}
-
-	/**
-	 * Gets the world the wolf is in.
-	 * 
-	 * @return The world the wolf is in
-	 */
-	@Override public World getWorld() {
-		world = wolf.getWorld();
-		return world;
 	}
 
 	/**

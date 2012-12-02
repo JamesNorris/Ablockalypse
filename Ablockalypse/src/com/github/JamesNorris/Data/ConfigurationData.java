@@ -32,6 +32,7 @@ public class ConfigurationData {
 	public int enchDamageCost;
 	public int enchRandomCost;
 	public boolean extraEffects;
+	public boolean defaultFF;
 	public int goldSwordCost;
 	public int goldSwordLevel;
 	public int grenadeCost;
@@ -114,6 +115,7 @@ public class ConfigurationData {
 		xmppPlayerLeave = cf.getBoolean("xmppAnnouncePlayerLeaveGame");
 		xmppLastStand = cf.getBoolean("xmppAnnounceLastStand");
 		/* OTHER */
+		defaultFF = cf.getBoolean("defaultFriendlyFireMode");
 		blinkers = cf.getBoolean("blinkers");
 		lsthresh = cf.getInt("lastStandThreshold");
 		losePerksLastStand = cf.getBoolean("losePerksOnLastStand");

@@ -33,6 +33,7 @@ public class EntityDeath implements Listener {
 			if (GlobalData.players.containsKey(p)) {
 				ZAPlayerBase zap = GlobalData.players.get(p);
 				zap.addPoints(cd.pointincrease);
+				zap.setKills(zap.getKills() + 1);
 				int food = p.getFoodLevel();
 				if (food < 20)
 					p.setFoodLevel(20);

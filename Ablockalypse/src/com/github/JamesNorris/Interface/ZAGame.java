@@ -35,6 +35,10 @@ public interface ZAGame {
 
 	public List<GameBarrier> getBarriers();
 
+	public boolean friendlyFireEnabled();
+
+	public void setFriendlyFire(boolean tf);
+
 	public int getLevel();
 
 	public Location getMainframe();

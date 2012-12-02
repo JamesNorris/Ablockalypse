@@ -45,13 +45,6 @@ public interface MysteryChest extends GameObject {
 	public boolean isActive();
 
 	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the BlinkerThread is running
-	 */
-	public boolean isBlinking();
-
-	/**
 	 * Changes whether or not the chest will be active.
 	 * 
 	 * @param tf Whether or not the chest should be active
@@ -64,11 +57,4 @@ public interface MysteryChest extends GameObject {
 	 * @param i The uses before movement
 	 */
 	public void setActiveUses(int i);
-
-	/**
-	 * Sets whether or not the chest should blink.
-	 * 
-	 * @param tf Whether or not the chest should blink
-	 */
-	public void setBlinking(boolean tf);
 }

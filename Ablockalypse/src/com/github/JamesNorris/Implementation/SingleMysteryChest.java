@@ -6,6 +6,7 @@ import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
@@ -15,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -27,7 +29,7 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class SingleMysteryChest implements MysteryChest, GameObject {
+public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	private ConfigurationData cd;
 	private Object chest;
 	private Random rand;
@@ -48,7 +50,6 @@ public class SingleMysteryChest implements MysteryChest, GameObject {
 	public SingleMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
 		GlobalData.objects.add(this);
 		GlobalData.chests.put(loc, this);
-		GlobalData.removallocs.put(loc, this);
 		this.chest = chest;
 		im = new ItemManager();
 		rand = new Random();
@@ -58,9 +59,27 @@ public class SingleMysteryChest implements MysteryChest, GameObject {
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
 		cd = External.getYamlManager().getConfigurationData();
-		bt = new BlinkerThread(loc.getBlock(), ZAColor.BLUE, false, 60, this);
-		if (cd.blinkers)
-			bt.blink();
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(loc.getBlock());
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 60, this);
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return new Block[] {loc.getBlock()};
+	}
+
+	/**
+	 * Gets the BlinkerThread attached to this instance.
+	 * 
+	 * @return The BlinkerThread attached to this instance
+	 */
+	@Override public BlinkerThread getBlinkerThread() {
+		return bt;
 	}
 
 	/**
@@ -157,15 +176,6 @@ public class SingleMysteryChest implements MysteryChest, GameObject {
 	}
 
 	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the BlinkerThread is running
-	 */
-	@Override public boolean isBlinking() {
-		return bt.isRunning();
-	}
-
-	/**
 	 * Removes the mystery chest completely.
 	 */
 	@Override public void remove() {
@@ -173,7 +183,6 @@ public class SingleMysteryChest implements MysteryChest, GameObject {
 		game.removeMysteryChest(this);
 		GlobalData.objects.remove(this);
 		GlobalData.chests.remove(loc);
-		GlobalData.removallocs.remove(loc);
 		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 	}
 

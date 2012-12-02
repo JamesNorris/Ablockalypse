@@ -7,12 +7,9 @@ import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Implementation.GameArea;
-import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Implementation.ZAGameBase;
-import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Manager.RegistrationManager;
+import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Threading.MainThreading;
 
 public class Ablockalypse extends JavaPlugin {
@@ -39,25 +36,12 @@ public class Ablockalypse extends JavaPlugin {
 
 	@Override public void onDisable() {
 		External.saveData();
-		if (GlobalData.areas != null)
-			for (GameArea a : GlobalData.areas)
-				a.close();
-		if (GlobalData.chests != null)
-			for (MysteryChest mc : GlobalData.chests.values())
-				if (mc.isBlinking())
-					mc.setBlinking(false);
-		if (GlobalData.gamebarriers != null)
-			for (GameBarrier b : GlobalData.gamebarriers) {
-				b.replacePanels();
-				b.getBlinkerThread().cancel();
-			}
+		for (BlinkerThread bt : GlobalData.blinkers)
+			bt.cancel();
 		if (GlobalData.games != null)
-			for (ZAGameBase gb : GlobalData.games.values()) {
+			for (ZAGameBase gb : GlobalData.games.values())
 				gb.pause(true);
-				for (GameMobSpawner gms : gb.getMobSpawners())
-					if (gms.isBlinking())
-						gms.setBlinking(false);
-			}
+		d.clear();
 	}
 
 	@Override public void onEnable() {

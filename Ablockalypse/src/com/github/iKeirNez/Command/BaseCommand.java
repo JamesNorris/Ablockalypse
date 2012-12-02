@@ -48,7 +48,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 								return true;
 							}
 						} else {
-							sender.sendMessage(CommandUtil.notPlayer);
+							sender.sendMessage(notPlayer);
 							return true;
 						}
 					} else {
@@ -61,7 +61,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
 				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + GlobalData.version);
-				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + CommandUtil.implode(GlobalData.authors.toArray(), ", ", " and "));
+				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + implode(GlobalData.authors.toArray(), ", ", " and "));
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
@@ -82,7 +82,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("create")) {
@@ -90,7 +90,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					String gameName = args[1];
 					if (!GlobalData.gameExists(gameName)) {
 						if (!sender.hasPermission("za.create")) {
-							sender.sendMessage(CommandUtil.noMaintainPerms);
+							sender.sendMessage(noMaintainPerms);
 							return true;
 						} else {
 							ZAGame zag = new ZAGameBase(gameName, External.getYamlManager().getConfigurationData());
@@ -124,11 +124,11 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommandUtil.noMaintainPerms);
+						sender.sendMessage(noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("mainframe")) {
@@ -143,7 +143,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
 								return true;
 							} else {
-								sender.sendMessage(CommandUtil.noMaintainPerms);
+								sender.sendMessage(noMaintainPerms);
 								return true;
 							}
 						} else {
@@ -155,7 +155,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("remove")) {
@@ -177,7 +177,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						PlayerInteract.removers.add(p.getName());
 					}
 				} else {
-					sender.sendMessage(CommandUtil.noMaintainPerms);
+					sender.sendMessage(noMaintainPerms);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("spawner")) {
@@ -194,11 +194,11 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommandUtil.noMaintainPerms);
+						sender.sendMessage(noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("area")) {
@@ -215,14 +215,14 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommandUtil.noMaintainPerms);
+						sender.sendMessage(noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
-			} else if (args[0].equalsIgnoreCase("chest"))
+			} else if (args[0].equalsIgnoreCase("chest")) {
 				if (sender instanceof Player) {
 					if (sender.hasPermission("za.create")) {
 						if (args.length == 2) {
@@ -236,13 +236,34 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							return true;
 						}
 					} else {
-						sender.sendMessage(CommandUtil.noMaintainPerms);
+						sender.sendMessage(noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(CommandUtil.notPlayer);
+					sender.sendMessage(notPlayer);
 					return true;
 				}
+			} else if (args[0].equalsIgnoreCase("settings")) {
+				if (sender.hasPermission("za.create")) {
+					if (args.length == 3) {
+						String gameName = args[1];
+						boolean setting = Boolean.parseBoolean(args[3]);
+						if (args[2].equalsIgnoreCase("FF")) {// Friendly fire
+							GlobalData.findGame(gameName).setFriendlyFire(setting);
+							sender.sendMessage(settingChanged);
+						} else {
+							sender.sendMessage(invalidSetting);
+						}
+						return true;
+					} else {
+						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game, a setting, and a boolean!");
+						return true;
+					}
+				} else {
+					sender.sendMessage(noMaintainPerms);
+					return true;
+				}
+			}
 			return true;
 		}
 		return true;

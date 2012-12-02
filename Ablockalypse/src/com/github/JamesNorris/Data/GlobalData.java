@@ -1,7 +1,6 @@
 package com.github.JamesNorris.Data;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +30,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.Square;
 
 public class GlobalData {
@@ -54,8 +54,16 @@ public class GlobalData {
 	public static HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
 	public static HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
 	public static ArrayList<GameObject> objects = new ArrayList<GameObject>();
-	public static HashMap<Location, Object> removallocs = new HashMap<Location, Object>();
+	public static ArrayList<BlinkerThread> blinkers = new ArrayList<BlinkerThread>();
 	public static String version;
+
+	/**
+	 * Clears the data of this instance.
+	 */
+	public void clear() {
+		for (Field f : this.getClass().getFields())
+			f.equals(null);
+	}
 
 	/**
 	 * Checks if the game exists, if not, creates a new game.
@@ -264,15 +272,5 @@ public class GlobalData {
 		GlobalData.authors = plugin.getDescription().getAuthors();
 		GlobalData.description = plugin.getDescription().getDescription();
 		GlobalData.version = plugin.getDescription().getVersion();
-	}
-
-	/**
-	 * Clears all data from the main data cache of the Ablockalypse plugin.
-	 */
-	@SuppressWarnings("unused") @Override public void finalize() {
-		for (Method m : this.getClass().getDeclaredMethods())
-			m = null;
-		for (Field f : this.getClass().getDeclaredFields())
-			f = null;
 	}
 }

@@ -32,6 +32,7 @@ import com.github.JamesNorris.Implementation.GameWallSign;
 import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Manager.YamlManager;
@@ -87,37 +88,20 @@ public class PlayerInteract implements Listener {
 					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
 				chestPlayers.remove(p.getName());
 			} else if (!GlobalData.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-				String type = "null";
 				boolean worked = false;
-				for (Location loc : GlobalData.removallocs.keySet())
-					if (loc.getBlock() == b) {
-						Object o = GlobalData.removallocs.get(loc);
-						if (o instanceof GameArea) {
-							GameArea ga = (GameArea) o;
-							type = "area";
+				for (GameObject o : GlobalData.objects) {
+					for (Block block : o.getDefiningBlocks()) {
+						if (block == b) {
+							o.remove();
 							worked = true;
-							ga.remove();
-						} else if (o instanceof GameBarrier) {
-							GameBarrier gb = (GameBarrier) o;
-							type = "barrier";
-							worked = true;
-							gb.remove();
-						} else if (o instanceof MysteryChest) {
-							MysteryChest gmc = (MysteryChest) o;
-							type = "mystery chest";
-							worked = true;
-							gmc.remove();
-						} else if (o instanceof GameMobSpawner) {
-							GameMobSpawner zal = (GameMobSpawner) o;
-							type = "spawner";
-							worked = true;
-							zal.remove();
+							break;
 						}
 					}
+				}
 				if (worked)
-					p.sendMessage(ChatColor.GRAY + "This " + type + " has been successfully removed!");
+					p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.GREEN + "sucessful");
 				else
-					p.sendMessage(ChatColor.RED + "Removal unsuccessful");
+					p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.RED + "unsuccessful");
 				removers.remove(p.getName());
 			} else if ((!GlobalData.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
 				if (!locClickers.containsKey(p.getName())) {

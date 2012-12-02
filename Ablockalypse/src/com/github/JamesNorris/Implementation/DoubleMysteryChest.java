@@ -6,6 +6,7 @@ import java.util.Random;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Item;
@@ -15,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Interface.Blinkable;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.ItemManager;
@@ -26,7 +29,7 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class DoubleMysteryChest implements MysteryChest {// TODO annotations
+public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {// TODO annotations
 	private Location loc1, loc2;
 	private ConfigurationData cd;
 	private Object chest;
@@ -37,16 +40,14 @@ public class DoubleMysteryChest implements MysteryChest {// TODO annotations
 	private ZAGame game;
 	private ArrayList<ItemStack> its = new ArrayList<ItemStack>();
 	private ItemManager im;
-	private BlinkerThread bt, bt2;
+	private BlinkerThread bt;
 
 	public DoubleMysteryChest(Object chest, ZAGame game, Location loc1, Location loc2, boolean active) {
 		this.loc1 = loc1;
 		this.loc2 = loc2;
 		GlobalData.objects.add(this);
 		GlobalData.chests.put(loc1, this);
-		GlobalData.removallocs.put(loc1, this);
 		GlobalData.chests.put(loc2, this);
-		GlobalData.removallocs.put(loc2, this);
 		this.chest = chest;
 		im = new ItemManager();
 		rand = new Random();
@@ -55,12 +56,28 @@ public class DoubleMysteryChest implements MysteryChest {// TODO annotations
 		uses = rand.nextInt(8) + 2;
 		game.addMysteryChest(this);
 		cd = External.getYamlManager().getConfigurationData();
-		bt = new BlinkerThread(loc1.getBlock(), ZAColor.BLUE, false, 60, this);
-		bt2 = new BlinkerThread(loc2.getBlock(), ZAColor.BLUE, false, 60, this);
-		if (cd.blinkers) {
-			bt.blink();
-			bt2.blink();
-		}
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(loc1.getBlock());
+		blocks.add(loc2.getBlock());
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 60, this);
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return new Block[] {loc1.getBlock(), loc2.getBlock()};
+	}
+
+	/**
+	 * Gets the BlinkerThread attached to this instance.
+	 * 
+	 * @return The BlinkerThread attached to this instance
+	 */
+	@Override public BlinkerThread getBlinkerThread() {
+		return bt;
 	}
 
 	@Override public int getActiveUses() {
@@ -127,23 +144,12 @@ public class DoubleMysteryChest implements MysteryChest {// TODO annotations
 		return active;
 	}
 
-	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the BlinkerThread is running
-	 */
-	@Override public boolean isBlinking() {
-		return bt.isRunning();
-	}
-
 	@Override public void remove() {
 		setActive(false);
 		game.removeMysteryChest(this);
 		GlobalData.objects.remove(this);
 		GlobalData.chests.remove(loc1);
 		GlobalData.chests.remove(loc2);
-		GlobalData.removallocs.remove(loc1);
-		GlobalData.removallocs.remove(loc2);
 		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 	}
 
@@ -165,13 +171,9 @@ public class DoubleMysteryChest implements MysteryChest {// TODO annotations
 	}
 
 	@Override public void setBlinking(boolean tf) {
-		if (bt.isRunning()) {
+		if (bt.isRunning())
 			bt.cancel();
-			bt2.cancel();
-		}
-		if (tf) {
+		if (tf)
 			bt.blink();
-			bt2.blink();
-		}
 	}
 }

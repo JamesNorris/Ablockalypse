@@ -10,6 +10,7 @@ import org.bukkit.Chunk;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -46,12 +47,13 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	private GameMode gm;
 	private ItemStack[] inventory, armor;
 	private boolean laststand, sleepingignored, sent, limbo, teleporting, instakill;
-	private int level, health, food, fire, points;
+	private int level, health, food, fire, points = 0, kills = 0;
 	private String name;
 	private Player player;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
 	private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
+	private int absorption = 0;// less than mobs, used to add juggernaut
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -70,6 +72,53 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		point = new HashMap<String, Integer>();
 		GlobalData.players.put(player, this);
 		player.setLevel(game.getLevel());
+	}
+
+	/**
+	 * Sets the amount of damage that the player can absorb each hit, before it hurts the player.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1 or higher.
+	 * 
+	 * @param i The damage absorption of this player
+	 */
+	public void setHitAbsorption(int i) {
+		absorption = i;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this player.
+	 * 
+	 * @return The amount of damage to be absorbed each time this player is hit
+	 */
+	public int getHitAbsorption() {
+		return absorption;
+	}
+
+	/**
+	 * Gets the kills the player has.
+	 * 
+	 * @return The amount of kills the player has
+	 */
+	public int getKills() {
+		return kills;
+	}
+
+	/**
+	 * Sets the amount of kills that the player has.
+	 * NOTE: This does not affect score.
+	 * 
+	 * @param i The amount of kills to set the player to
+	 */
+	public void setKills(int i) {
+		kills = i;
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return new Block[] {null};
 	}
 
 	/**
@@ -185,7 +234,7 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 				game.broadcast(ChatColor.GRAY + "ATOM BOMB!", null);
 				for (ZAMob zam : GlobalData.getZAMobs())
 					if (zam.getGame() == game) {
-						SoundUtil.generateSound(zam.getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
+						SoundUtil.generateSound(zam.getEntity().getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
 						EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
 						zam.kill();
 					}
@@ -385,6 +434,15 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 			player.setDisplayName(name);
 			player.updateInventory();
 		}
+	}
+
+	/**
+	 * Sets the amount of points the player has.
+	 * 
+	 * @param i The amount of points to set the player to
+	 */
+	public void setPoints(int i) {
+		points = i;
 	}
 
 	/*

@@ -22,6 +22,7 @@ import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Data.PerGameDataStorage;
+import com.github.JamesNorris.Data.PerPlayerDataStorage;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
 import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
@@ -29,8 +30,8 @@ import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMobSpawner;
 import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
+import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Util.MiscUtil;
 
@@ -39,7 +40,7 @@ public class External {
 	public static boolean CommandsEXPresent = (CommandsEX != null && CommandsEX.isEnabled());
 	private static FileConfiguration fc;
 	public static Ablockalypse instance;
-	public static File l, f;
+	public static File l, f, gd;
 	/* .bin paths */
 	public static String folderlocation = "saved_data" + File.separatorChar;
 	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
@@ -106,24 +107,37 @@ public class External {
 			for (PerGameDataStorage pgds : saved_data) {
 				String name = pgds.getName();
 				ZAGame zag = GlobalData.findGame(name);
-				zag.setMainframe(pgds.getMainframe());
-				for (String s : pgds.getPlayerPoints().keySet()) {
-					int points = pgds.getPlayerPoints().get(s);
-					Player p = Bukkit.getPlayer(s);
-					if (p != null && p.isOnline())
-						zag.addPlayer(p);
-					else
-						PlayerJoin.offlinePlayers.put(s, name);
-					ZAPlayer zap = GlobalData.findZAPlayer(p, name);
-					zap.addPoints(points);
+				Location mf = pgds.getMainframe();
+				if (mf != null)
+					zag.setMainframe(mf);
+				int level = pgds.getLevel();
+				if (zag.getPlayers().size() > 0)
+					zag.setLevel(level);
+				else
+					zag.setLevel(0);
+				for (PerPlayerDataStorage spds : pgds.getPlayerData()) {
+					Player p = Bukkit.getPlayer(spds.getName());
+					if (!GlobalData.playerExists(p))
+						new ZAPlayerBase(p, GlobalData.findGame(spds.getGameName()));
+					if (p.isOnline() && GlobalData.playerExists(p)) {
+						ZAPlayerBase zap = (ZAPlayerBase) GlobalData.getZAPlayer(p);
+						if (zag.getLevel() < spds.getGameLevel()) {
+							zag.setLevel(spds.getGameLevel());
+							spds.loadToPlayer(zap);
+						}
+					} else {
+						PlayerJoin.offlinePlayers.put(p.getName(), spds);
+					}
 				}
 				for (Location l : pgds.getBarrierLocations())
 					new GameBarrier(l.getBlock(), (ZAGameBase) GlobalData.findGame(name));
 				for (Location l : pgds.getAreaPoints().keySet()) {
 					Location l2 = pgds.getAreaPoints().get(l);
-					GameArea a = new GameArea((ZAGameBase) zag, l, l2);
-					if (pgds.isAreaOpen(l))
-						a.open();
+					if (l2 != null) {
+						GameArea a = new GameArea((ZAGameBase) zag, l, l2);
+						if (pgds.isAreaOpen(l))
+							a.open();
+					}
 				}
 				for (Location l : pgds.getMysteryChestLocations()) {
 					Block b = l.getBlock();
@@ -132,11 +146,6 @@ public class External {
 					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
 						zag.addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b.getLocation()), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
 				}
-				int level = pgds.getLevel();
-				if (zag.getPlayers().size() > 0)
-					zag.setLevel(level);
-				else
-					PlayerJoin.gameLevels.put(name, level);
 				for (Location l : pgds.getMobSpawnerLocations()) {
 					GameMobSpawner zaloc = new GameMobSpawner(l, zag);
 					zag.addMobSpawner(zaloc);
@@ -145,6 +154,25 @@ public class External {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	/**
+	 * Deletes the file given.
+	 * 
+	 * @param file The file to delete
+	 */
+	public static void deleteFile(File file) {
+		File[] files = file.listFiles();
+		if (files != null) {
+			for (File f : files) {
+				if (f.isDirectory()) {
+					deleteFile(f);
+				} else {
+					f.delete();
+				}
+			}
+		}
+		file.delete();
 	}
 
 	/**
@@ -180,10 +208,10 @@ public class External {
 		File a = new File(instance.getDataFolder(), path);
 		if (path == local)
 			l = a;
+		if (path == gameData)
+			gd = a;
 		if (!a.exists())
 			instance.saveResource(path, true);
-		else
-			instance.getResource(path);
 	}
 
 	/**
@@ -240,9 +268,16 @@ public class External {
 		try {
 			GlobalData.refresh();
 			/* game_data.bin */
+			ArrayList<String> namecheck = new ArrayList<String>();
 			ArrayList<PerGameDataStorage> pgds = new ArrayList<PerGameDataStorage>();
-			for (ZAGame zag : GlobalData.games.values())
-				pgds.add(new PerGameDataStorage(zag));
+			for (ZAGame zag : GlobalData.games.values()) {
+				if (!namecheck.contains(zag.getName())) {
+					pgds.add(new PerGameDataStorage(zag));
+					namecheck.add(zag.getName());
+				} else {
+					System.out.println("Duplicate data storage of " + zag.getName());
+				}
+			}
 			External.save(pgds, filelocation + gameData);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Event.GameEndEvent;
+import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
@@ -38,7 +39,7 @@ public class ZAGameBase implements ZAGame {
 	private Random rand;
 	private Location mainframe;
 	private SpawnManager spawnManager;
-	private boolean wolfRound, paused, started;
+	private boolean wolfRound, paused, started, friendlyFire;
 	private NextLevelThread nlt;
 	private MysteryChest active;
 
@@ -55,6 +56,7 @@ public class ZAGameBase implements ZAGame {
 		rand = new Random();
 		paused = false;
 		started = false;
+		friendlyFire = cd.defaultFF;
 		GlobalData.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
@@ -170,20 +172,25 @@ public class ZAGameBase implements ZAGame {
 					SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 					removePlayer(player);
 				}
-				for (GameBarrier gb : barriers) {
-					gb.replacePanels();
-					gb.setBlinking(true);
-				}
-				for (GameArea ga : areas) {
-					ga.close();
-					ga.setBlinking(true);
-				}
-				for (MysteryChest mc : chests) {
-					mc.setActive(false);
-					mc.setBlinking(false);
-				}
-				for (ZALocation zal : spawners)
-					zal.setBlinking(true);
+				// for (GameBarrier gb : barriers) {
+				// gb.replacePanels();
+				// gb.setBlinking(true);
+				// }
+				// for (GameArea ga : areas) {
+				// ga.close();
+				// ga.setBlinking(true);
+				// }
+				// for (MysteryChest mc : chests) {
+				// if (mc instanceof Blinkable) {
+				// Blinkable bl = (Blinkable) mc;
+				// bl.setBlinking(false);
+				// }
+				// }
+				// for (ZALocation zal : spawners)
+				// if (zal instanceof Blinkable) {
+				// Blinkable bl = (Blinkable) zal;
+				// bl.setBlinking(false);
+				// }
 			}
 		}
 	}
@@ -412,15 +419,18 @@ public class ZAGameBase implements ZAGame {
 		if (GlobalData.gameLevels.containsKey(getName()))
 			GlobalData.gameLevels.remove(getName());
 		GlobalData.gameLevels.put(getName(), level);
-		for (GameBarrier gb : barriers)
-			gb.setBlinking(false);
-		for (GameArea ga : areas)
-			ga.setBlinking(false);
-		for (ZAMob zam : GlobalData.getZAMobs())
-			if (zam.getGame() == this)
-				zam.kill();
-		for (ZALocation zal : spawners)
-			zal.setBlinking(false);
+		// for (GameBarrier gb : barriers)
+		// gb.setBlinking(false);
+		// for (GameArea ga : areas)
+		// ga.setBlinking(false);
+		// for (ZAMob zam : GlobalData.getZAMobs())
+		// if (zam.getGame() == this)
+		// zam.kill();
+		// for (ZALocation zal : spawners)
+		// if (zal instanceof Blinkable) {
+		// Blinkable bl = (Blinkable) zal;
+		// bl.setBlinking(false);
+		// }
 		if (level != 0) {
 			for (String s : players.keySet()) {
 				Player p = Bukkit.getServer().getPlayer(s);
@@ -453,14 +463,20 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void remove() {
 		end();
-		for (GameBarrier gb : barriers)
-			gb.setBlinking(false);
-		for (GameArea ga : areas)
-			ga.setBlinking(false);
-		for (ZALocation zal : spawners)
-			zal.setBlinking(false);
-		for (MysteryChest mc : chests)
-			mc.setBlinking(false);
+		// for (GameBarrier gb : barriers)
+		// gb.setBlinking(false);
+		// for (GameArea ga : areas)
+		// ga.setBlinking(false);
+		// for (ZALocation zal : spawners)
+		// if (zal instanceof Blinkable) {
+		// Blinkable bl = (Blinkable) zal;
+		// bl.setBlinking(false);
+		// }
+		// for (MysteryChest mc : chests)
+		// if (mc instanceof Blinkable) {
+		// Blinkable bl = (Blinkable) mc;
+		// bl.setBlinking(false);
+		// }
 		GlobalData.games.remove(name);
 	}
 
@@ -599,5 +615,23 @@ public class ZAGameBase implements ZAGame {
 			spawnManager = new SpawnManager(this, mainframe.getWorld());
 		spawnManager.spawnWave();
 		started = true;
+	}
+
+	/**
+	 * Checks the friendly fire mode of this game.
+	 * 
+	 * @return Whether or not friendly fire is enabled
+	 */
+	@Override public boolean friendlyFireEnabled() {
+		return friendlyFire;
+	}
+
+	/**
+	 * Sets the friendly fire mode for this game.
+	 * 
+	 * @param tf The new setting of friendly fire
+	 */
+	@Override public void setFriendlyFire(boolean tf) {
+		friendlyFire = tf;
 	}
 }

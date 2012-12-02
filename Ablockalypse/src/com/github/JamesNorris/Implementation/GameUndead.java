@@ -2,7 +2,7 @@ package com.github.JamesNorris.Implementation;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
@@ -21,6 +21,7 @@ public class GameUndead implements Undead, GameObject {
 	private MobTargettingThread mt;
 	private Object target;
 	private Zombie zombie;
+	private int absorption = 0;
 	private boolean fireproof, subtracted = false;
 
 	/**
@@ -33,6 +34,7 @@ public class GameUndead implements Undead, GameObject {
 		GlobalData.mobs.add(this);
 		this.zombie = zombie;
 		this.game = game;
+		absorption = (int) ((.5 / 2) * game.getLevel() + 1);// slightly less than wolf, increases at .5 every round
 		fireproof = true;
 		Player p = game.getRandomLivingPlayer();
 		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
@@ -47,6 +49,34 @@ public class GameUndead implements Undead, GameObject {
 			GlobalData.undead.add(this);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
 			setSpeed(0.24F);
+	}
+
+	/**
+	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
+	 * 
+	 * @param i The damage absorption of this mob
+	 */
+	public void setHitAbsorption(int i) {
+		absorption = i;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this mob.
+	 * 
+	 * @return The amount of damage to be absorbed each time this mob is hit
+	 */
+	public int getHitAbsorption() {
+		return absorption;
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	public Block[] getDefiningBlocks() {
+		return new Block[] {null};
 	}
 
 	/**
@@ -118,15 +148,6 @@ public class GameUndead implements Undead, GameObject {
 	 */
 	@Override public MobTargettingThread getTargetter() {
 		return mt;
-	}
-
-	/**
-	 * Gets the world this zombie is located in.
-	 * 
-	 * @return The world the zombie is located in
-	 */
-	@Override public World getWorld() {
-		return zombie.getWorld();
 	}
 
 	/**

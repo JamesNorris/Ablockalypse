@@ -11,7 +11,7 @@ import com.github.JamesNorris.Util.Enumerated.PlayerStatus;
 import com.github.JamesNorris.Util.Enumerated.PowerupType;
 import com.github.JamesNorris.Util.Enumerated.ZAPerk;
 
-public interface ZAPlayer {
+public interface ZAPlayer extends ZALiving {
 	/**
 	 * Adds a perk and effect to the player.
 	 * 
@@ -22,6 +22,13 @@ public interface ZAPlayer {
 	public void addPerk(ZAPerk perk, int duration, int power);
 
 	/**
+	 * Sets the amount of points the player has.
+	 * 
+	 * @param i The amount of points to set the player to
+	 */
+	public void setPoints(int i);
+
+	/**
 	 * Gives points to the player.
 	 * 
 	 * @param i The amount of points to give the player
@@ -29,11 +36,19 @@ public interface ZAPlayer {
 	public void addPoints(int i);
 
 	/**
-	 * Gets the game the player is currently in
+	 * Gets the kills the player has.
 	 * 
-	 * @return The game the player is in
+	 * @return The amount of kills the player has
 	 */
-	public ZAGame getGame();
+	public int getKills();
+
+	/**
+	 * Sets the amount of kills that the player has.
+	 * NOTE: This does not affect score.
+	 * 
+	 * @param i The amount of kills to set the player to
+	 */
+	public void setKills(int i);
 
 	/**
 	 * Returns the players' name.

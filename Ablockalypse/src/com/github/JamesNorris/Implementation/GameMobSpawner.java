@@ -1,12 +1,14 @@
 package com.github.JamesNorris.Implementation;
 
+import java.util.ArrayList;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -15,7 +17,7 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class GameMobSpawner implements ZALocation {// TODO annotations
+public class GameMobSpawner implements ZALocation, Blinkable {// TODO annotations
 	private Location loc;
 	private Block block;
 	private World world;
@@ -28,7 +30,6 @@ public class GameMobSpawner implements ZALocation {// TODO annotations
 	public GameMobSpawner(Location loc, ZAGame game) {
 		this.loc = loc;
 		this.game = game;
-		GlobalData.removallocs.put(loc, this);
 		block = loc.getBlock();
 		world = loc.getWorld();
 		X = loc.getX();
@@ -38,10 +39,10 @@ public class GameMobSpawner implements ZALocation {// TODO annotations
 		y = loc.getBlockY();
 		z = loc.getBlockZ();
 		blinkers = External.getYamlManager().getConfigurationData().blinkers;
-		bt = new BlinkerThread(block, ZAColor.BLUE, false, 60, this);
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(block);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 60, this);
 		game.addMobSpawner(this);
-		if (blinkers)
-			bt.blink();
 	}
 
 	@Override public ZALocation add(double x, double y, double z) {
@@ -89,26 +90,14 @@ public class GameMobSpawner implements ZALocation {// TODO annotations
 		return Z;
 	}
 
-	/**
-	 * Checks if the BlinkerThread is running.
-	 * 
-	 * @return Whether or not the location is blinking
-	 */
-	@Override public boolean isBlinking() {
-		return bt.isRunning();
-	}
-
 	@Override public void playEffect(ZAEffect effect) {
 		EffectUtil.generateEffect(world, loc, effect);
 	}
 
 	@Override public void remove() {
-		if (isBlinking())
+		if (bt.isRunning())
 			setBlinking(false);
 		game.removeMobSpawner(this);
-		if (blinkers)
-			bt.cancel();
-		GlobalData.removallocs.remove(loc);
 	}
 
 	/**
@@ -117,7 +106,8 @@ public class GameMobSpawner implements ZALocation {// TODO annotations
 	 * @param tf Whether or not this location should blink
 	 */
 	@Override public void setBlinking(boolean tf) {
-		bt.cancel();
+		if (bt.isRunning())
+			bt.cancel();
 		if (tf)
 			bt.blink();
 	}

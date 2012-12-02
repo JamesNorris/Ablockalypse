@@ -11,6 +11,8 @@ public class CommandUtil {
 	public static String joinGame = ChatColor.AQUA + "You have joined a game of Zombie Ablockalypse";
 	public static String notPlayer = ChatColor.RED + "You must be a player to use that command.";
 	public static String noMaintainPerms = ChatColor.RED + "You don't have permission to perform maintenance.";
+	public static String settingChanged = ChatColor.GRAY + "That setting has been changed.";
+	public static String invalidSetting = ChatColor.RED + "That setting does not exist!";
 
 	/**
 	 * Separates a collection into a comma separated list
@@ -72,7 +74,6 @@ public class CommandUtil {
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("setup") && s.hasPermission("za.create")) {
 			s.sendMessage(r + "----- Ablockalypse Setup Help -----");
 			s.sendMessage(g + a + b + " create <game> - " + res + gr + "Creates a new game");
-			s.sendMessage(g + a + b + " help sign - " + res + gr + "Shows the line command lines for a sign");
 			s.sendMessage(g + a + b + " barrier <game> - " + res + gr + "Creates a barrier for the game");
 			s.sendMessage(g + a + b + " area <game> - " + res + gr + "Creates an area for the game");
 			s.sendMessage(g + a + b + " spawner <game> - " + res + gr + "Creates a spawner for the game");
@@ -80,6 +81,11 @@ public class CommandUtil {
 			s.sendMessage(g + a + b + " chest <game> - " + res + gr + "Adds a mystery chest to the game");
 			s.sendMessage(g + a + b + " remove <game> - " + res + gr + "Removes an entire game");
 			s.sendMessage(g + a + b + " remove - " + res + gr + "Removes a barrier, area, or spawner");
+		} else if (args.length == 2 && args[1].equalsIgnoreCase("settings") && s.hasPermission("za.create")) {
+			s.sendMessage(r + "----- Ablockalypse Settings Help -----");
+			s.sendMessage(g + a + b + " settings <game> - " + res + gr + "Shows the settings of a game");
+			s.sendMessage(g + a + b + " settings <game> <setting> <boolean> - " + res + gr + "Changes a setting of a game");
+			s.sendMessage(g + "" + b + "Settings: " + res + g + " FF (Friendly Fire)");
 		} else {
 			s.sendMessage(r + "----- Ablockalypse Help -----");
 			s.sendMessage(g + a + b + " info - " + res + gr + "Shows info about Ablockalypse");
@@ -89,6 +95,7 @@ public class CommandUtil {
 			if (s.hasPermission("za.create")) {
 				s.sendMessage(g + a + b + " help sign - " + res + gr + "Shows sign commandline requirements");
 				s.sendMessage(g + a + b + " help setup - " + res + gr + "Shows how to setup games");
+				s.sendMessage(g + a + b + " help settings - " + res + gr + "Shows changeable game settings");
 			}
 		}
 	}
