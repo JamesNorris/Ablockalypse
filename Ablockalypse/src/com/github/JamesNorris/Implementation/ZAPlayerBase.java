@@ -19,9 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.GameObject;
@@ -39,9 +37,8 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class ZAPlayerBase implements ZAPlayer, GameObject {
+public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObject {
 	private Location before;
-	private ConfigurationData cd;
 	private float exp, saturation, fall, exhaust;
 	private ZAGame game;
 	private GameMode gm;
@@ -64,13 +61,12 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	 * @param game The game this player should be in
 	 */
 	public ZAPlayerBase(Player player, ZAGame game) {
-		GlobalData.objects.add(this);
-		cd = External.ym.getConfigurationData();
+		data.objects.add(this);
 		this.player = player;
 		name = player.getName();
 		this.game = game;
 		point = new HashMap<String, Integer>();
-		GlobalData.players.put(player, this);
+		data.players.put(player, this);
 		player.setLevel(game.getLevel());
 	}
 
@@ -117,8 +113,8 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return new Block[] {null};
+	public ArrayList<Block> getDefiningBlocks() {
+		return null;
 	}
 
 	/**
@@ -156,9 +152,9 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		if (point.containsKey(getName()))
 			point.remove(getName());
 		point.put(getName(), points);
-		if (GlobalData.playerPoints.containsKey(game.getName()))
-			GlobalData.playerPoints.remove(game.getName());
-		GlobalData.playerPoints.put(game.getName(), point);
+		if (data.playerPoints.containsKey(game.getName()))
+			data.playerPoints.remove(game.getName());
+		data.playerPoints.put(game.getName(), point);
 		rename(name, "" + points);
 	}
 
@@ -232,7 +228,7 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		switch (type) {
 			case ATOM_BOMB:
 				game.broadcast(ChatColor.GRAY + "ATOM BOMB!", null);
-				for (ZAMob zam : GlobalData.getZAMobs())
+				for (ZAMob zam : data.mobs)
 					if (zam.getGame() == game) {
 						SoundUtil.generateSound(zam.getEntity().getWorld(), zam.getEntity().getLocation(), ZASound.EXPLOSION);
 						EffectUtil.generateEffect(player, zam.getEntity().getLocation(), ZAEffect.FLAMES);
@@ -240,13 +236,13 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 					}
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
-					ZAPlayer zap = GlobalData.findZAPlayer(p, game.getName());
+					ZAPlayer zap = data.findZAPlayer(p, game.getName());
 					zap.addPoints(cd.atompoints);
 				}
 			break;
 			case BARRIER_FIX:
 				game.broadcast(ChatColor.GRAY + "BARRIERS FIXED!", null);
-				if (GlobalData.gamebarriers.size() >= 1)
+				if (data.gamebarriers.size() >= 1)
 					for (GameBarrier b : game.getBarriers())
 						b.replacePanels();
 			break;
@@ -266,8 +262,8 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 				game.broadcast(ChatColor.GRAY + "INSTA_KILL!", null);
 				for (String s3 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s3);
-					if (GlobalData.playerExists(p)) {
-						final ZAPlayer zap = GlobalData.getZAPlayer(p);
+					if (data.playerExists(p)) {
+						final ZAPlayer zap = data.getZAPlayer(p);
 						zap.setInstaKill(true);
 						Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
 							@Override public void run() {
@@ -323,8 +319,8 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 	 */
 	@Override public void loadPlayerToGame(String name) {
 		/* Use an old game to add the player to the game */
-		if (GlobalData.games.containsKey(name)) {
-			ZAGameBase zag = GlobalData.games.get(name);
+		if (data.games.containsKey(name)) {
+			ZAGameBase zag = data.games.get(name);
 			GamePlayerJoinEvent GPJE = new GamePlayerJoinEvent(this, zag);
 			Bukkit.getPluginManager().callEvent(GPJE);
 			if (!GPJE.isCancelled()) {
@@ -390,7 +386,7 @@ public class ZAPlayerBase implements ZAPlayer, GameObject {
 		restoreStatus();
 		if (game.getPlayers().contains(player.getName()))
 			game.removePlayer(player);
-		GlobalData.objects.remove(this);
+		data.objects.remove(this);
 	}
 
 	/*

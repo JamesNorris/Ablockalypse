@@ -7,8 +7,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Area;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
@@ -20,11 +20,11 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.Rectangle;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class GameArea implements Area, GameObject, Blinkable {
+public class GameArea extends DataManipulator implements Area, GameObject, Blinkable {
 	private Location loc1, loc2;
 	private HashMap<Location, Material> locs = new HashMap<Location, Material>();
 	private HashMap<Location, Byte> locdata = new HashMap<Location, Byte>();
-	private boolean opened;
+	private boolean opened, blinkers;
 	private ZAGameBase zag;
 	private BlinkerThread bt;
 	private Rectangle rectangle;
@@ -34,23 +34,22 @@ public class GameArea implements Area, GameObject, Blinkable {
 	 * 
 	 * @param block The sign directly facing the area door
 	 */
-	public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
-		GlobalData.objects.add(this);
+	@SuppressWarnings("deprecation") public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
+		data.objects.add(this);
 		this.zag = zag;
 		opened = false;
-		GlobalData.areas.add(this);
+		data.areas.add(this);
 		rectangle = new Rectangle(loc1, loc2);
 		for (Location l : rectangle.getLocations()) {
 			locs.put(l, l.getBlock().getType());
 			locdata.put(l, l.getBlock().getData());
 		}
 		zag.addArea(this);
-		if (External.getYamlManager().getConfigurationData().blinkers) {
-			ArrayList<Block> blocks = new ArrayList<Block>();
-			for (Location l : rectangle.get2DBorder())
-				blocks.add(l.getBlock());
-			bt = new BlinkerThread(blocks, ZAColor.BLUE, false, 30, this);
-		}
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		for (Location l : rectangle.get3DBorder())
+			blocks.add(l.getBlock());
+		this.blinkers = External.getYamlManager().getConfigurationData().blinkers;
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 	}
 
 	/**
@@ -58,12 +57,11 @@ public class GameArea implements Area, GameObject, Blinkable {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
+	public ArrayList<Block> getDefiningBlocks() {
 		ArrayList<Block> bs = new ArrayList<Block>();
-		for (Location l : locs.keySet()) {
+		for (Location l : locs.keySet())
 			bs.add(l.getBlock());
-		}
-		return (Block[]) bs.toArray();
+		return bs;
 	}
 
 	/**
@@ -105,8 +103,8 @@ public class GameArea implements Area, GameObject, Blinkable {
 	 * 
 	 * @return The blocks around the border
 	 */
-	@Override public ArrayList<Location> getBorderBlocks() {
-		return rectangle.get2DBorder();
+	@SuppressWarnings("deprecation") @Override public ArrayList<Location> getBorderBlocks() {
+		return rectangle.get3DBorder();
 	}
 
 	/**
@@ -160,8 +158,8 @@ public class GameArea implements Area, GameObject, Blinkable {
 	@Override public void remove() {
 		close();
 		// setBlinking(false);
-		GlobalData.areas.remove(this);
-		GlobalData.objects.remove(this);
+		data.areas.remove(this);
+		data.objects.remove(this);
 	}
 
 	/**

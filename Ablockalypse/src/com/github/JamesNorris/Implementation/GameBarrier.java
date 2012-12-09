@@ -15,9 +15,9 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
@@ -32,7 +32,7 @@ import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.Square;
 
-public class GameBarrier implements Barrier, GameObject, Blinkable {
+public class GameBarrier extends DataManipulator implements Barrier, GameObject, Blinkable {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
 	private Location center, spawnloc;
 	private int radius, blockamt, id, id2;
@@ -52,7 +52,7 @@ public class GameBarrier implements Barrier, GameObject, Blinkable {
 	 * @param center The center of the barrier
 	 */
 	public GameBarrier(Block center, ZAGameBase game) {
-		GlobalData.objects.add(this);
+		data.objects.add(this);
 		this.center = center.getLocation();
 		this.game = game;
 		radius = 2;
@@ -80,24 +80,24 @@ public class GameBarrier implements Barrier, GameObject, Blinkable {
 		/* end finding spawnloc */
 		game.addBarrier(this);
 		Location l = center.getLocation();
-		if (!GlobalData.barriers.containsKey(l))
-			GlobalData.barriers.put(center.getLocation(), game.getName());
-		if (!GlobalData.gamebarriers.contains(this))
-			GlobalData.gamebarriers.add(this);
+		if (!data.barriers.containsKey(l))
+			data.barriers.put(center.getLocation(), game.getName());
+		if (!data.gamebarriers.contains(this))
+			data.gamebarriers.add(this);
 		Square s = new Square(center.getLocation(), 1);
 		for (Location loc : s.getLocations()) {
 			Block b = loc.getBlock();
 			if (b != null && !b.isEmpty() && b.getType() != null && b.getType() == Material.FENCE) {
 				blocks.add(b);
-				if (!GlobalData.barrierpanels.containsValue(loc))
-					GlobalData.barrierpanels.put(this, loc);
+				if (!data.barrierpanels.containsValue(loc))
+					data.barrierpanels.put(this, loc);
 				++blockamt;
 			}
 		}
 		cd = External.getYamlManager().getConfigurationData();
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(this.center.getBlock());
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 30, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, cd.blinkers, 30, this);
 		if (blockamt == 9) {
 			bt.setColor(ZAColor.GREEN);
 			correct = true;
@@ -117,8 +117,8 @@ public class GameBarrier implements Barrier, GameObject, Blinkable {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return (Block[]) blocks.toArray();
+	public ArrayList<Block> getDefiningBlocks() {
+		return blocks;
 	}
 
 	/**
@@ -210,8 +210,8 @@ public class GameBarrier implements Barrier, GameObject, Blinkable {
 			bt.cancel();
 		if (e instanceof Player)
 			p = (Player) e;
-		if (GlobalData.playerExists(p)) {
-			final ZAPlayer zap = GlobalData.getZAPlayer(p);
+		if (data.playerExists(p)) {
+			final ZAPlayer zap = data.getZAPlayer(p);
 			id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 				@Override public void run() {
 					if (p != null && !p.isSneaking())
@@ -355,9 +355,9 @@ public class GameBarrier implements Barrier, GameObject, Blinkable {
 		if (bt.isRunning())
 			setBlinking(false);
 		game.removeBarrier(this);
-		GlobalData.barriers.remove(center);
-		GlobalData.barrierpanels.remove(this);
-		GlobalData.objects.remove(this);
+		data.barriers.remove(center);
+		data.barrierpanels.remove(this);
+		data.objects.remove(this);
 	}
 
 	/**

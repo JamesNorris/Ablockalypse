@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
@@ -41,7 +42,7 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 		level = game.getLevel();
 		for (String s : game.getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			ZAPlayer zap = GlobalData.getZAPlayer(p);
+			ZAPlayer zap = Ablockalypse.instance.data.getZAPlayer(p);
 			playerStorage.add(new PerPlayerDataStorage((ZAPlayerBase) zap));
 		}
 		for (GameBarrier gb : game.getBarriers())

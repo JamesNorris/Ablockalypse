@@ -6,15 +6,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.GameUndead;
 
-public class EntityBreakDoor implements Listener {
+public class EntityBreakDoor extends DataManipulator implements Listener {
 	@EventHandler public void EBDE(EntityBreakDoorEvent event) {
 		LivingEntity e = event.getEntity();
 		if (e instanceof Zombie) {
 			Zombie z = (Zombie) e;
-			for (GameUndead gz : GlobalData.undead)
+			for (GameUndead gz : data.undead)
 				if (gz.getZombie() == z)
 					event.setCancelled(true);
 		}

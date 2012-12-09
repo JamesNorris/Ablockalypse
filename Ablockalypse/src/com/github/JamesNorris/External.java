@@ -102,14 +102,14 @@ public class External {
 	 */
 	public static void loadData() {
 		try {
+			GlobalData data = Ablockalypse.instance.data;
 			/* game_data.bin */
 			ArrayList<PerGameDataStorage> saved_data = External.load(filelocation + gameData);
 			for (PerGameDataStorage pgds : saved_data) {
 				String name = pgds.getName();
-				ZAGame zag = GlobalData.findGame(name);
-				Location mf = pgds.getMainframe();
-				if (mf != null)
-					zag.setMainframe(mf);
+				ZAGame zag = data.findGame(name);
+				if (pgds.getMainframe() != null)
+					zag.setMainframe(pgds.getMainframe());
 				int level = pgds.getLevel();
 				if (zag.getPlayers().size() > 0)
 					zag.setLevel(level);
@@ -117,10 +117,10 @@ public class External {
 					zag.setLevel(0);
 				for (PerPlayerDataStorage spds : pgds.getPlayerData()) {
 					Player p = Bukkit.getPlayer(spds.getName());
-					if (!GlobalData.playerExists(p))
-						new ZAPlayerBase(p, GlobalData.findGame(spds.getGameName()));
-					if (p.isOnline() && GlobalData.playerExists(p)) {
-						ZAPlayerBase zap = (ZAPlayerBase) GlobalData.getZAPlayer(p);
+					if (!Ablockalypse.instance.data.playerExists(p))
+						new ZAPlayerBase(p, data.findGame(spds.getGameName()));
+					if (p.isOnline() && data.playerExists(p)) {
+						ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
 						if (zag.getLevel() < spds.getGameLevel()) {
 							zag.setLevel(spds.getGameLevel());
 							spds.loadToPlayer(zap);
@@ -130,7 +130,7 @@ public class External {
 					}
 				}
 				for (Location l : pgds.getBarrierLocations())
-					new GameBarrier(l.getBlock(), (ZAGameBase) GlobalData.findGame(name));
+					new GameBarrier(l.getBlock(), (ZAGameBase) data.findGame(name));
 				for (Location l : pgds.getAreaPoints().keySet()) {
 					Location l2 = pgds.getAreaPoints().get(l);
 					if (l2 != null) {
@@ -266,17 +266,17 @@ public class External {
 	 */
 	public static void saveData() {
 		try {
-			GlobalData.refresh();
+			GlobalData data = Ablockalypse.instance.data;
+			data.refresh();
 			/* game_data.bin */
 			ArrayList<String> namecheck = new ArrayList<String>();
 			ArrayList<PerGameDataStorage> pgds = new ArrayList<PerGameDataStorage>();
-			for (ZAGame zag : GlobalData.games.values()) {
+			for (ZAGame zag : data.games.values()) {
 				if (!namecheck.contains(zag.getName())) {
 					pgds.add(new PerGameDataStorage(zag));
 					namecheck.add(zag.getName());
-				} else {
+				} else
 					System.out.println("Duplicate data storage of " + zag.getName());
-				}
 			}
 			External.save(pgds, filelocation + gameData);
 		} catch (Exception e) {

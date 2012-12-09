@@ -20,10 +20,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.material.Door;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
@@ -35,26 +32,16 @@ import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAMob;
-import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.TeleportThread;
 import com.github.JamesNorris.Util.MiscUtil;
 
-public class PlayerInteract implements Listener {
+public class PlayerInteract extends DataManipulator implements Listener {
 	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> spawnerPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> areaPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> chestPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, Location> locClickers = new HashMap<String, Location>();
 	public static ArrayList<String> removers = new ArrayList<String>();
-	private ConfigurationData cd;
-	private YamlManager ym;
-	private LocalizationData ld;
-
-	public PlayerInteract() {
-		ym = External.getYamlManager();
-		cd = ym.getConfigurationData();
-		ld = ym.getLocalizationData();
-	}
 
 	/*
 	 * The event called when a player clicks a block.
@@ -67,18 +54,18 @@ public class PlayerInteract implements Listener {
 		Player p = event.getPlayer();
 		Action a = event.getAction();
 		if (b != null)
-			if ((!GlobalData.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) && a == Action.RIGHT_CLICK_BLOCK) {
+			if ((!data.playerExists(p) && barrierPlayers.containsKey(p.getName()) && b.getType() == Material.FENCE) && a == Action.RIGHT_CLICK_BLOCK) {
 				new GameBarrier(b, barrierPlayers.get(p.getName()));
 				p.sendMessage(ChatColor.GRAY + "Barrier created successfully!");
 				barrierPlayers.remove(p.getName());
-			} else if ((!GlobalData.playerExists(p) && spawnerPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
+			} else if ((!data.playerExists(p) && spawnerPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
 				spawnerPlayers.get(p.getName()).addMobSpawner(new GameMobSpawner(b.getLocation(), spawnerPlayers.get(p.getName())));
 				p.sendMessage(ChatColor.GRAY + "Spawner created successfully!");
 				spawnerPlayers.remove(p.getName());
-			} else if ((!GlobalData.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
+			} else if ((!data.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
 				event.setUseInteractedBlock(Result.DENY);
 				ZAGameBase zag = chestPlayers.get(p.getName());
-				if (!GlobalData.isMysteryChest(b.getLocation())) {
+				if (!data.isMysteryChest(b.getLocation())) {
 					if (MiscUtil.getSecondChest(b.getLocation()) == null)
 						chestPlayers.get(p.getName()).addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
 					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
@@ -87,9 +74,9 @@ public class PlayerInteract implements Listener {
 				} else
 					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
 				chestPlayers.remove(p.getName());
-			} else if (!GlobalData.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+			} else if (!data.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
 				boolean worked = false;
-				for (GameObject o : GlobalData.objects) {
+				for (GameObject o : data.objects) {
 					for (Block block : o.getDefiningBlocks()) {
 						if (block == b) {
 							o.remove();
@@ -103,7 +90,7 @@ public class PlayerInteract implements Listener {
 				else
 					p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.RED + "unsuccessful");
 				removers.remove(p.getName());
-			} else if ((!GlobalData.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
+			} else if ((!data.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {
 				if (!locClickers.containsKey(p.getName())) {
 					locClickers.put(p.getName(), b.getLocation());
 					p.sendMessage(ChatColor.GRAY + "Click another block to select point 2.");
@@ -126,9 +113,9 @@ public class PlayerInteract implements Listener {
 					return;
 				}
 				return;
-			} else if (GlobalData.players.containsKey(p)) {
+			} else if (data.players.containsKey(p)) {
 				event.setUseInteractedBlock(Result.DENY);
-				ZAPlayerBase zap = GlobalData.players.get(p);
+				ZAPlayerBase zap = data.players.get(p);
 				if (b.getType() == Material.ENDER_PORTAL_FRAME && a == Action.RIGHT_CLICK_BLOCK) {
 					if (!zap.isTeleporting()) {
 						p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
@@ -140,8 +127,8 @@ public class PlayerInteract implements Listener {
 					}
 				} else if (b.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
 					Location l = b.getLocation();
-					if (GlobalData.isMysteryChest(l)) {
-						MysteryChest mc = GlobalData.getMysteryChest(l);
+					if (data.isMysteryChest(l)) {
+						MysteryChest mc = data.getMysteryChest(l);
 						if (mc != null && mc.isActive()) {
 							if (zap.getPoints() >= cd.mccost) {
 								mc.giveRandomItem(p);

@@ -7,12 +7,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Data.PerPlayerDataStorage;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 
-public class PlayerJoin implements Listener {
+public class PlayerJoin extends DataManipulator implements Listener {
 	public static HashMap<String, PerPlayerDataStorage> offlinePlayers = new HashMap<String, PerPlayerDataStorage>();
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
 
@@ -25,11 +25,11 @@ public class PlayerJoin implements Listener {
 		String name = p.getName();
 		if (offlinePlayers.containsKey(name)) {
 			PerPlayerDataStorage spds = offlinePlayers.get(name);
-			if (!GlobalData.playerExists(p))
-				new ZAPlayerBase(p, GlobalData.findGame(spds.getGameName()));
-			if (GlobalData.playerExists(p)) {
-				ZAPlayerBase zap = (ZAPlayerBase) GlobalData.getZAPlayer(p);
-				ZAGameBase zag = (ZAGameBase) GlobalData.findGame(spds.getGameName());
+			if (!data.playerExists(p))
+				new ZAPlayerBase(p, data.findGame(spds.getGameName()));
+			if (data.playerExists(p)) {
+				ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
+				ZAGameBase zag = (ZAGameBase) data.findGame(spds.getGameName());
 				if (zag.getLevel() < spds.getGameLevel()) {
 					zag.setLevel(spds.getGameLevel());
 					spds.loadToPlayer(zap);

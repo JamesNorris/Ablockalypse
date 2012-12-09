@@ -8,12 +8,12 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 
-public class BlinkerThread {
+public class BlinkerThread extends DataManipulator {
 	private int id, delay;
 	private ZAColor color;
 	private boolean colored, running;
@@ -30,8 +30,8 @@ public class BlinkerThread {
 	 * @param autorun Whether or not to automatically run the thread
 	 * @param delay The delay between blinks
 	 */
-	public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, int delay, Object type) {
-		GlobalData.blinkers.add(this);
+	public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, boolean synchronize, int delay, Object type) {
+		data.blinkers.add(this);
 		for (Block b : blocks) {
 			this.blocks.put(b, b.getType());
 			this.blockdata.put(b, b.getData());
@@ -43,8 +43,22 @@ public class BlinkerThread {
 			game = (ZAGameBase) ((GameObject) type).getGame();
 		colored = false;
 		id = -1;
-		if (autorun)
+		if (synchronize && autorun)
+			synchronize();
+		else if (autorun)
 			blink();
+	}
+
+	/**
+	 * Synchronizes with all of the other BlinkerThreads, so that blinkers with equal waits will blink at the same time.
+	 */
+	public void synchronize() {
+		for (BlinkerThread bt : data.blinkers) {
+			if (bt.isRunning()) {
+				bt.cancel();
+				bt.blink();
+			}
+		}
 	}
 
 	/**

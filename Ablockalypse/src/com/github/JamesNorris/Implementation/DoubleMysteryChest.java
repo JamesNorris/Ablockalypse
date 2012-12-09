@@ -13,10 +13,9 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -29,7 +28,7 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {// TODO annotations
+public class DoubleMysteryChest extends DataManipulator implements MysteryChest, GameObject {// TODO annotations
 	private Location loc1, loc2;
 	private ConfigurationData cd;
 	private Object chest;
@@ -45,9 +44,9 @@ public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	public DoubleMysteryChest(Object chest, ZAGame game, Location loc1, Location loc2, boolean active) {
 		this.loc1 = loc1;
 		this.loc2 = loc2;
-		GlobalData.objects.add(this);
-		GlobalData.chests.put(loc1, this);
-		GlobalData.chests.put(loc2, this);
+		data.objects.add(this);
+		data.chests.put(loc1, this);
+		data.chests.put(loc2, this);
 		this.chest = chest;
 		im = new ItemManager();
 		rand = new Random();
@@ -59,7 +58,7 @@ public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(loc1.getBlock());
 		blocks.add(loc2.getBlock());
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 60, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, cd.blinkers, 30, this);
 	}
 
 	/**
@@ -67,8 +66,11 @@ public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return new Block[] {loc1.getBlock(), loc2.getBlock()};
+	public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(loc1.getBlock());
+		blocks.add(loc2.getBlock());
+		return blocks;
 	}
 
 	/**
@@ -147,9 +149,9 @@ public class DoubleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	@Override public void remove() {
 		setActive(false);
 		game.removeMysteryChest(this);
-		GlobalData.objects.remove(this);
-		GlobalData.chests.remove(loc1);
-		GlobalData.chests.remove(loc2);
+		data.objects.remove(this);
+		data.chests.remove(loc1);
+		data.chests.remove(loc2);
 		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 	}
 

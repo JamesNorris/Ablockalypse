@@ -13,10 +13,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Interface.Blinkable;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -29,8 +26,7 @@ import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
-	private ConfigurationData cd;
+public class SingleMysteryChest extends DataManipulator implements MysteryChest, GameObject {
 	private Object chest;
 	private Random rand;
 	private Item item;
@@ -48,8 +44,8 @@ public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	 * @param chest The chest to be made into this instance
 	 */
 	public SingleMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
-		GlobalData.objects.add(this);
-		GlobalData.chests.put(loc, this);
+		data.objects.add(this);
+		data.chests.put(loc, this);
 		this.chest = chest;
 		im = new ItemManager();
 		rand = new Random();
@@ -58,10 +54,9 @@ public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
 		this.loc = loc;
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
-		cd = External.getYamlManager().getConfigurationData();
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(loc.getBlock());
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, 60, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, cd.blinkers, 30, this);
 	}
 
 	/**
@@ -69,8 +64,10 @@ public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return new Block[] {loc.getBlock()};
+	public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(loc.getBlock());
+		return blocks;
 	}
 
 	/**
@@ -181,8 +178,8 @@ public class SingleMysteryChest implements MysteryChest, GameObject, Blinkable {
 	@Override public void remove() {
 		setActive(false);
 		game.removeMysteryChest(this);
-		GlobalData.objects.remove(this);
-		GlobalData.chests.remove(loc);
+		data.objects.remove(this);
+		data.chests.remove(loc);
 		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
 	}
 

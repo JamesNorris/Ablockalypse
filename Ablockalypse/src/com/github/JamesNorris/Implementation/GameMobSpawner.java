@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Interface.Blinkable;
+import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -17,7 +18,7 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class GameMobSpawner implements ZALocation, Blinkable {// TODO annotations
+public class GameMobSpawner implements ZALocation, Blinkable, GameObject {// TODO annotations
 	private Location loc;
 	private Block block;
 	private World world;
@@ -41,7 +42,7 @@ public class GameMobSpawner implements ZALocation, Blinkable {// TODO annotation
 		blinkers = External.getYamlManager().getConfigurationData().blinkers;
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(block);
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 60, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 		game.addMobSpawner(this);
 	}
 
@@ -123,5 +124,11 @@ public class GameMobSpawner implements ZALocation, Blinkable {// TODO annotation
 	@Override public ZALocation subtract(double x, double y, double z) {
 		loc = loc.subtract(x, y, z);
 		return this;
+	}
+
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(block);
+		return blocks;
 	}
 }

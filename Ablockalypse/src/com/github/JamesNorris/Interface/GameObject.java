@@ -1,5 +1,7 @@
 package com.github.JamesNorris.Interface;
 
+import java.util.ArrayList;
+
 import org.bukkit.block.Block;
 
 public interface GameObject {
@@ -20,5 +22,5 @@ public interface GameObject {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks();
+	public ArrayList<Block> getDefiningBlocks();
 }

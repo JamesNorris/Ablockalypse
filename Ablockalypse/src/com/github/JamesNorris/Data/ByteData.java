@@ -1,9 +1,10 @@
 package com.github.JamesNorris.Data;
 
-import java.util.ArrayList;
+/* Breakable Packages */
+import net.minecraft.server.v1_4_5.*;
+/* End Breakable Packages */
 
-import net.minecraft.server.DataWatcher;
-import net.minecraft.server.WatchableObject;
+import java.util.ArrayList;
 
 public class ByteData extends DataWatcher {
 	private byte data;

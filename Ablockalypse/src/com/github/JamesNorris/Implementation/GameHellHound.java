@@ -1,5 +1,7 @@
 package com.github.JamesNorris.Implementation;
 
+import java.util.ArrayList;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
@@ -10,8 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
@@ -20,7 +22,7 @@ import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class GameHellHound implements HellHound, GameObject {
+public class GameHellHound extends DataManipulator implements HellHound, GameObject {
 	private ZAGame game;
 	private MobTargettingThread mt;
 	private Object target;
@@ -36,8 +38,8 @@ public class GameHellHound implements HellHound, GameObject {
 	 */
 	public GameHellHound(Wolf wolf, ZAGame game) {
 		EffectUtil.generateEffect(wolf.getLocation().getWorld(), wolf.getLocation(), ZAEffect.LIGHTNING);
-		GlobalData.objects.add(this);
-		GlobalData.mobs.add(this);
+		data.objects.add(this);
+		data.mobs.add(this);
 		this.wolf = wolf;
 		this.game = game;
 		absorption = (int) ((.75 / 2) * game.getLevel() + 1);// slightly more than undead, raises .75 every round
@@ -51,15 +53,15 @@ public class GameHellHound implements HellHound, GameObject {
 			mt = new MobTargettingThread(Ablockalypse.instance, wolf, p);
 		game.setMobCount(game.getMobCount() + 1);
 		setAggressive(true);
-		if (!GlobalData.hellhounds.contains(this))
-			GlobalData.hellhounds.add(this);
+		if (!data.hellhounds.contains(this))
+			data.hellhounds.add(this);
 		setSpeed(0.28F);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
 			setSpeed(0.32F);
 		final Wolf finalwolf = wolf;
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
-				if (!getCreature().isDead() && GlobalData.isZAMob(getEntity())) {
+				if (!getCreature().isDead() && data.isZAMob(getEntity())) {
 					Location target = getGame().getRandomLivingPlayer().getLocation();
 					Location strike = getGame().getSpawnManager().findSpawnLocation(target, 5, 3);
 					finalwolf.teleport(strike);
@@ -94,8 +96,8 @@ public class GameHellHound implements HellHound, GameObject {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return new Block[] {null};
+	public ArrayList<Block> getDefiningBlocks() {
+		return null;
 	}
 
 	/**
@@ -204,7 +206,7 @@ public class GameHellHound implements HellHound, GameObject {
 			wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
 			wolf.remove();
 		}
-		GlobalData.objects.remove(this);
+		data.objects.remove(this);
 		finalize();
 	}
 

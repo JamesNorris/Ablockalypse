@@ -8,19 +8,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class BlockPlace implements Listener {
-	private LocalizationData ld;
-
-	public BlockPlace() {
-		ld = External.ym.getLocalizationData();
-	}
-
+public class BlockPlace extends DataManipulator implements Listener {
 	/*
 	 * Called when a player places a block.
 	 * Used mainly for avoiding unwanted players from placing ZASigns.
@@ -30,7 +22,7 @@ public class BlockPlace implements Listener {
 		Block b = event.getBlock();
 		if (b instanceof Sign) {
 			Sign s = (Sign) b;
-			if (GlobalData.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(ld.first)) {
+			if (data.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(ld.first)) {
 				event.setCancelled(true);
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 				p.sendMessage(ChatColor.RED + "You do not have permissions to place ZA signs!");

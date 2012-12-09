@@ -3,11 +3,9 @@ package com.github.iKeirNez.Util;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.DataManipulator;
 
-public class CommandUtil {
+public class CommandUtil extends DataManipulator {
 	public static String joinGame = ChatColor.AQUA + "You have joined a game of Zombie Ablockalypse";
 	public static String notPlayer = ChatColor.RED + "You must be a player to use that command.";
 	public static String noMaintainPerms = ChatColor.RED + "You don't have permission to perform maintenance.";
@@ -43,8 +41,8 @@ public class CommandUtil {
 	 * 
 	 * @param s CommandSender
 	 */
-	public static void list(CommandSender s) {
-		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(GlobalData.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
+	public void list(CommandSender s) {
+		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
 	}
 
 	// Note: Max lines per view is 10
@@ -54,8 +52,7 @@ public class CommandUtil {
 	 * @param s CommandSender
 	 * @param alias The string input for the command
 	 */
-	public static void showHelp(CommandSender s, String[] args, String alias) {
-		LocalizationData ld = External.ym.getLocalizationData();
+	public void showHelp(CommandSender s, String[] args, String alias) {
 		String a = "/" + alias;
 		ChatColor res = ChatColor.RESET;
 		ChatColor g = ChatColor.GOLD;

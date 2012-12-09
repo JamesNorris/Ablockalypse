@@ -11,13 +11,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Event.GameEndEvent;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
@@ -27,8 +25,7 @@ import com.github.JamesNorris.Util.SoundUtil;
 import com.github.iKeirNez.Util.XMPP;
 import com.github.iKeirNez.Util.XMPP.XMPPType;
 
-public class ZAGameBase implements ZAGame {
-	private ConfigurationData cd;
+public class ZAGameBase extends DataManipulator implements ZAGame {
 	private int level, mobcount;
 	private String name;
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
@@ -36,6 +33,7 @@ public class ZAGameBase implements ZAGame {
 	private ArrayList<GameArea> areas = new ArrayList<GameArea>();
 	private ArrayList<GameMobSpawner> spawners = new ArrayList<GameMobSpawner>();
 	private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
+	private ArrayList<Blinkable> blinkable = new ArrayList<Blinkable>();
 	private Random rand;
 	private Location mainframe;
 	private SpawnManager spawnManager;
@@ -50,14 +48,13 @@ public class ZAGameBase implements ZAGame {
 	 * @param cd The ConfigurationData instance used
 	 * @param spawners Whether or not spawners should be loaded automatically
 	 */
-	public ZAGameBase(String name, ConfigurationData cd) {
+	public ZAGameBase(String name) {
 		this.name = name;
-		this.cd = cd;
 		rand = new Random();
 		paused = false;
 		started = false;
 		friendlyFire = cd.defaultFF;
-		GlobalData.games.put(name, this);
+		data.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
@@ -66,6 +63,7 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void addArea(GameArea ga) {
 		areas.add(ga);
+		blinkable.add(ga);
 	}
 
 	/**
@@ -73,6 +71,7 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void addBarrier(GameBarrier gb) {
 		barriers.add(gb);
+		blinkable.add(gb);
 	}
 
 	/**
@@ -82,7 +81,8 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void addMobSpawner(GameMobSpawner l) {
 		spawners.add(l);
-		GlobalData.spawns.put(this, l);
+		blinkable.add(l);
+		data.spawns.put(this, l);
 	}
 
 	/**
@@ -92,6 +92,7 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void addMysteryChest(MysteryChest mc) {
 		chests.add(mc);
+		blinkable.add(mc);
 	}
 
 	/**
@@ -101,7 +102,7 @@ public class ZAGameBase implements ZAGame {
 	 * @param player The player to be added to the game
 	 */
 	@Override public void addPlayer(Player player) {
-		if (!GlobalData.players.containsKey(player)) {
+		if (!data.players.containsKey(player)) {
 			ZAPlayerBase zap = new ZAPlayerBase(player, this);
 			zap.loadPlayerToGame(name);
 			zap.addPoints(cd.startpoints);
@@ -137,7 +138,7 @@ public class ZAGameBase implements ZAGame {
 			Player p = Bukkit.getPlayer(s);
 			for (String s2 : getPlayers()) {
 				Player p2 = Bukkit.getPlayer(s2);
-				ZAPlayer zap = GlobalData.getZAPlayer(p2);
+				ZAPlayer zap = data.getZAPlayer(p2);
 				p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
 			}
 		}
@@ -159,38 +160,21 @@ public class ZAGameBase implements ZAGame {
 				mobcount = 0;
 				if (nlt != null && nlt.isRunning())
 					nlt.cancel();
-				for (GameUndead gu : GlobalData.undead)
+				for (Blinkable b : blinkable)
+					b.getBlinkerThread().synchronize();
+				for (GameUndead gu : data.undead)
 					if (gu.getGame() == this)
 						gu.kill();
-				for (GameHellHound ghh : GlobalData.hellhounds)
+				for (GameHellHound ghh : data.hellhounds)
 					if (ghh.getGame() == this)
 						ghh.kill();
 				for (String name : getPlayers()) {
 					Player player = Bukkit.getServer().getPlayer(name);
-					ZAPlayerBase zap = GlobalData.players.get(player);
+					ZAPlayerBase zap = data.players.get(player);
 					player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
 					SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 					removePlayer(player);
 				}
-				// for (GameBarrier gb : barriers) {
-				// gb.replacePanels();
-				// gb.setBlinking(true);
-				// }
-				// for (GameArea ga : areas) {
-				// ga.close();
-				// ga.setBlinking(true);
-				// }
-				// for (MysteryChest mc : chests) {
-				// if (mc instanceof Blinkable) {
-				// Blinkable bl = (Blinkable) mc;
-				// bl.setBlinking(false);
-				// }
-				// }
-				// for (ZALocation zal : spawners)
-				// if (zal instanceof Blinkable) {
-				// Blinkable bl = (Blinkable) zal;
-				// bl.setBlinking(false);
-				// }
 			}
 		}
 	}
@@ -325,7 +309,7 @@ public class ZAGameBase implements ZAGame {
 			ArrayList<ZAPlayerBase> zaps = new ArrayList<ZAPlayerBase>();
 			for (String s : getPlayers()) {
 				Player p = Bukkit.getServer().getPlayer(s);
-				ZAPlayerBase zap = (ZAPlayerBase) GlobalData.getZAPlayer(p);
+				ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
 				if (!p.isDead() && !zap.isInLastStand() && !zap.isInLimbo())
 					zaps.add(zap);
 			}
@@ -360,7 +344,7 @@ public class ZAGameBase implements ZAGame {
 		int i = 0;
 		for (String s : getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			if (!p.isDead() && !GlobalData.players.get(p).isInLimbo() && !GlobalData.players.get(p).isInLastStand())
+			if (!p.isDead() && !data.players.get(p).isInLimbo() && !data.players.get(p).isInLastStand())
 				++i;
 		}
 		return i;
@@ -416,21 +400,9 @@ public class ZAGameBase implements ZAGame {
 				setActiveMysteryChest(mc);
 			}
 		}
-		if (GlobalData.gameLevels.containsKey(getName()))
-			GlobalData.gameLevels.remove(getName());
-		GlobalData.gameLevels.put(getName(), level);
-		// for (GameBarrier gb : barriers)
-		// gb.setBlinking(false);
-		// for (GameArea ga : areas)
-		// ga.setBlinking(false);
-		// for (ZAMob zam : GlobalData.getZAMobs())
-		// if (zam.getGame() == this)
-		// zam.kill();
-		// for (ZALocation zal : spawners)
-		// if (zal instanceof Blinkable) {
-		// Blinkable bl = (Blinkable) zal;
-		// bl.setBlinking(false);
-		// }
+		if (data.gameLevels.containsKey(getName()))
+			data.gameLevels.remove(getName());
+		data.gameLevels.put(getName(), level);
 		if (level != 0) {
 			for (String s : players.keySet()) {
 				Player p = Bukkit.getServer().getPlayer(s);
@@ -463,21 +435,7 @@ public class ZAGameBase implements ZAGame {
 	 */
 	@Override public void remove() {
 		end();
-		// for (GameBarrier gb : barriers)
-		// gb.setBlinking(false);
-		// for (GameArea ga : areas)
-		// ga.setBlinking(false);
-		// for (ZALocation zal : spawners)
-		// if (zal instanceof Blinkable) {
-		// Blinkable bl = (Blinkable) zal;
-		// bl.setBlinking(false);
-		// }
-		// for (MysteryChest mc : chests)
-		// if (mc instanceof Blinkable) {
-		// Blinkable bl = (Blinkable) mc;
-		// bl.setBlinking(false);
-		// }
-		GlobalData.games.remove(name);
+		data.games.remove(name);
 	}
 
 	/**
@@ -513,11 +471,11 @@ public class ZAGameBase implements ZAGame {
 	@Override public void removePlayer(Player player) {
 		if (players.containsKey(player.getName()))
 			players.remove(player.getName());
-		ZAPlayer zap = GlobalData.getZAPlayer(player);
+		ZAPlayer zap = data.getZAPlayer(player);
 		if (zap != null) {
 			zap.removeFromGame();
-			GlobalData.players.get(player).removeFromGame();
-			GlobalData.players.remove(player);
+			data.players.get(player).removeFromGame();
+			data.players.remove(player);
 			if (players.size() == 0) {
 				pause(true);
 				end();
@@ -557,13 +515,13 @@ public class ZAGameBase implements ZAGame {
 	 * @param location The location to be made into the spawn
 	 */
 	@Override public void setMainframe(Location location) {
-		if (!GlobalData.mainframes.containsValue(location)) {
+		if (!data.mainframes.containsValue(location)) {
 			mainframe = location;
-			GlobalData.mainframes.put(getName(), location);
+			data.mainframes.put(getName(), location);
 		} else {
-			GlobalData.mainframes.remove(location);
+			data.mainframes.remove(location);
 			mainframe = location;
-			GlobalData.mainframes.put(getName(), location);
+			data.mainframes.put(getName(), location);
 		}
 		if (spawnManager == null || spawnManager.getWorld() != location.getWorld())
 			spawnManager = new SpawnManager(this, location.getWorld());

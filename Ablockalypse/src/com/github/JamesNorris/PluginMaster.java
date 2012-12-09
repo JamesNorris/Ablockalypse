@@ -5,7 +5,6 @@ import java.io.File;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Threading.MainThreading;
 
@@ -13,15 +12,13 @@ import com.github.JamesNorris.Threading.MainThreading;
  * The class used to easily access most of the information about Ablockalypse.
  * This is the most powerful class in the plugin, and should not be nulled out, for it will break the entire plugin.
  */
-public class PluginMaster {
+public class PluginMaster extends DataManipulator {
 	private String ablockalypse = "Ablockalypse";
 	private String address = "http://api.bukget.org/api2/bukkit/plugin/" + ablockalypse + "/latest";
-	private GlobalData d;
 	private Ablockalypse instance;
 	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private MainThreading mt;
 	private String path = "plugins" + File.separator + "Ablockalypse.jar";
-	private YamlManager ym;
 
 	/**
 	 * Creates a new PluginMaster instance for Ablockalypse.
@@ -30,21 +27,6 @@ public class PluginMaster {
 	 */
 	public PluginMaster(Plugin instance) {
 		this.instance = (Ablockalypse) instance;
-	}
-
-	/*
-	 * Adds the 2 main types of data to this manager.
-	 */
-	public void addData(GlobalData d, MainThreading mt) {
-		this.d = d;
-		this.mt = mt;
-	}
-
-	/*
-	 * Adds a YamlManager to this instance.
-	 */
-	public void addManager(YamlManager ym) {
-		this.ym = ym;
 	}
 
 	/**
@@ -58,7 +40,7 @@ public class PluginMaster {
 		System.err.println("An aspect of Ablockalypse is broken, please report at:");
 		System.err.println(getIssuesURL());
 		System.err.println("--------------------------[ERROR REPORT]--------------------------");
-		System.err.println("VERSION: " + GlobalData.version);
+		System.err.println("VERSION: " + data.version);
 		System.err.println("BREAK REASON: " + reason);
 		System.err.println("---------------------------[END REPORT]---------------------------");
 		if (!disable)
@@ -67,15 +49,6 @@ public class PluginMaster {
 			System.err.println("FATAL ERROR, the plugin will now shut down!");
 			Ablockalypse.kill();
 		}
-	}
-
-	/**
-	 * Gets the primary Data instance
-	 * 
-	 * @return The primary Data instance
-	 */
-	public GlobalData getData() {
-		return d;
 	}
 
 	/**

@@ -13,9 +13,8 @@ import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Threading.MainThreading;
 
 public class Ablockalypse extends JavaPlugin {
-	private static GlobalData d;
+	public GlobalData data;
 	public static Ablockalypse instance;
-	private static MainThreading mt;
 	private static PluginMaster pm;
 
 	/**
@@ -36,12 +35,15 @@ public class Ablockalypse extends JavaPlugin {
 
 	@Override public void onDisable() {
 		External.saveData();
-		for (BlinkerThread bt : GlobalData.blinkers)
+		for (BlinkerThread bt : data.blinkers)
 			bt.cancel();
-		if (GlobalData.games != null)
-			for (ZAGameBase gb : GlobalData.games.values())
-				gb.pause(true);
-		d.clear();
+		if (data.games != null)
+			for (ZAGameBase gb : data.games.values())
+				gb.remove();
+		data = null;
+		pm = null;
+		instance = null;
+		this.getClassLoader().clearAssertionStatus();
 	}
 
 	@Override public void onEnable() {
@@ -49,7 +51,7 @@ public class Ablockalypse extends JavaPlugin {
 		External.loadExternalFiles(this);
 		pm = new PluginMaster(this);
 		Update upd = new Update(this);
-		d = new GlobalData(this);
+		data = new GlobalData(this);
 		ConfigurationData cd = External.getYamlManager().getConfigurationData();
 		System.out.println("[Ablockalypse] Checking for updates...");
 		if (!cd.ENABLE_AUTO_UPDATE && upd.updateCheck()) {
@@ -58,9 +60,7 @@ public class Ablockalypse extends JavaPlugin {
 		} else {
 			RegistrationManager.register(this);
 			External.loadData();
-			mt = new MainThreading(this, true, true, true);
-			pm.addData(d, mt);
-			pm.addManager(External.ym);
+			new MainThreading(this, true, true, true);
 		}
 	}
 }

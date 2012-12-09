@@ -3,7 +3,7 @@ package com.github.JamesNorris.Interface;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-public interface MysteryChest extends GameObject {
+public interface MysteryChest extends GameObject, Blinkable {
 	/**
 	 * Gets the uses that this chest has before the mystery chest moves to another location.
 	 * 

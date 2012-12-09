@@ -20,13 +20,13 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
 
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class ProjectileHit implements Listener {
+public class ProjectileHit extends DataManipulator implements Listener {
 	public static HashMap<UUID, String> uuids;
 	private int yield = 1;// Can be changed to make a larger explosion.
 
@@ -43,12 +43,12 @@ public class ProjectileHit implements Listener {
 		if (e instanceof EnderPearl) {
 			EnderPearl ep = (EnderPearl) e;
 			Player p = (Player) ep.getShooter();
-			if (GlobalData.players.containsKey(p)) {
+			if (data.players.containsKey(p)) {
 				Location loc = ep.getLocation();
 				World w = loc.getWorld();
 				Entity ent = w.spawnEntity(loc, EntityType.FIREBALL);
 				Fireball f = (Fireball) ent;
-				ZAPlayer zap = GlobalData.getZAPlayer(p);
+				ZAPlayer zap = data.getZAPlayer(p);
 				UUID uuid = f.getUniqueId();
 				if (zap.hasInstaKill())
 					EntityDamageByEntity.instakillids.add(uuid);
@@ -63,8 +63,8 @@ public class ProjectileHit implements Listener {
 		} else if (e instanceof Arrow) {
 			Arrow a = (Arrow) e;
 			Player p = (Player) a.getShooter();
-			if (GlobalData.players.containsKey(p)) {
-				ZAPlayer zap = GlobalData.getZAPlayer(p);
+			if (data.players.containsKey(p)) {
+				ZAPlayer zap = data.getZAPlayer(p);
 				UUID uuid = a.getUniqueId();
 				if (zap.hasInstaKill())
 					EntityDamageByEntity.instakillids.add(uuid);

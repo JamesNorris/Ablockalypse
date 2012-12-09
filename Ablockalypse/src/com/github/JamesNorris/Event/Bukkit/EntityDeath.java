@@ -6,19 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Util.MiscUtil;
 
-public class EntityDeath implements Listener {
-	private ConfigurationData cd;
-
-	public EntityDeath() {
-		cd = External.ym.getConfigurationData();
-	}
-
+public class EntityDeath extends DataManipulator implements Listener {
 	/*
 	 * Called when an Entity is killed.
 	 * Used for adding points when a player kills an entity, while they are in-game.
@@ -26,12 +18,12 @@ public class EntityDeath implements Listener {
 	@EventHandler public void EDE(EntityDeathEvent event) {
 		Entity e = event.getEntity();
 		Player p = event.getEntity().getKiller();
-		if (GlobalData.isZAMob(e)) {
+		if (data.isZAMob(e)) {
 			event.getDrops().clear();
 			event.setDroppedExp(0);
-			GlobalData.getZAMob(e).kill();
-			if (GlobalData.players.containsKey(p)) {
-				ZAPlayerBase zap = GlobalData.players.get(p);
+			data.getZAMob(e).kill();
+			if (data.players.containsKey(p)) {
+				ZAPlayerBase zap = data.players.get(p);
 				zap.addPoints(cd.pointincrease);
 				zap.setKills(zap.getKills() + 1);
 				int food = p.getFoodLevel();

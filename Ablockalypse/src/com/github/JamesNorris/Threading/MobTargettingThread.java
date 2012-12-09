@@ -1,21 +1,21 @@
 package com.github.JamesNorris.Threading;
 
-import net.minecraft.server.EntityCreature;
-import net.minecraft.server.PathEntity;
-import net.minecraft.server.PathPoint;
+/* Breakable Packages */
+import net.minecraft.server.v1_4_5.*;
+import org.bukkit.craftbukkit.v1_4_5.entity.*;
+/* End Breakable Packages */
 
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.entity.CraftCreature;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 
-public class MobTargettingThread {
+public class MobTargettingThread extends DataManipulator {
 	private final Plugin plugin;
 	private Player p;
 	private Creature c;
@@ -37,7 +37,7 @@ public class MobTargettingThread {
 	public MobTargettingThread(Plugin plugin, Creature c, Location loc) {
 		this.plugin = plugin;
 		this.c = c;
-		if (GlobalData.isZAMob(c))
+		if (data.isZAMob(c))
 			zam = (ZAMob) (c);
 		else
 			zam = null;
@@ -55,7 +55,7 @@ public class MobTargettingThread {
 	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
 		this.plugin = plugin;
 		this.c = c;
-		if (GlobalData.isZAMob(c))
+		if (data.isZAMob(c))
 			zam = (ZAMob) (c);
 		else
 			zam = null;
@@ -120,12 +120,12 @@ public class MobTargettingThread {
 			mob.setPathEntity(path);
 			mob.getNavigation().a(path, speed);
 		}
-		if (GlobalData.barriers.containsKey(location) && location.getBlock().isEmpty() && GlobalData.isZAMob(c)) {
-			ZAMob zam = GlobalData.getZAMob(c);
+		if (data.barriers.containsKey(location) && location.getBlock().isEmpty() && data.isZAMob(c)) {
+			ZAMob zam = data.getZAMob(c);
 			if (zam.getGame().getRandomLivingPlayer() != null)
 				zam.setTargetPlayer(zam.getGame().getRandomLivingPlayer());
 		}
-		if (p != null && !GlobalData.players.containsKey(p))
+		if (p != null && !data.players.containsKey(p))
 			cancel();
 	}
 
@@ -134,8 +134,8 @@ public class MobTargettingThread {
 	 */
 	private Location refreshTarget() {
 		Location loc = null;
-		if (p != null && p.isDead() && GlobalData.playerExists(p)) {
-			ZAPlayer zap = GlobalData.getZAPlayer(p);
+		if (p != null && p.isDead() && data.playerExists(p)) {
+			ZAPlayer zap = data.getZAPlayer(p);
 			p = zap.getGame().getRandomLivingPlayer();
 		}
 		if (p != null)

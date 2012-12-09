@@ -5,7 +5,10 @@ import java.util.Random;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -49,11 +52,29 @@ public class MiscUtil {
 		return i;
 	}
 
-	public static Location getSecondChest(Location l) {// TODO annotation
-		Square s = new Square(l, 1);
-		for (Location loc : s.getLocations())
-			if (loc.getBlock().getState() instanceof Chest)
-				return loc;
+	/**
+	 * Gets the second chest next to the location given.
+	 * 
+	 * @param l The location to check around
+	 * @return The location of the second block
+	 */
+	public static Location getSecondChest(Location l) {
+		return getSecondChest(l.getBlock()).getLocation();
+	}
+
+	/**
+	 * Gets the second chest next to the location of the block given.
+	 * 
+	 * @param b The block to check around
+	 * @return The second block
+	 */
+	public static Block getSecondChest(Block b) {
+		BlockFace[] faces = new BlockFace[] {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
+		for (BlockFace face : faces) {
+			Block bl = b.getRelative(face);
+			if (bl.getState() instanceof Chest || bl.getState() instanceof DoubleChest)
+				return bl;
+		}
 		return null;
 	}
 

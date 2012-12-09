@@ -8,17 +8,15 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
 
-public class MainThreading {
+public class MainThreading extends DataManipulator {
 	private int id1, id2, id4;
 	private Ablockalypse instance;
-	private ConfigurationData cd;
 
 	/**
 	 * The instance with all threads that should be run constantly while the plugin is running.
@@ -45,11 +43,11 @@ public class MainThreading {
 	public void barrier() {
 		id2 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				for (GameBarrier bg : GlobalData.barrierpanels.keySet()) {
-					for (GameUndead gu : GlobalData.undead)
+				for (GameBarrier bg : data.barrierpanels.keySet()) {
+					for (GameUndead gu : data.undead)
 						if (bg.isWithinRadius(gu.getEntity()) && !bg.isBroken())
 							bg.breakBarrier(gu.getZombie());
-					for (GameHellHound ghh : GlobalData.hellhounds)
+					for (GameHellHound ghh : data.hellhounds)
 						if (bg.isWithinRadius(ghh.getEntity()) && !bg.isBroken())
 							bg.breakBarrier(ghh.getWolf());
 				}
@@ -95,9 +93,9 @@ public class MainThreading {
 		if (cd.clearmobs)
 			id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 				@Override public void run() {
-					for (Player p : GlobalData.players.keySet())
+					for (Player p : data.players.keySet())
 						for (Entity e : p.getNearbyEntities(32, 32, 32))
-							if (e != null && (e.getType() == EntityType.SLIME || !GlobalData.isZAMob(e)) && !(e instanceof Player))
+							if (e != null && (e.getType() == EntityType.SLIME || !data.isZAMob(e)) && !(e instanceof Player))
 								e.remove();
 				}
 			}, 60, 60);
@@ -109,8 +107,8 @@ public class MainThreading {
 	public void wolfFlames() {
 		id1 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 			@Override public void run() {
-				if (GlobalData.hellhounds != null)
-					for (GameHellHound f : GlobalData.hellhounds)
+				if (data.hellhounds != null)
+					for (GameHellHound f : data.hellhounds)
 						if (!f.getWolf().isDead())
 							f.addFlames();
 			}

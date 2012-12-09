@@ -5,10 +5,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAPlayer;
 
-public class RespawnThread {
+public class RespawnThread extends DataManipulator {
 	private Player player;
 	private int time, id, level;
 	private ZAPlayer zap;
@@ -23,7 +23,7 @@ public class RespawnThread {
 	public RespawnThread(Player player, int time, boolean autorun) {
 		this.player = player;
 		this.time = time;
-		zap = GlobalData.getZAPlayer(player);
+		zap = data.getZAPlayer(player);
 		level = zap.getGame().getLevel();
 		if (autorun)
 			waitToRespawn();
@@ -43,10 +43,10 @@ public class RespawnThread {
 		player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
-				if (GlobalData.playerExists(player)) {
+				if (data.playerExists(player)) {
 					if (zap.getGame().getLevel() > level) {
 						if (time == 0) {
-							ZAPlayer zap = GlobalData.players.get(player);
+							ZAPlayer zap = data.players.get(player);
 							if (zap.getGame() == null)
 								cancel();
 							zap.sendToMainframe("Respawn");

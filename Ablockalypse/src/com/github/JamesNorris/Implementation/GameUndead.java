@@ -1,5 +1,7 @@
 package com.github.JamesNorris.Implementation;
 
+import java.util.ArrayList;
+
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -8,15 +10,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.Undead;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 
-public class GameUndead implements Undead, GameObject {
+public class GameUndead extends DataManipulator implements Undead, GameObject {
 	private ZAGame game;
 	private MobTargettingThread mt;
 	private Object target;
@@ -30,8 +32,8 @@ public class GameUndead implements Undead, GameObject {
 	 * @param zombie The zombie to be made into this instance
 	 */
 	public GameUndead(Zombie zombie, ZAGame game) {
-		GlobalData.objects.add(this);
-		GlobalData.mobs.add(this);
+		data.objects.add(this);
+		data.mobs.add(this);
 		this.zombie = zombie;
 		this.game = game;
 		absorption = (int) ((.5 / 2) * game.getLevel() + 1);// slightly less than wolf, increases at .5 every round
@@ -45,8 +47,8 @@ public class GameUndead implements Undead, GameObject {
 			mt = new MobTargettingThread(Ablockalypse.instance, zombie, p);
 		zombie.setHealth(10);
 		game.setMobCount(game.getMobCount() + 1);
-		if (!GlobalData.undead.contains(this))
-			GlobalData.undead.add(this);
+		if (!data.undead.contains(this))
+			data.undead.add(this);
 		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
 			setSpeed(0.24F);
 	}
@@ -75,8 +77,8 @@ public class GameUndead implements Undead, GameObject {
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public Block[] getDefiningBlocks() {
-		return new Block[] {null};
+	public ArrayList<Block> getDefiningBlocks() {
+		return null;
 	}
 
 	/**
@@ -184,7 +186,7 @@ public class GameUndead implements Undead, GameObject {
 	 */
 	@Override public void remove() {
 		kill();
-		GlobalData.objects.remove(this);
+		data.objects.remove(this);
 	}
 
 	/**

@@ -7,18 +7,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 
-public class PlayerInteractEntity implements Listener {
-	private ConfigurationData cd;
-
-	public PlayerInteractEntity() {
-		cd = External.ym.getConfigurationData();
-	}
-
+public class PlayerInteractEntity extends DataManipulator implements Listener {
 	/*
 	 * The event called when a player hits another entity.
 	 * 
@@ -27,9 +19,9 @@ public class PlayerInteractEntity implements Listener {
 	@EventHandler public void PIEE(PlayerInteractEntityEvent event) {
 		Player p = event.getPlayer();
 		Entity e = event.getRightClicked();
-		if (GlobalData.players.containsKey(p) && GlobalData.players.containsKey(e)) {
-			ZAPlayerBase zap = GlobalData.players.get(e);
-			ZAPlayerBase zap2 = GlobalData.players.get(p);
+		if (data.players.containsKey(p) && data.players.containsKey(e)) {
+			ZAPlayerBase zap = data.players.get(e);
+			ZAPlayerBase zap2 = data.players.get(p);
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints(cd.helppoints);

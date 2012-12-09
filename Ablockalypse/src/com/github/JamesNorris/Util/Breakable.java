@@ -1,18 +1,14 @@
 package com.github.JamesNorris.Util;
 
-import net.minecraft.server.EntityPlayer;
-import net.minecraft.server.EntityWolf;
-import net.minecraft.server.NBTTagCompound;
-import net.minecraft.server.Packet40EntityMetadata;
-import net.minecraft.server.WorldServer;
+/* Breakable Packages */
+import net.minecraft.server.v1_4_5.*;
+import org.bukkit.craftbukkit.v1_4_5.*;
+import org.bukkit.craftbukkit.v1_4_5.inventory.*;
+import org.bukkit.craftbukkit.v1_4_5.entity.*;
+/* End Breakable Packages */
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.CraftWorld;
-import org.bukkit.craftbukkit.entity.CraftEntity;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
-import org.bukkit.craftbukkit.entity.CraftWolf;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
@@ -72,7 +68,7 @@ public class Breakable {
 	 * @param entity The entity to get
 	 * @return The NMS entity
 	 */
-	public static net.minecraft.server.Entity getNMSEntity(Entity entity) {
+	public static net.minecraft.server.v1_4_5.Entity getNMSEntity(Entity entity) {
 		return ((CraftEntity) entity).getHandle();
 	}
 
