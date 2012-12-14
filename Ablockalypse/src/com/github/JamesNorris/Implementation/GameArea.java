@@ -57,7 +57,7 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public ArrayList<Block> getDefiningBlocks() {
+	@Override public ArrayList<Block> getDefiningBlocks() {
 		ArrayList<Block> bs = new ArrayList<Block>();
 		for (Location l : locs.keySet())
 			bs.add(l.getBlock());

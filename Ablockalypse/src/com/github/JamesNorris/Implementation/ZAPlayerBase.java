@@ -76,7 +76,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * 
 	 * @param i The damage absorption of this player
 	 */
-	public void setHitAbsorption(int i) {
+	@Override public void setHitAbsorption(int i) {
 		absorption = i;
 	}
 
@@ -85,7 +85,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * 
 	 * @return The amount of damage to be absorbed each time this player is hit
 	 */
-	public int getHitAbsorption() {
+	@Override public int getHitAbsorption() {
 		return absorption;
 	}
 
@@ -94,7 +94,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * 
 	 * @return The amount of kills the player has
 	 */
-	public int getKills() {
+	@Override public int getKills() {
 		return kills;
 	}
 
@@ -104,7 +104,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * 
 	 * @param i The amount of kills to set the player to
 	 */
-	public void setKills(int i) {
+	@Override public void setKills(int i) {
 		kills = i;
 	}
 
@@ -113,7 +113,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public ArrayList<Block> getDefiningBlocks() {
+	@Override public ArrayList<Block> getDefiningBlocks() {
 		return null;
 	}
 

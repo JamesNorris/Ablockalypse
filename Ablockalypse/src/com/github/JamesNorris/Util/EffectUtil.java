@@ -119,7 +119,8 @@ public class EffectUtil {
 				break;
 				case BEACON:
 					// TODO
-					w.playEffect(l, Effect.MOBSPAWNER_FLAMES, 1);
+					for (int i = 0; i < 10; i++)
+					w.playEffect(l.add(0, i, 0), Effect.MOBSPAWNER_FLAMES, 1);
 				break;
 			}
 	}

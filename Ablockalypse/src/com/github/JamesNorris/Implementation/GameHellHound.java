@@ -78,7 +78,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 * 
 	 * @param i The damage absorption of this mob
 	 */
-	public void setHitAbsorption(int i) {
+	@Override public void setHitAbsorption(int i) {
 		absorption = i;
 	}
 
@@ -87,7 +87,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 * 
 	 * @return The amount of damage to be absorbed each time this mob is hit
 	 */
-	public int getHitAbsorption() {
+	@Override public int getHitAbsorption() {
 		return absorption;
 	}
 
@@ -96,7 +96,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public ArrayList<Block> getDefiningBlocks() {
+	@Override public ArrayList<Block> getDefiningBlocks() {
 		return null;
 	}
 

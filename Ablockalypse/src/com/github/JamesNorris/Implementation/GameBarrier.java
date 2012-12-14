@@ -117,7 +117,7 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public ArrayList<Block> getDefiningBlocks() {
+	@Override public ArrayList<Block> getDefiningBlocks() {
 		return blocks;
 	}
 

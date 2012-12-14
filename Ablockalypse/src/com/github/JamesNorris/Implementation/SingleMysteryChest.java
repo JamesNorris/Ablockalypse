@@ -64,7 +64,7 @@ public class SingleMysteryChest extends DataManipulator implements MysteryChest,
 	 * 
 	 * @return The blocks assigned to this object
 	 */
-	public ArrayList<Block> getDefiningBlocks() {
+	@Override public ArrayList<Block> getDefiningBlocks() {
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(loc.getBlock());
 		return blocks;
