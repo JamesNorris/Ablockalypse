@@ -96,7 +96,6 @@ public class GameMobSpawner implements ZALocation, Blinkable, GameObject {// TOD
 	}
 
 	@Override public void remove() {
-		if (bt.isRunning())
 			setBlinking(false);
 		game.removeMobSpawner(this);
 	}

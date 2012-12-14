@@ -157,7 +157,7 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 */
 	@Override public void remove() {
 		close();
-		// setBlinking(false);
+		setBlinking(false);
 		data.areas.remove(this);
 		data.objects.remove(this);
 	}

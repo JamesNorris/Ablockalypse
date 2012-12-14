@@ -177,6 +177,7 @@ public class SingleMysteryChest extends DataManipulator implements MysteryChest,
 	 */
 	@Override public void remove() {
 		setActive(false);
+		setBlinking(false);
 		game.removeMysteryChest(this);
 		data.objects.remove(this);
 		data.chests.remove(loc);
