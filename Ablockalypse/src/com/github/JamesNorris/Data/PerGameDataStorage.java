@@ -9,6 +9,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
@@ -21,7 +22,7 @@ import com.github.JamesNorris.Util.SerializableLocation;
 public class PerGameDataStorage implements Serializable {// TODO annotations
 	private static final long serialVersionUID = 7825383085566172198L;
 	private final String name;
-	private SerializableLocation activechest = null, mainframe = null;
+	private final SerializableLocation activechest, mainframe;
 	private final ArrayList<SerializableLocation> chests = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>();
 	private final ArrayList<SerializableLocation> spawns = new ArrayList<SerializableLocation>();
@@ -34,15 +35,20 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 		name = game.getName();
 		if (game.getActiveMysteryChest() != null)
 			activechest = new SerializableLocation(game.getActiveMysteryChest().getLocation());
+		else
+			activechest = null;
 		for (MysteryChest mc : game.getMysteryChests())
 			chests.add(new SerializableLocation(mc.getLocation()));
 		Location mf = game.getMainframe();
 		if (mf != null)
 			mainframe = new SerializableLocation(mf);
+		else
+			mainframe = null;
 		level = game.getLevel();
 		for (String s : game.getPlayers()) {
 			Player p = Bukkit.getPlayer(s);
-			ZAPlayer zap = Ablockalypse.instance.data.getZAPlayer(p);
+			Ablockalypse.getData();
+			ZAPlayer zap = DataManipulator.data.getZAPlayer(p);
 			playerStorage.add(new PerPlayerDataStorage((ZAPlayerBase) zap));
 		}
 		for (GameBarrier gb : game.getBarriers())
@@ -90,7 +96,9 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 	}
 
 	public Location getMainframe() {
-		return SerializableLocation.returnLocation(mainframe);
+		if (mainframe != null)
+			return SerializableLocation.returnLocation(mainframe);
+		return null;
 	}
 
 	public ArrayList<Location> getMobSpawnerLocations() {

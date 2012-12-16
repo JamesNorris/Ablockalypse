@@ -97,7 +97,9 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 * @return The blocks assigned to this object
 	 */
 	@Override public ArrayList<Block> getDefiningBlocks() {
-		return null;
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(wolf.getLocation().subtract(0, 1, 0).getBlock());
+		return blocks;
 	}
 
 	/**
@@ -207,6 +209,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 			wolf.remove();
 		}
 		data.objects.remove(this);
+		game = null;
 		finalize();
 	}
 

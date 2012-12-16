@@ -352,11 +352,13 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 */
 	@Override public void remove() {
 		replacePanels();
-			setBlinking(false);
+		setBlinking(false);
 		game.removeBarrier(this);
 		data.barriers.remove(center);
 		data.barrierpanels.remove(this);
 		data.objects.remove(this);
+		data.blinkers.remove(bt);
+		game = null;
 	}
 
 	/**

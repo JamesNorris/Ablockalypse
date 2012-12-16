@@ -2,7 +2,9 @@ package com.github;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
+import com.github.JamesNorris.PackageLoader;
 import com.github.JamesNorris.PluginMaster;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.ConfigurationData;
@@ -16,6 +18,8 @@ public class Ablockalypse extends JavaPlugin {
 	public GlobalData data;
 	public static Ablockalypse instance;
 	private static PluginMaster pm;
+	protected static PackageLoader pl;
+	protected static DataManipulator dm;
 
 	/**
 	 * Gets the PluginMaster instance for Ablockalypse. The PluginMaster instance is what manages the entire plugin.
@@ -24,6 +28,14 @@ public class Ablockalypse extends JavaPlugin {
 	 */
 	public static PluginMaster getMaster() {
 		return pm;
+	}
+
+	public static PackageLoader getPackageLoader() {
+		return pl;
+	}
+
+	public static DataManipulator getData() {
+		return dm;
 	}
 
 	/**
@@ -47,17 +59,20 @@ public class Ablockalypse extends JavaPlugin {
 	}
 
 	@Override public void onEnable() {
+		pl = new PackageLoader();
 		Ablockalypse.instance = this;
 		External.loadExternalFiles(this);
-		pm = new PluginMaster(this);
+		pm = new PluginMaster();
 		Update upd = new Update(this);
 		data = new GlobalData(this);
+		dm = new DataManipulator();
 		ConfigurationData cd = External.getYamlManager().getConfigurationData();
 		System.out.println("[Ablockalypse] Checking for updates...");
-		if (!cd.ENABLE_AUTO_UPDATE && upd.updateCheck()) {
+		if (!cd.ENABLE_AUTO_UPDATE && upd.check()) {
 			this.getServer().getPluginManager().disablePlugin(this);
 			System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
 		} else {
+			System.out.println("[Ablockalypse] No updates found.");
 			RegistrationManager.register(this);
 			External.loadData();
 			new MainThreading(this, true, true, true);

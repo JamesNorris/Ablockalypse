@@ -102,7 +102,7 @@ public class External {
 	 */
 	public static void loadData() {
 		try {
-			GlobalData data = Ablockalypse.instance.data;
+			GlobalData data = DataManipulator.data;
 			/* game_data.bin */
 			ArrayList<PerGameDataStorage> saved_data = External.load(filelocation + gameData);
 			for (PerGameDataStorage pgds : saved_data) {
@@ -117,7 +117,8 @@ public class External {
 					zag.setLevel(0);
 				for (PerPlayerDataStorage spds : pgds.getPlayerData()) {
 					Player p = Bukkit.getPlayer(spds.getName());
-					if (!Ablockalypse.instance.data.playerExists(p))
+					Ablockalypse.getData();
+					if (!DataManipulator.data.playerExists(p))
 						new ZAPlayerBase(p, data.findGame(spds.getGameName()));
 					if (p.isOnline() && data.playerExists(p)) {
 						ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
@@ -141,10 +142,10 @@ public class External {
 				}
 				for (Location l : pgds.getMysteryChestLocations()) {
 					Block b = l.getBlock();
-					if (MiscUtil.getSecondChest(b.getLocation()) == null)
+					if (MiscUtil.getSecondChest(b) == null)
 						zag.addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
-					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
-						zag.addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b.getLocation()), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
+					else if (MiscUtil.getSecondChest(b) != null)
+						zag.addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b).getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
 				}
 				for (Location l : pgds.getMobSpawnerLocations()) {
 					GameMobSpawner zaloc = new GameMobSpawner(l, zag);

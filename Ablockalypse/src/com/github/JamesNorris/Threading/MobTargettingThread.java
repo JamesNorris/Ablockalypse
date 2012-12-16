@@ -12,8 +12,10 @@ import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Util.MathAssist;
 
 public class MobTargettingThread extends DataManipulator {
 	private final Plugin plugin;
@@ -24,8 +26,9 @@ public class MobTargettingThread extends DataManipulator {
 	private boolean hasTarget = false;
 	private float speed = 0.18F;// The default speed of the mob
 	private float radius = 16.0F;// the radius of the path (if set above 16, will cause weird behavior)
-	private int standStill = 5;// time in seconds before the mob should rethink the path (if it is standing still)
+	private int standStill = (int) MathAssist.line(28, 0.18F, 5);// TODO test - time in ticks before the mob should rethink the path (if it is standing still)
 	private ZAMob zam;
+	private Location last;
 
 	/**
 	 * Creates a new mobtargetter, that can target specific locations.
@@ -175,6 +178,7 @@ public class MobTargettingThread extends DataManipulator {
 	 * @param speed How fast the mob should move
 	 */
 	public void setSpeed(float speed) {
+		this.standStill = (int) MathAssist.line(28, speed, 5);
 		this.speed = speed;
 	}
 
@@ -222,21 +226,24 @@ public class MobTargettingThread extends DataManipulator {
 			@Override public void run() {
 				if (!c.isDead() && (p == null || !p.isDead())) {
 					Location target = refreshTarget();
-					Location loc = c.getLocation();
-					if (requiresCheckpoint(loc, target))
+					last = c.getLocation();
+					if (requiresCheckpoint(last, target))
 						checkpoint(target);
 					else
 						moveMob(target);
 					PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
 					Location newloc = c.getLocation();
 					if (zam != null && p != null) {
-						if (((newloc.getBlockX() == loc.getBlockX()) && (newloc.getBlockZ() == loc.getBlockZ())) || (pe != null && !pathIsClear(pe)))
+						if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())// if the entity moved less than 3 blocks, or the
+																																// path to target is not clear
 							++wait;
 						else
 							wait = 0;
-						if (wait >= (standStill * 20)) {
+						if (wait >= standStill) {// respawn and recalculate the target
 							wait = 0;
-							setTarget(zam.getGame().getSpawnManager().getClosestBarrier(p).getCenter());
+							ZAGame zag = zam.getGame();
+							c.teleport(zag.getSpawnManager().findSpawnLocation(target, 16, 8));
+							setTarget(zag.getSpawnManager().getClosestBarrier(p).getCenter());
 						}
 					}
 				} else

@@ -160,6 +160,8 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 		setBlinking(false);
 		data.areas.remove(this);
 		data.objects.remove(this);
+		data.blinkers.remove(bt);
+		zag = null;
 	}
 
 	/**

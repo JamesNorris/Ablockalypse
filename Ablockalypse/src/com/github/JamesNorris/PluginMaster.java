@@ -1,6 +1,7 @@
 package com.github.JamesNorris;
 
 import java.io.File;
+import java.util.HashMap;
 
 import org.bukkit.plugin.Plugin;
 
@@ -14,19 +15,35 @@ import com.github.JamesNorris.Threading.MainThreading;
  */
 public class PluginMaster extends DataManipulator {
 	private String ablockalypse = "Ablockalypse";
-	private String address = "http://api.bukget.org/api2/bukkit/plugin/" + ablockalypse + "/latest";
-	private Ablockalypse instance;
+	private String address = "http://api.bukget.org/api2/bukkit/plugin/" + ablockalypse + "/" + getDynamicVersion();
 	private String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
 	private MainThreading mt;
 	private String path = "plugins" + File.separator + "Ablockalypse.jar";
+	private HashMap<String, String> versions = new HashMap<String, String>();
 
 	/**
 	 * Creates a new PluginMaster instance for Ablockalypse.
 	 * 
 	 * @param instance The Ablockalypse instance to associate with this instance
 	 */
-	public PluginMaster(Plugin instance) {
-		this.instance = (Ablockalypse) instance;
+	public PluginMaster() {
+		setupVersions();
+	}
+
+	private void setupVersions() {
+		versions = new HashMap<String, String>();
+		// updating to the correct version for OBC/NMS compatibility.
+		versions.put("", "v1.1.7");// non-versioned packages
+		versions.put("v1_4_5", "v1.2.0");// versioned packages
+	}
+
+	private String getDynamicVersion() {
+		String mcVer = pl.getNMSPackageVersion();
+		if (versions == null)
+			setupVersions();
+		if (versions.containsKey(mcVer))
+			return versions.get(mcVer);
+		return "latest";
 	}
 
 	/**
@@ -57,7 +74,7 @@ public class PluginMaster extends DataManipulator {
 	 * @return The Ablockalypse instance
 	 */
 	public Ablockalypse getInstance() {
-		return instance;
+		return Ablockalypse.instance;
 	}
 
 	/**

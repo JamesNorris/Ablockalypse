@@ -17,6 +17,10 @@ public class PackageLoader {// TODO annotations, use maven to fix package proble
 	private static final String PACKAGE_SEPARATOR = ".";
 	public static String MINECRAFT_VERSION = "v1_4_5";// the doomsday version when Bukkit decided to destroy my plugins...
 
+	public String getNMSPackageVersion() {
+		return MINECRAFT_VERSION;
+	}
+
 	public static Object getObjectByName(String className, PackageType type) {
 		try {
 			return (Class.forName(type.getAssignment() + MINECRAFT_VERSION + "." + className)).getConstructor().newInstance();
@@ -65,15 +69,20 @@ public class PackageLoader {// TODO annotations, use maven to fix package proble
 	public PackageLoader() {
 		String version = "v1_4_5";
 		StringBuilder builder = new StringBuilder();
-		if (!isAvailable("net.minecraft.server." + version + ".World") || !isAvailable("org.bukkit.craftbukkit." + version + ".World"))
-			for (int i = 0; i <= 9; i++)
-				for (int j = 0; j <= 9; j++)
+		if (isAvailable("org.bukkit.craftbukkit.CraftWorld"))
+			MINECRAFT_VERSION = "";
+		else if (!isAvailable("org.bukkit.craftbukkit." + version + ".CraftWorld")) {
+			for (int i = 0; i <= 9; i++) {
+				for (int j = 0; j <= 9; j++) {
 					for (int k = 0; k <= 0; k++) {
 						version = builder.append("v").append(i).append("_").append(j).append("_").append(k).toString();
-						if (isAvailable("net.minecraft.server." + version + ".World") || isAvailable("org.bukkit.craftbukkit." + version + ".World")) {
+						if (isAvailable("org.bukkit.craftbukkit." + version + ".CraftWorld")) {
 							MINECRAFT_VERSION = version;
 							break;
 						}
 					}
+				}
+			}
+		}
 	}
 }

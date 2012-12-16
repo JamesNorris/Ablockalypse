@@ -443,6 +443,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 */
 	@Override public void removeArea(GameArea ga) {
 		areas.remove(ga);
+		blinkable.remove(ga);
 	}
 
 	/**
@@ -450,6 +451,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 */
 	@Override public void removeBarrier(GameBarrier gb) {
 		barriers.remove(gb);
+		blinkable.remove(gb);
 	}
 
 	/**
@@ -457,10 +459,13 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 */
 	@Override public void removeMobSpawner(GameMobSpawner l) {
 		spawners.remove(l);
+		blinkable.remove(l);
+		data.spawns.remove(this);
 	}
 
 	@Override public void removeMysteryChest(MysteryChest mc) {
 		chests.remove(mc);
+		blinkable.remove(mc);
 	}
 
 	/**

@@ -21,6 +21,8 @@ public class BlinkerThread extends DataManipulator {
 	private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
 	private ZAGameBase game = null;
 	private Object type;
+	private GameObject gameObj;
+	private boolean gameSupport = game != null && gameObj.getGame() != null && game.hasStarted() && !game.isPaused() && data.blinkers.contains(this) && data.objects.contains(this);
 
 	/**
 	 * Creates a new thread that makes a block blink a colored wool.
@@ -39,8 +41,10 @@ public class BlinkerThread extends DataManipulator {
 		this.delay = delay;
 		this.color = color;
 		this.type = type;
-		if (type instanceof GameObject)
-			game = (ZAGameBase) ((GameObject) type).getGame();
+		if (type instanceof GameObject) {
+			gameObj = ((GameObject) type);
+			game = (ZAGameBase) gameObj.getGame();
+		}
 		colored = false;
 		id = -1;
 		if (synchronize && autorun)
@@ -54,7 +58,7 @@ public class BlinkerThread extends DataManipulator {
 	 */
 	public void synchronize() {
 		for (BlinkerThread bt : data.blinkers) {
-			if (bt.isRunning()) {
+			if (!(gameSupport)) {
 				bt.cancel();
 				bt.blink();
 			}
@@ -66,10 +70,10 @@ public class BlinkerThread extends DataManipulator {
 	 */
 	public void blink() {
 		if (id == -1) {
-			running = true;
 			id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 				@Override public void run() {
-					if (game != null && (game.hasStarted() && !game.isPaused()))
+					running = true;
+					if (gameSupport)
 						cancel();
 					else {
 						if (colored) {

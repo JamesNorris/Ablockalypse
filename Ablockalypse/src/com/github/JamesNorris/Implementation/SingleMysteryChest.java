@@ -157,7 +157,7 @@ public class SingleMysteryChest extends DataManipulator implements MysteryChest,
 			if (uses == 0)
 				if (cd.movingchests) {
 					setActive(false);
-					game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
+					game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(game.getMysteryChests().size())));
 				}
 		} else
 			p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
@@ -177,11 +177,16 @@ public class SingleMysteryChest extends DataManipulator implements MysteryChest,
 	 */
 	@Override public void remove() {
 		setActive(false);
-		setBlinking(false);
 		game.removeMysteryChest(this);
 		data.objects.remove(this);
 		data.chests.remove(loc);
-		game.setActiveMysteryChest(game.getMysteryChests().get(game.getMysteryChests().size()));
+		int size = game.getMysteryChests().size();
+		if (size >= 1)
+			game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(size)));
+		setBlinking(false);
+		bt.cancel();
+		data.blinkers.remove(bt);
+		game = null;
 	}
 
 	/**

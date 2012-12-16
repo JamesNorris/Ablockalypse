@@ -43,7 +43,6 @@ public class GameWallSign extends DataManipulator implements WallSign {
 		im = new ItemManager();
 		ld = ym.getLocalizationData();
 		cd = ym.getConfigurationData();
-		this.ym = ym;
 		l1 = sign.getLine(0);
 		l2 = sign.getLine(1);
 		l3 = sign.getLine(2);

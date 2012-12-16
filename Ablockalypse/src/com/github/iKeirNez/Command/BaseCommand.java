@@ -7,6 +7,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
@@ -17,8 +19,12 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.iKeirNez.Util.CommandUtil;
 
 public class BaseCommand extends CommandUtil implements CommandExecutor {
+	DataManipulator dm;
+
 	@Override public boolean onCommand(CommandSender sender, Command cmd, String inf, String[] args) {
 		if (cmd.getName().equalsIgnoreCase("za")) {
+			if (dm == null)
+				dm = Ablockalypse.getData();
 			String alias = cmd.getLabel();
 			if (args.length == 0 || args[0].equalsIgnoreCase("help") || (args.length == 2 && args[1].equalsIgnoreCase("sign"))) {
 				showHelp(sender, args, alias);

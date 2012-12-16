@@ -114,7 +114,9 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * @return The blocks assigned to this object
 	 */
 	@Override public ArrayList<Block> getDefiningBlocks() {
-		return null;
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(player.getLocation().subtract(0, 1, 0).getBlock());
+		return blocks;
 	}
 
 	/**
@@ -377,6 +379,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 */
 	@Override public void remove() {
 		removeFromGame();
+		game = null;
 	}
 
 	/**

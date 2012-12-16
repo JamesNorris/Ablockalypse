@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 
+import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
@@ -18,7 +19,7 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Enumerated.ZAColor;
 import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
-public class GameMobSpawner implements ZALocation, Blinkable, GameObject {// TODO annotations
+public class GameMobSpawner extends DataManipulator implements ZALocation, Blinkable, GameObject {// TODO annotations
 	private Location loc;
 	private Block block;
 	private World world;
@@ -39,6 +40,7 @@ public class GameMobSpawner implements ZALocation, Blinkable, GameObject {// TOD
 		x = loc.getBlockX();
 		y = loc.getBlockY();
 		z = loc.getBlockZ();
+		data.objects.add(this);
 		blinkers = External.getYamlManager().getConfigurationData().blinkers;
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(block);
@@ -96,8 +98,12 @@ public class GameMobSpawner implements ZALocation, Blinkable, GameObject {// TOD
 	}
 
 	@Override public void remove() {
-			setBlinking(false);
+		setBlinking(false);
+		bt.cancel();
 		game.removeMobSpawner(this);
+		data.blinkers.remove(bt);
+		data.objects.remove(this);
+		game = null;
 	}
 
 	/**

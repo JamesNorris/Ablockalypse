@@ -120,7 +120,7 @@ public class EffectUtil {
 				case BEACON:
 					// TODO
 					for (int i = 0; i < 10; i++)
-					w.playEffect(l.add(0, i, 0), Effect.MOBSPAWNER_FLAMES, 1);
+						w.playEffect(l.add(0, i, 0), Effect.MOBSPAWNER_FLAMES, 1);
 				break;
 			}
 	}

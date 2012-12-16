@@ -66,28 +66,29 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				event.setUseInteractedBlock(Result.DENY);
 				ZAGameBase zag = chestPlayers.get(p.getName());
 				if (!data.isMysteryChest(b.getLocation())) {
-					if (MiscUtil.getSecondChest(b.getLocation()) == null)
+					if (MiscUtil.getSecondChest(b) == null)
 						chestPlayers.get(p.getName()).addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
-					else if (MiscUtil.getSecondChest(b.getLocation()) != null)
-						chestPlayers.get(p.getName()).addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b.getLocation()), zag.getActiveMysteryChest() == null));
+					else if (MiscUtil.getSecondChest(b) != null)
+						chestPlayers.get(p.getName()).addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b).getLocation(), zag.getActiveMysteryChest() == null));
 					p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
 				} else
 					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
 				chestPlayers.remove(p.getName());
 			} else if (!data.playerExists(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-				boolean worked = false;
+				event.setUseInteractedBlock(Result.DENY);
+				GameObject removal = null;
 				for (GameObject o : data.objects) {
 					for (Block block : o.getDefiningBlocks()) {
-						if (block == b) {
-							o.remove();
-							worked = true;
+						if (block != null && block.getLocation().distance(b.getLocation()) <= 1) {
+							removal = o;
 							break;
 						}
 					}
 				}
-				if (worked)
+				if (removal != null) {
+					removal.remove();
 					p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.GREEN + "sucessful");
-				else
+				} else
 					p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.RED + "unsuccessful");
 				removers.remove(p.getName());
 			} else if ((!data.playerExists(p) && areaPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK) {

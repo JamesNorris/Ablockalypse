@@ -7,8 +7,17 @@ import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Manager.YamlManager;
 
 public class DataManipulator {
-	public GlobalData data = Ablockalypse.instance.data;
-	public ConfigurationData cd = External.getYamlManager().getConfigurationData();
-	public LocalizationData ld = External.getYamlManager().getLocalizationData();
-	public YamlManager ym = External.getYamlManager();
+	public static GlobalData data = Ablockalypse.instance.data;
+	public static ConfigurationData cd;
+	public static LocalizationData ld;
+	public static YamlManager ym;
+	public static PackageLoader pl;
+
+	public DataManipulator() {
+		data = Ablockalypse.instance.data;
+		cd = External.getYamlManager().getConfigurationData();
+		ld = External.getYamlManager().getLocalizationData();
+		ym = External.getYamlManager();
+		pl = Ablockalypse.getPackageLoader();
+	}
 }

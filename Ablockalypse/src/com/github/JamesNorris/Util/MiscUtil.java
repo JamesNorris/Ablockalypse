@@ -53,16 +53,6 @@ public class MiscUtil {
 	}
 
 	/**
-	 * Gets the second chest next to the location given.
-	 * 
-	 * @param l The location to check around
-	 * @return The location of the second block
-	 */
-	public static Location getSecondChest(Location l) {
-		return getSecondChest(l.getBlock()).getLocation();
-	}
-
-	/**
 	 * Gets the second chest next to the location of the block given.
 	 * 
 	 * @param b The block to check around
