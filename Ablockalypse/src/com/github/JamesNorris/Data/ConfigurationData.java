@@ -39,9 +39,12 @@ public class ConfigurationData {
 	public int grenadeLevel;
 	public int heallevel;
 	public int healPoints;
-	private String helmet, chestplate, leggings, boots;
+	public String helmet;
+    public String chestplate;
+    public String leggings;
+    public String boots;
 	public int helppoints;
-	private List<String> inventory;
+	public List<String> inventory;
 	public int ironSwordCost;
 	public int ironSwordLevel;
 	public boolean losePerksLastStand;
