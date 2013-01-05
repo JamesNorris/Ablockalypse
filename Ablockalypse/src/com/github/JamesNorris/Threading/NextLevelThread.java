@@ -6,9 +6,9 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.SoundUtil;
 
 public class NextLevelThread extends DataManipulator {

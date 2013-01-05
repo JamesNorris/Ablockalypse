@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -20,7 +21,7 @@ public class PlayerJoin extends DataManipulator implements Listener {
 	 * Called when a player joins the server.
 	 * Used mainly for loading game data if it has not already been loaded.
 	 */
-	@EventHandler public void PJE(PlayerJoinEvent event) {// TODO
+	@EventHandler(priority = EventPriority.HIGHEST) public void PJE(PlayerJoinEvent event) {// TODO
 		Player p = event.getPlayer();
 		String name = p.getName();
 		if (offlinePlayers.containsKey(name)) {

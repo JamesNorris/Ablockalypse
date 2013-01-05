@@ -13,27 +13,40 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.material.Door;
+import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.Local;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEnchantment;
+import com.github.JamesNorris.Enumerated.ZAPerk;
+import com.github.JamesNorris.Enumerated.ZAWeapon;
+import com.github.JamesNorris.Event.GameCreateEvent;
+import com.github.JamesNorris.Event.GameSignClickEvent;
 import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMobSpawner;
-import com.github.JamesNorris.Implementation.GameWallSign;
 import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
+import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
+import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Manager.ItemManager;
 import com.github.JamesNorris.Threading.TeleportThread;
+import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.MiscUtil;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class PlayerInteract extends DataManipulator implements Listener {
 	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
@@ -42,6 +55,11 @@ public class PlayerInteract extends DataManipulator implements Listener {
 	public static HashMap<String, ZAGameBase> chestPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, Location> locClickers = new HashMap<String, Location>();
 	public static ArrayList<String> removers = new ArrayList<String>();
+	private ItemManager im;
+
+	public PlayerInteract() {
+		im = new ItemManager();
+	}
 
 	/*
 	 * The event called when a player clicks a block.
@@ -49,7 +67,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 	 * USED:
 	 * *When a ZAPlayer clicks a sign, to check the lines for strings that trigger a response.
 	 */
-	@EventHandler public void PIE(PlayerInteractEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void PIE(PlayerInteractEvent event) {
 		Block b = event.getClickedBlock();
 		Player p = event.getPlayer();
 		Action a = event.getAction();
@@ -103,14 +121,9 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				}
 			} else if ((b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) && a == Action.RIGHT_CLICK_BLOCK) {
 				Sign s = (Sign) b.getState();
-				if (s.getLine(0).equalsIgnoreCase(ld.first)) {
+				if (s.getLine(0).equalsIgnoreCase(Local.BASESTRING.getSetting())) {// TODO fix
 					event.setUseInteractedBlock(Result.DENY);
-					GameWallSign zas;
-					if (!(s instanceof GameWallSign))
-						zas = new GameWallSign(s, ym);
-					else
-						zas = (GameWallSign) s;
-					zas.runLines(p);
+					runLines(s, p);
 					return;
 				}
 				return;
@@ -120,7 +133,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				if (b.getType() == Material.ENDER_PORTAL_FRAME && a == Action.RIGHT_CLICK_BLOCK) {
 					if (!zap.isTeleporting()) {
 						p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
-						new TeleportThread(zap, cd.teleportTime, true);
+						new TeleportThread(zap, (Integer) Setting.TELEPORTTIME.getSetting(), true);
 						return;
 					} else {
 						p.sendMessage(ChatColor.GRAY + "You are already teleporting!");
@@ -131,12 +144,12 @@ public class PlayerInteract extends DataManipulator implements Listener {
 					if (data.isMysteryChest(l)) {
 						MysteryChest mc = data.getMysteryChest(l);
 						if (mc != null && mc.isActive()) {
-							if (zap.getPoints() >= cd.mccost) {
+							if (zap.getPoints() >= (Integer) Setting.CHESTCOST.getSetting()) {
 								mc.giveRandomItem(p);
-								zap.subtractPoints(cd.mccost);
+								zap.subtractPoints((Integer) Setting.CHESTCOST.getSetting());
 								return;
 							} else {
-								p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cd.mccost + " points to buy this.");
+								p.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + (Integer) Setting.CHESTCOST.getSetting() + " points to buy this.");
 								event.setCancelled(true);
 								return;
 							}
@@ -146,7 +159,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 							return;
 						}
 					}
-				} else if (b instanceof Door)
+				} else if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR)// TODO fix deprecated?
 					event.setCancelled(true);
 				else if (b.getType() == Material.FENCE && a == Action.LEFT_CLICK_BLOCK) {
 					/* through-barrier damage */
@@ -173,7 +186,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 							Bukkit.getPluginManager().callEvent(EDBE);
 							c.damage(EDBE.getDamage());
 							if (c.isDead()) {
-								zap.addPoints(cd.pointincrease);
+								zap.addPoints((Integer) Setting.KILLPOINTINCREASE.getSetting());
 								int food = p.getFoodLevel();
 								if (food < 20)
 									p.setFoodLevel(20);
@@ -184,5 +197,173 @@ public class PlayerInteract extends DataManipulator implements Listener {
 					}
 				}
 			}
+	}
+
+	/**
+	 * Checks the lines of the sign for strings in the config, that enable changes to be made to the player.
+	 * 
+	 * @param player The player to affect if the lines are run through
+	 */
+	@SuppressWarnings("deprecation") public void runLines(Sign sign, Player player) {
+		String l1 = sign.getLine(0);
+		String l2 = sign.getLine(1);
+		String l3 = sign.getLine(2);
+		// String l4 = sign.getLine(3);//UNUSED
+		if (l1.equalsIgnoreCase(Local.BASESTRING.getSetting())) {
+			GameSignClickEvent gsce = new GameSignClickEvent(sign);
+			Bukkit.getPluginManager().callEvent(gsce);
+			if (!gsce.isCancelled()) {
+				if (l2.equalsIgnoreCase(Local.BASEJOINSTRING.getSetting()) && !data.players.containsKey(player))// JOIN
+					joinGame(sign, player, l3);
+				else if (data.players.containsKey(player)) {
+					ZAPlayerBase zap = data.players.get(player);
+					int points = zap.getPoints();
+					if (l2.equalsIgnoreCase(Local.BASEPERKSTRING.getSetting()))// PERK
+						givePerk(sign, player, zap, l3, points);
+					else if (l2.equalsIgnoreCase(Local.BASEENCHANTMENTSTRING.getSetting()) && MiscUtil.isSword(player.getItemInHand()))// ENCHANTMENT
+						giveEnchantment(sign, player, zap, l3, points);
+					else if (l2.equalsIgnoreCase(Local.BASEWEAPONSTRING.getSetting()))// WEAPON
+						giveWeapon(sign, player, zap, l3, points);
+					else if (l2.equalsIgnoreCase(Local.BASEAREASTRING.getSetting()))// AREA
+						buyArea(sign, player, zap, l3, points);
+					player.updateInventory();
+				}
+			}
+		}
+	}
+
+	/*
+	 * Gets the closest game area to the given block.
+	 */
+	private GameArea getClosestArea(Block b, ZAGameBase zag) {
+		int distance = Integer.MAX_VALUE;
+		Location loc = b.getLocation();
+		GameArea lp = null;
+		for (GameArea a : data.areas)
+			if (a.getGame() == zag) {
+				Location l = a.getPoint(1);
+				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+				if (current < distance) {
+					distance = current;
+					lp = a;
+				}
+			}
+		if (lp != null)
+			return lp;
+		return null;
+	}
+
+	private void giveWeapon(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAWeapon wep : ZAWeapon.values()) {
+			if (l3.equalsIgnoreCase(wep.getLabel()) && zap.getPoints() >= wep.getCost() && zap.getGame().getLevel() >= wep.getLevel()) {
+				if (zap.getPoints() < wep.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + wep.getCost() + " points to buy this.");
+					return;
+				}
+				Material type = wep.getMaterial();
+				if (type != Material.ENDER_PEARL)
+					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 1), player);
+				else
+					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 5), player);
+				zap.subtractPoints(wep.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + wep.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				return;
+			}
+		}
+	}
+
+	private void buyArea(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		int cost = 1500;
+		try {
+			cost = Integer.parseInt(l3);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sign.setLine(3, " " + cost + " ");
+		if (zap.getPoints() >= cost) {
+			GameArea a = getClosestArea(sign.getBlock(), (ZAGameBase) zap.getGame());
+			if (a != null) {
+				if (!a.isOpened()) {
+					a.open();
+					EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+					zap.subtractPoints(cost);
+					player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
+					return;
+				} else
+					player.sendMessage(ChatColor.RED + "This area has already been purchased!");
+			} else
+				player.sendMessage(ChatColor.RED + "There is no area close to this sign!");
+			return;
+		} else {
+			player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
+			return;
+		}
+	}
+
+	private void giveEnchantment(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAEnchantment ench : ZAEnchantment.values()) {
+			if (l3.equalsIgnoreCase(ench.getLabel())) {
+				if (zap.getPoints() < ench.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + ench.getCost() + " points to buy this.");
+					return;
+				}
+				ItemStack hand = player.getItemInHand();
+				player.getInventory().remove(hand);
+				im.addEnchantment(hand, ench.getEnchantment(), 3);
+				zap.subtractPoints(ench.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player);
+				return;
+			}
+		}
+	}
+
+	private void givePerk(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAPerk perk : ZAPerk.values()) {
+			if (l3.equalsIgnoreCase(perk.getLabel()) && zap.getGame().getLevel() >= perk.getLevel()) {
+				if (zap.getPoints() < perk.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + perk.getCost() + " points to buy this.");
+					return;
+				}
+				zap.addPerk(perk, perk.getDuration(), 1);
+				zap.subtractPoints(perk.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + perk.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				return;
+			}
+		}
+	}
+
+	private void joinGame(Sign sign, Player player, String l3) {
+		if (player.hasPermission("za.create") && !data.games.containsKey(l3)) {
+			setupPlayerWithGame(l3, player);
+			player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
+			return;
+		} else if (data.games.containsKey(l3)) {
+			setupPlayerWithGame(l3, player);
+			EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+			return;
+		} else {
+			player.sendMessage(ChatColor.RED + "That game does not exist!");
+			return;
+		}
+	}
+
+	/*
+	 * Checks for the game and player to create a new game instance and player instance.
+	 */
+	private void setupPlayerWithGame(String name, Player player) {
+		ZAGame zag = data.findGame(name);
+		if (zag.getMainframe() == null)
+			zag.setMainframe(player.getLocation());
+		ZAPlayer zap = data.findZAPlayer(player, name);
+		GameCreateEvent gce = new GameCreateEvent(zag, null, player);
+		Bukkit.getServer().getPluginManager().callEvent(gce);
+		if (!gce.isCancelled())
+			zap.loadPlayerToGame(name);
+		else
+			zag.remove();
 	}
 }

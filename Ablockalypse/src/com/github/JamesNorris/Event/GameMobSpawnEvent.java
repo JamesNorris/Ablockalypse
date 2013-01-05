@@ -5,7 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Util.Enumerated.GameEntityType;
+import com.github.JamesNorris.Enumerated.GameEntityType;
 
 public class GameMobSpawnEvent extends Event {
 	private static final HandlerList handlers = new HandlerList();

@@ -16,8 +16,10 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAColor;
+import com.github.JamesNorris.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
@@ -25,9 +27,6 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAColor;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.JamesNorris.Util.Square;
@@ -42,7 +41,6 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	private ZAGameBase game;
 	private Square square;
 	private BlinkerThread bt;
-	private ConfigurationData cd;
 	private boolean correct;
 	private Player p;
 
@@ -94,10 +92,10 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 				++blockamt;
 			}
 		}
-		cd = External.getYamlManager().getConfigurationData();
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(this.center.getBlock());
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, cd.blinkers, 30, this);
+		boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 		if (blockamt == 9) {
 			bt.setColor(ZAColor.GREEN);
 			correct = true;
@@ -219,11 +217,11 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 					if (!e.isDead() && isWithinRadius(e) && isBroken()) {
 						--fixtimes;
 						if (fixtimes > 0)
-							zap.addPoints(cd.barrierpartfix);
+							zap.addPoints((Integer) Setting.BARRIERPARTFIX.getSetting());
 						SoundUtil.generateSound(center.getWorld(), center, ZASound.BARRIER_REPAIR);
 						EffectUtil.generateEffect(e.getWorld(), center, ZAEffect.WOOD_BREAK);
 						if (fixtimes == 0) {
-							zap.addPoints(cd.barrierfullfix);
+							zap.addPoints((Integer) Setting.BARRIERFULLFIX.getSetting());
 							fixtimes = fixtimesoriginal;
 							replacePanels();
 							cancelFix();

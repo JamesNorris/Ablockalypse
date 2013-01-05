@@ -14,23 +14,21 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAColor;
+import com.github.JamesNorris.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Manager.ItemManager;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAColor;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
 public class DoubleMysteryChest extends DataManipulator implements MysteryChest, GameObject {// TODO annotations
 	private Location loc1, loc2;
-	private ConfigurationData cd;
 	private Object chest;
 	private Random rand;
 	private Item item;
@@ -54,11 +52,11 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
 		game.addMysteryChest(this);
-		cd = External.getYamlManager().getConfigurationData();
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(loc1.getBlock());
 		blocks.add(loc2.getBlock());
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, cd.blinkers, cd.blinkers, 30, this);
+		boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 	}
 
 	/**
@@ -129,12 +127,12 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 				its.add(new ItemStack(Material.ENDER_PEARL, 10));
 			for (ItemStack it : its)
 				MiscUtil.dropItemAtPlayer(loc1, it, p);
-			if (cd.extraEffects) {
+			if ((Boolean) Setting.EXTRAEFFECTS.getSetting()) {
 				SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 			}
 			if (uses == 0)
-				if (cd.movingchests) {
+				if ((Boolean) Setting.MOVINGCHESTS.getSetting()) {
 					setActive(false);
 					game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(game.getMysteryChests().size())));
 				}

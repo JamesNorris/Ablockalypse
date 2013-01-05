@@ -4,6 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -16,7 +17,7 @@ public class PlayerMove extends DataManipulator implements Listener {
 	 * Called whenever a player moves.
 	 * Mostly used for preventing players from going through barriers.
 	 */
-	@EventHandler public void PME(PlayerMoveEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void PME(PlayerMoveEvent event) {
 		Player p = event.getPlayer();
 		if (data.players.containsKey(p)) {
 			ZAPlayer zap = data.getZAPlayer(p);

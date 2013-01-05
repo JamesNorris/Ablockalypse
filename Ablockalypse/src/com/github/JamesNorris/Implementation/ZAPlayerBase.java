@@ -20,6 +20,8 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAPerk;
 import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.GameObject;
@@ -29,11 +31,10 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.PlayerStatus;
-import com.github.JamesNorris.Util.Enumerated.PowerupType;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
-import com.github.JamesNorris.Util.Enumerated.ZAPerk;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
+import com.github.JamesNorris.Enumerated.PlayerStatus;
+import com.github.JamesNorris.Enumerated.PowerupType;
+import com.github.JamesNorris.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
@@ -141,6 +142,9 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 			case SPEED:
 				player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, duration, power));
 			break;
+			case JUGGERNAUT:
+				setHitAbsorption(1);
+			break;
 		}
 	}
 
@@ -239,7 +243,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 				for (String s2 : game.getPlayers()) {
 					Player p = Bukkit.getPlayer(s2);
 					ZAPlayer zap = data.findZAPlayer(p, game.getName());
-					zap.addPoints(cd.atompoints);
+					zap.addPoints((Integer) Setting.ATOMPOINTS.getSetting());
 				}
 			break;
 			case BARRIER_FIX:
@@ -326,7 +330,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 			GamePlayerJoinEvent GPJE = new GamePlayerJoinEvent(this, zag);
 			Bukkit.getPluginManager().callEvent(GPJE);
 			if (!GPJE.isCancelled()) {
-				int max = cd.maxplayers;
+				int max = (Integer) Setting.MAXPLAYERS.getSetting();
 				if (zag.getPlayers().size() < max) {
 					zag.addPlayer(player);
 					saveStatus();
@@ -482,7 +486,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 			sent = true;
 		} else
 			SoundUtil.generateSound(loc.getWorld(), loc, ZASound.TELEPORT);
-		if (cd.DEBUG)
+		if ((Boolean) Setting.DEBUG.getSetting())
 			System.out.println("[Ablockalypse] [DEBUG] Mainframe TP reason: (" + game.getName() + ") " + reason);
 	}
 
@@ -528,7 +532,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 */
 	@Override public void teleport(Location location, String reason) {
 		player.teleport(location);
-		if (cd.DEBUG)
+		if ((Boolean) Setting.DEBUG.getSetting())
 			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
 	}
 
@@ -544,7 +548,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 */
 	@Override public void teleport(World world, int x, int y, int z, String reason) {
 		player.teleport(world.getBlockAt(x, y, z).getLocation());
-		if (cd.DEBUG)
+		if ((Boolean) Setting.DEBUG.getSetting())
 			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
 	}
 
@@ -569,8 +573,10 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 					Breakable.setSitting(player, true);
 					game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
 					new LastStandThread(this, true);
-					if (cd.losePerksLastStand)
+					if ((Boolean) Setting.LOSEPERKSONLASTSTAND.getSetting()) {
 						player.getActivePotionEffects().clear();
+						setHitAbsorption(0);
+					}
 					player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
 				} else
 					removeFromGame();

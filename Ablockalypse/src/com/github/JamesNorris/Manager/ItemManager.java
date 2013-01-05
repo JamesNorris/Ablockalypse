@@ -5,14 +5,12 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.LocalizationData;
+import com.github.JamesNorris.Enumerated.Local;
 import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.Breakable.ItemNameManager;
 
 public class ItemManager {
 	private Breakable b;
-	private LocalizationData ld;
 
 	/**
 	 * The class that all items should run through for this game.
@@ -20,7 +18,6 @@ public class ItemManager {
 	 */
 	public ItemManager() {
 		b = new Breakable();
-		ld = External.getYamlManager().getLocalizationData();
 	}
 
 	public void addEnchantment(ItemStack is, Enchantment e, int level) {
@@ -34,17 +31,17 @@ public class ItemManager {
 			inm.setName("Grenade");
 		else if (!is.getEnchantments().isEmpty())
 			if (m == Material.DIAMOND_SWORD)
-				inm.setName(ld.diamondsword);
+				inm.setName(Local.NAMEDDIAMONDSWORD.getSetting());
 			else if (m == Material.GOLD_SWORD)
-				inm.setName(ld.goldsword);
+				inm.setName(Local.NAMEDGOLDSWORD.getSetting());
 			else if (m == Material.IRON_SWORD)
-				inm.setName(ld.ironsword);
+				inm.setName(Local.NAMEDIRONSWORD.getSetting());
 			else if (m == Material.STONE_SWORD)
-				inm.setName(ld.stonesword);
+				inm.setName(Local.NAMEDSTONESWORD.getSetting());
 			else if (m == Material.WOOD_SWORD)
-				inm.setName(ld.woodsword);
+				inm.setName(Local.NAMEDWOODSWORD.getSetting());
 			else if (m == Material.BOW)
-				inm.setName(ld.bow);
+				inm.setName(Local.NAMEDBOW.getSetting());
 		p.getInventory().addItem(is);
 	}
 

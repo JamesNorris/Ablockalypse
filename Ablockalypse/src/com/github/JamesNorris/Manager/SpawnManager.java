@@ -13,7 +13,9 @@ import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.GameEntityType;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Event.GameMobSpawnEvent;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
@@ -22,8 +24,6 @@ import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
-import com.github.JamesNorris.Util.Enumerated.GameEntityType;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 import com.github.JamesNorris.Util.MathAssist;
 
 public class SpawnManager {
@@ -334,7 +334,7 @@ public class SpawnManager {
 	 */
 	public void spawnWave() {
 		int amt = getCurrentSpawnAmount();
-		if (External.getYamlManager().getConfigurationData().DEBUG)
+		if ((Boolean) Setting.DEBUG.getSetting())
 			System.out.println("[Ablockalypse] [DEBUG] Amount of zombies in this wave: (" + game.getName() + ") " + amt);
 		if (game.getRemainingPlayers() >= 1 && game.getMobCount() <= 0)
 			for (int i = 0; i <= amt; i++)

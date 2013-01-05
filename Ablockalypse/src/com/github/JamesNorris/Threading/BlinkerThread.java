@@ -9,9 +9,9 @@ import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.ZAColor;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.GameObject;
-import com.github.JamesNorris.Util.Enumerated.ZAColor;
 
 public class BlinkerThread extends DataManipulator {
 	private int id, delay;

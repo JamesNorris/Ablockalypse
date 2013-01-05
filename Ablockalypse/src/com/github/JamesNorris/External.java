@@ -18,9 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Data.ConfigurationData;
 import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Data.LocalizationData;
 import com.github.JamesNorris.Data.PerGameDataStorage;
 import com.github.JamesNorris.Data.PerPlayerDataStorage;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
@@ -32,7 +30,6 @@ import com.github.JamesNorris.Implementation.SingleMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Manager.YamlManager;
 import com.github.JamesNorris.Util.MiscUtil;
 
 public class External {
@@ -40,16 +37,15 @@ public class External {
 	public static boolean CommandsEXPresent = (CommandsEX != null && CommandsEX.isEnabled());
 	private static FileConfiguration fc;
 	public static Ablockalypse instance;
-	public static File l, f, gd;
+	public static File localizationFile, configFile, gameDataFile;
 	/* .bin paths */
 	public static String folderlocation = "saved_data" + File.separatorChar;
 	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
 	public static String local = "local.yml";
 	public static String config = "config.yml";
 	public static String gameData = folderlocation + "game_data.bin";
-	/* end .bin paths */
-	public static YamlManager ym;
 
+	/* end .bin paths */
 	/**
 	 * Gets the configuration specified
 	 * 
@@ -61,15 +57,6 @@ public class External {
 		fc = null;
 		reloadConfig(f, path);
 		return fc;
-	}
-
-	/**
-	 * Gets the YamlManager for this plugin if it is not null.
-	 * 
-	 * @return The YamlManager for this plugin
-	 */
-	public static YamlManager getYamlManager() {
-		return ym;
 	}
 
 	/**
@@ -186,17 +173,13 @@ public class External {
 		try {
 			/* GET THE FILES */
 			/* config.yml */
-			f = new File(instance.getDataFolder(), config);
-			if (!f.exists())
+			configFile = new File(instance.getDataFolder(), config);
+			if (!configFile.exists())
 				instance.saveDefaultConfig();
 			/* game_data.bin */
-			loadResource(gameData);
+			gameDataFile = (File) loadResource(gameData);
 			/* local.yml */
-			loadResource(local);
-			/* CREATE DATA AND DATA MANAGERS */
-			ConfigurationData cd = new ConfigurationData(instance);
-			LocalizationData ld = new LocalizationData(l, local);
-			ym = new YamlManager(cd, ld);
+			localizationFile = (File) loadResource(local);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -205,14 +188,11 @@ public class External {
 	/*
 	 * Gets/Saves the defined resource.
 	 */
-	protected static void loadResource(String path) {
+	protected static File loadResource(String path) {
 		File a = new File(instance.getDataFolder(), path);
-		if (path == local)
-			l = a;
-		if (path == gameData)
-			gd = a;
 		if (!a.exists())
 			instance.saveResource(path, true);
+		return a;
 	}
 
 	/**

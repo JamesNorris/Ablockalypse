@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Event.GameEndEvent;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.MysteryChest;
@@ -20,13 +21,13 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.NextLevelThread;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Util.SoundUtil;
 import com.github.iKeirNez.Util.XMPP;
 import com.github.iKeirNez.Util.XMPP.XMPPType;
 
 public class ZAGameBase extends DataManipulator implements ZAGame {
-	private int level, mobcount;
+	private int level, mobcount, startpoints;
 	private String name;
 	private HashMap<String, Integer> players = new HashMap<String, Integer>();
 	private ArrayList<GameBarrier> barriers = new ArrayList<GameBarrier>();
@@ -34,6 +35,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	private ArrayList<GameMobSpawner> spawners = new ArrayList<GameMobSpawner>();
 	private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
 	private ArrayList<Blinkable> blinkable = new ArrayList<Blinkable>();
+	private List<Integer> wolfLevels = new ArrayList<Integer>();
 	private Random rand;
 	private Location mainframe;
 	private SpawnManager spawnManager;
@@ -48,12 +50,14 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 * @param cd The ConfigurationData instance used
 	 * @param spawners Whether or not spawners should be loaded automatically
 	 */
-	public ZAGameBase(String name) {
+	@SuppressWarnings("unchecked") public ZAGameBase(String name) {
 		this.name = name;
 		rand = new Random();
 		paused = false;
 		started = false;
-		friendlyFire = cd.defaultFF;
+		wolfLevels = (List<Integer>) Setting.WOLFLEVELS.getSetting();
+		startpoints = (Integer) Setting.STARTINGPOINTS.getSetting();
+		friendlyFire = (Boolean) Setting.DEFAULTFRIENDLYFIREMODE.getSetting();
 		data.games.put(name, this);
 		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
@@ -105,9 +109,9 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 		if (!data.players.containsKey(player)) {
 			ZAPlayerBase zap = new ZAPlayerBase(player, this);
 			zap.loadPlayerToGame(name);
-			zap.addPoints(cd.startpoints);
+			zap.addPoints(startpoints);
 		}
-		players.put(player.getName(), cd.startpoints);
+		players.put(player.getName(), startpoints);
 		broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
 		if (paused)
 			pause(false);
@@ -412,7 +416,8 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 			if (level != 1)
 				broadcastPoints();
 		}
-		if (cd.wolfLevels != null && cd.wolfLevels.contains(level))
+		
+		if (wolfLevels != null && wolfLevels.contains(level))
 			wolfRound = true;
 		if (paused == true)
 			pause(false);
@@ -494,7 +499,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 * @param mc The chest to be made active
 	 */
 	@Override public void setActiveMysteryChest(MysteryChest mc) {
-		if (cd.movingchests) {
+		if ((Boolean) Setting.MOVINGCHESTS.getSetting()) {
 			active = mc;
 			for (MysteryChest chest : chests)
 				chest.setActive(false);

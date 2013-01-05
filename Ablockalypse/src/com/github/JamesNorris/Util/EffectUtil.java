@@ -5,13 +5,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class EffectUtil {
-	private static ConfigurationData cd = External.getYamlManager().getConfigurationData();
-
 	/**
 	 * Plays a radius of effect around the location.
 	 * 
@@ -21,7 +18,7 @@ public class EffectUtil {
 	 */
 	public static void generateControlledEffect(Location loc, ZAEffect effect, int radius) {
 		World w = loc.getWorld();
-		if (cd.extraEffects)
+		if ((Boolean) Setting.EXTRAEFFECTS.getSetting())
 			switch (effect) {
 				case SMOKE:
 					new ControlledEffect(w, Effect.SMOKE, radius, 1, loc, true);
@@ -91,7 +88,7 @@ public class EffectUtil {
 	 * @param effect The effect to play
 	 */
 	public static void generateEffect(final World w, final Location l, ZAEffect effect) {
-		if (cd.extraEffects)
+		if ((Boolean) Setting.EXTRAEFFECTS.getSetting())
 			switch (effect) {
 				case SMOKE:
 					w.playEffect(l, Effect.SMOKE, 1);

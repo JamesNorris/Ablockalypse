@@ -5,7 +5,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
 public class StartingItems {
-	/***
+	/**
 	 * Seperate's item data from a config String and returns it as an ItemStack.
 	 * 
 	 * @param s A string with itemstack arguments

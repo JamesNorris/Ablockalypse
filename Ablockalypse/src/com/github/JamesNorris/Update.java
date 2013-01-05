@@ -38,7 +38,7 @@ public class Update {
 		OutputStream out = null;
 		try {
 			URL url = new URL(pm.getUpdateURL());
-			out = new BufferedOutputStream(new FileOutputStream(pm.getPath()));
+			out = new BufferedOutputStream(new FileOutputStream(pm.getJARPath()));
 			URLConnection connection = url.openConnection();
 			in = connection.getInputStream();
 			byte[] buffer = new byte[1024];
@@ -70,7 +70,7 @@ public class Update {
 		try {
 			URL url = new URL(pm.getUpdateURL());
 			URLConnection connection = url.openConnection();
-			File local = new File(pm.getPath());
+			File local = new File(pm.getJARPath());
 			long lastmodURL = connection.getLastModified();
 			long lastmodFile = local.lastModified();
 			if (lastmodURL > lastmodFile) {

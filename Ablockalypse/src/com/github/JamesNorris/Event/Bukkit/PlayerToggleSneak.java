@@ -2,6 +2,7 @@ package com.github.JamesNorris.Event.Bukkit;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
@@ -13,7 +14,7 @@ public class PlayerToggleSneak extends DataManipulator implements Listener {
 	 * Called when a player changes from walking to sneaking.
 	 * Used mostly for repairing broken barriers.
 	 */
-	@EventHandler public void PTSE(PlayerToggleSneakEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void PTSE(PlayerToggleSneakEvent event) {
 		Player p = event.getPlayer();
 		if (data.players.containsKey(p)) {
 			if (data.players.get(p).isInLastStand())

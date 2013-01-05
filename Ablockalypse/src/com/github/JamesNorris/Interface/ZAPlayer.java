@@ -7,9 +7,9 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.github.JamesNorris.Util.Enumerated.PlayerStatus;
-import com.github.JamesNorris.Util.Enumerated.PowerupType;
-import com.github.JamesNorris.Util.Enumerated.ZAPerk;
+import com.github.JamesNorris.Enumerated.PlayerStatus;
+import com.github.JamesNorris.Enumerated.PowerupType;
+import com.github.JamesNorris.Enumerated.ZAPerk;
 
 public interface ZAPlayer extends ZALiving {
 	/**

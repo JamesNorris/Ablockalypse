@@ -13,14 +13,14 @@ import org.bukkit.entity.Wolf;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class GameHellHound extends DataManipulator implements HellHound, GameObject {
 	private ZAGame game;
@@ -56,7 +56,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 		if (!data.hellhounds.contains(this))
 			data.hellhounds.add(this);
 		setSpeed(0.28F);
-		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
+		if (game.getLevel() >= (Integer) Setting.DOUBLESPEEDLEVEL.getSetting())
 			setSpeed(0.32F);
 		final Wolf finalwolf = wolf;
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {

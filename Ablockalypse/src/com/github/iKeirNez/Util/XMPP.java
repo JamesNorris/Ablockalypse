@@ -1,7 +1,7 @@
 package com.github.iKeirNez.Util;
 
 import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 
 public class XMPP {
@@ -15,23 +15,22 @@ public class XMPP {
 	}
 
 	public static void sendMessage(final String message, final XMPPType type) {
-		final ConfigurationData cd = External.ym.getConfigurationData();
 		if (External.CommandsEXPresent)
 			if (XMPPAPI.isXMPPEnabled())
 				switch (type) {
 					case PLAYER_JOIN_GAME:
-						send(cd.xmppPlayerJoin, message);
+						send((Boolean) Setting.XMPPPLAYERJOIN.getSetting(), message);
 					case PLAYER_LEAVE_GAME:
-						send(cd.xmppPlayerLeave, message);
+						send((Boolean) Setting.XMPPPLAYERLEAVE.getSetting(), message);
 					break;
 					case ZA_GAME_START:
-						send(cd.xmppGameStart, message);
+						send((Boolean) Setting.XMPPGAMESTART.getSetting(), message);
 					break;
 					case ZA_GAME_END:
-						send(cd.xmppGameEnd, message);
+						send((Boolean) Setting.XMPPGAMEEND.getSetting(), message);
 					break;
 					case LAST_STAND:
-						send(cd.xmppLastStand, message);
+						send((Boolean) Setting.XMPPLASTSTAND.getSetting(), message);
 				}
 	}
 }

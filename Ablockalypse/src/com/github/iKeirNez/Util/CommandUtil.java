@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.Local;
 
 public class CommandUtil extends DataManipulator {
 	public static String joinGame = ChatColor.AQUA + "You have joined a game of Zombie Ablockalypse";
@@ -61,12 +62,12 @@ public class CommandUtil extends DataManipulator {
 		ChatColor r = ChatColor.RED;
 		if (args.length == 2 && args[1].equalsIgnoreCase("sign") && s.hasPermission("za.create")) {
 			s.sendMessage(r + "----- Ablockalypse Sign Lines -----");
-			s.sendMessage(r + ld.first + " " + gr + "This must be at the top of any ZA command sign");
-			s.sendMessage(r + ld.joingame + " " + gr + "When clicked adds a player to a ZA game");
-			s.sendMessage(r + ld.areastring + " " + gr + "When clicked unlocks a ZA area");
-			s.sendMessage(r + ld.perkstring + " " + gr + "When clicked gives a perk");
-			s.sendMessage(r + ld.enchstring + " " + gr + "When clicked enchants an item in your hand");
-			s.sendMessage(r + ld.weaponstring + " " + gr + "When clicked gives a weapon");
+			s.sendMessage(r + Local.BASESTRING.getSetting() + " " + gr + "This must be at the top of any ZA command sign");// TODO ix when LD is changed to new form
+			s.sendMessage(r + Local.BASEJOINSTRING.getSetting() + " " + gr + "When clicked adds a player to a ZA game");
+			s.sendMessage(r + Local.BASEAREASTRING.getSetting() + " " + gr + "When clicked unlocks a ZA area");
+			s.sendMessage(r + Local.BASEPERKSTRING.getSetting() + " " + gr + "When clicked gives a perk");
+			s.sendMessage(r + Local.BASEENCHANTMENTSTRING.getSetting() + " " + gr + "When clicked enchants an item in your hand");
+			s.sendMessage(r + Local.BASEWEAPONSTRING.getSetting() + " " + gr + "When clicked gives a weapon");
 			return;
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("setup") && s.hasPermission("za.create")) {
 			s.sendMessage(r + "----- Ablockalypse Setup Help -----");

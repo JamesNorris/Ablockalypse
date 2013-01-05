@@ -2,6 +2,7 @@ package com.github.JamesNorris.Event.Bukkit;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
@@ -15,7 +16,7 @@ public class PlayerDeath extends DataManipulator implements Listener {
 	 * 
 	 * Used for respawning the player after the current level.
 	 */
-	@EventHandler public void PDE(PlayerDeathEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void PDE(PlayerDeathEvent event) {
 		Player p = event.getEntity();
 		if (data.players.containsKey(p)) {
 			event.getDrops().clear();
@@ -23,6 +24,8 @@ public class PlayerDeath extends DataManipulator implements Listener {
 			ZAPlayerBase zap = data.players.get(p);
 			zap.setLimbo(true);
 			ZAGame zag = zap.getGame();
+				p.getActivePotionEffects().clear();
+				zap.setHitAbsorption(0);
 			if (zag.getRemainingPlayers() > 0) {
 				if (zap.isInLastStand())
 					zap.toggleLastStand();

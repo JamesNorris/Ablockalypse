@@ -14,16 +14,22 @@ pointIncrease: 100
 packapunchLevel: 5
 # The minimum level before players can use the pack-a-punch.
 
-healLevel: 5
-speedLevel: 10
-damageLevel: 20
-regenLevel: 30
+perkDuration: max
+# The duration in ticks of perks before they are removed automatically.
+# NOTE: "max" sets the value to the highest possible integer. Anything too high will break the plugin.
+
+healLevel: 0
+speedLevel: 0
+damageLevel: 0
+regenLevel: 0
+juggernautLevel: 0
 # Sets the levels at which the corresponding perks can be bought.
 
 healPoints: 500
 speedPoints: 1500
 damagePoints: 2000
 regenPoints: 3000
+juggernautPoints: 4000
 # Sets the points required to buy the corresponding perks.
 
 enchDamageCost: 400

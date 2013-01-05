@@ -1,10 +1,10 @@
 package com.github.JamesNorris.Util;
 
 /* Breakable Packages */
-import net.minecraft.server.v1_4_5.*;
-import org.bukkit.craftbukkit.v1_4_5.*;
-import org.bukkit.craftbukkit.v1_4_5.inventory.*;
-import org.bukkit.craftbukkit.v1_4_5.entity.*;
+import net.minecraft.server.v1_4_6.*;
+import org.bukkit.craftbukkit.v1_4_6.*;
+import org.bukkit.craftbukkit.v1_4_6.inventory.*;
+import org.bukkit.craftbukkit.v1_4_6.entity.*;
 /* End Breakable Packages */
 
 import org.bukkit.Bukkit;
@@ -20,45 +20,45 @@ import com.github.JamesNorris.Data.ByteData;
  * The class for all breakable methods and code.
  */
 public class Breakable {
-	public class ItemNameManager {// TODO annotations
+	public class ItemNameManager {// TODO annotations, TEST
 		private final ItemStack itemStack;
 
 		public ItemNameManager(ItemStack itemStack) {
 			this.itemStack = itemStack;
 			CraftItemStack is = ((CraftItemStack) this.itemStack);
-			NBTTagCompound tag = is.getHandle().getTag();
+			NBTTagCompound tag = CraftItemStack.asNMSCopy(is).getTag();
 			if (tag == null)
-				is.getHandle().setTag(new NBTTagCompound());
+				CraftItemStack.asNMSCopy(is).setTag(new NBTTagCompound());
 		}
 
 		private void addDisplay() {
-			((CraftItemStack) itemStack).getHandle().getTag().setCompound("display", new NBTTagCompound());
+			CraftItemStack.asNMSCopy((CraftItemStack) itemStack).getTag().setCompound("display", new NBTTagCompound());
 		}
 
 		private NBTTagCompound getDisplay() {
-			return ((CraftItemStack) itemStack).getHandle().getTag().getCompound("display");
+			return CraftItemStack.asNMSCopy((CraftItemStack) itemStack).getTag().getCompound("display");
 		}
 
 		public String getName() {
 			if (hasDisplay() == false)
 				return null;
-			String name = getDisplay().getString("Name");
+			String name = getDisplay().getString("name");
 			if (name.equals(""))
 				return null;
 			return name;
 		}
 
 		private boolean hasDisplay() {
-			return ((CraftItemStack) itemStack).getHandle().getTag().hasKey("display");
+			return CraftItemStack.asNMSCopy((CraftItemStack) itemStack).getTag().hasKey("display");
 		}
 
 		public void setName(String name) {
 			if (hasDisplay() == false)
 				this.addDisplay();
 			NBTTagCompound display = this.getDisplay();
-			if (name == null)
-				display.remove("Name");
-			display.setString("Name", name);
+			// if (name == null)
+			// display.remove("name");
+			display.setString("name", name);
 		}
 	}
 
@@ -68,7 +68,7 @@ public class Breakable {
 	 * @param entity The entity to get
 	 * @return The NMS entity
 	 */
-	public static net.minecraft.server.v1_4_5.Entity getNMSEntity(Entity entity) {
+	public static net.minecraft.server.v1_4_6.Entity getNMSEntity(Entity entity) {
 		return ((CraftEntity) entity).getHandle();
 	}
 
@@ -112,9 +112,9 @@ public class Breakable {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			EntityPlayer ep = Breakable.getNMSPlayer(p);
 			if (tf)
-				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04), true));// TODO test
+				ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04), true));// TODO test
 			else
-				ep.netServerHandler.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00), true));
+				ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00), true));
 		}
 		if (tf)
 			player.teleport(player.getLocation().subtract(0, .5, 0));

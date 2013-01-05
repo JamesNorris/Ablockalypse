@@ -3,6 +3,7 @@ package com.github.JamesNorris.Event.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -16,7 +17,7 @@ public class EntityDamage extends DataManipulator implements Listener {
 	 * Called when an entity is damaged.
 	 * Used mostly for cancelling fire damage to ZA mobs.
 	 */
-	@EventHandler public void EDE(EntityDamageEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void EDE(EntityDamageEvent event) {
 		Entity e = event.getEntity();
 		if (e != null && data.isZAMob(e))
 			if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof Zombie) {

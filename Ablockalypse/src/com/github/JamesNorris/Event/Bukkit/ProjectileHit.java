@@ -14,6 +14,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -24,7 +25,7 @@ import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class ProjectileHit extends DataManipulator implements Listener {
 	public static HashMap<UUID, String> uuids;
@@ -38,7 +39,7 @@ public class ProjectileHit extends DataManipulator implements Listener {
 	 * Called when a player throws an object.
 	 * Used for changing ender pearls to grenades for ZAPlayers.
 	 */
-	@EventHandler public void PHE(ProjectileHitEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void PHE(ProjectileHitEvent event) {
 		Entity e = event.getEntity();
 		if (e instanceof EnderPearl) {
 			EnderPearl ep = (EnderPearl) e;

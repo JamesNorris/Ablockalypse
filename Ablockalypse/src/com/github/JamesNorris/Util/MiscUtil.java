@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
@@ -16,17 +17,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.External;
-import com.github.JamesNorris.Data.ConfigurationData;
+import com.github.JamesNorris.Enumerated.PowerupType;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.ItemManager;
-import com.github.JamesNorris.Util.Enumerated.PowerupType;
 
 /**
  * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
  */
 public class MiscUtil {
-	private static ConfigurationData cd;
 	private static Random rand;
 	private static ItemManager im = new ItemManager();
 
@@ -50,6 +49,23 @@ public class MiscUtil {
 			}
 		}, 20);
 		return i;
+	}
+
+	/**
+	 * Gets a random enchantment
+	 */
+	public static Enchantment randomEnchant() {
+		Random rand = new Random();
+		int type = rand.nextInt(3) + 1;
+		switch (type) {
+			case 1:
+				return Enchantment.DAMAGE_ALL;
+			case 2:
+				return Enchantment.FIRE_ASPECT;
+			case 3:
+				return Enchantment.KNOCKBACK;
+		}
+		return Enchantment.DURABILITY;
 	}
 
 	/**
@@ -101,10 +117,8 @@ public class MiscUtil {
 	public static void randomPowerup(ZAPlayer zap, Entity cause) {
 		if (rand == null)
 			rand = new Random();
-		if (cd == null)
-			cd = External.ym.getConfigurationData();
 		int chance = rand.nextInt(100) + 1;
-		if (chance <= cd.powerchance) {
+		if (chance <= (Integer) Setting.POWERUPCHANCE.getSetting()) {
 			int type = rand.nextInt(4) + 1;
 			PowerupType ptype = null;
 			switch (type) {

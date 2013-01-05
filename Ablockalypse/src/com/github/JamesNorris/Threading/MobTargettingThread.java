@@ -1,8 +1,8 @@
 package com.github.JamesNorris.Threading;
 
 /* Breakable Packages */
-import net.minecraft.server.v1_4_5.*;
-import org.bukkit.craftbukkit.v1_4_5.entity.*;
+import net.minecraft.server.v1_4_6.*;
+import org.bukkit.craftbukkit.v1_4_6.entity.*;
 /* End Breakable Packages */
 
 import org.bukkit.Location;
@@ -234,8 +234,7 @@ public class MobTargettingThread extends DataManipulator {
 					PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
 					Location newloc = c.getLocation();
 					if (zam != null && p != null) {
-						if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())// if the entity moved less than 3 blocks, or the
-																																// path to target is not clear
+						if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())
 							++wait;
 						else
 							wait = 0;

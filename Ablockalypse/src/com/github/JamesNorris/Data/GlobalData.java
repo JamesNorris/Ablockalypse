@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftWolf;
-import org.bukkit.craftbukkit.v1_4_5.entity.CraftZombie;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftWolf;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;

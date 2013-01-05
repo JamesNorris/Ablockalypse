@@ -25,6 +25,7 @@ perkHealString: [HEAL]
 perkSpeedString: [SPEED]
 perkDamageString: [DAMAGE]
 perkRegenerationString: [REGEN]
+perkJuggernautString: [JUGGERNAUT]
 
 enchantmentDamageString: [DAMAGE]
 enchantmentRandomString: [RANDOM]

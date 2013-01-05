@@ -6,9 +6,9 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public class TeleportThread {
 	private Ablockalypse instance;

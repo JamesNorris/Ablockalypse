@@ -7,7 +7,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
+import com.github.JamesNorris.Enumerated.ZASound;
 
 public class SoundUtil {
 	/**
@@ -25,7 +25,7 @@ public class SoundUtil {
 	/**
 	 * Plays a selection of sounds near the player.
 	 * 
-	 * @param w Thw world to play the sound in
+	 * @param w The world to play the sound in
 	 * @param l The location to play the sound at
 	 * @param sound The sound to play
 	 */

@@ -9,10 +9,12 @@ import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAMob;
@@ -85,8 +87,8 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
 						event.setDamage(evtdmg - zap.getHitAbsorption());
 				} else
 					event.setCancelled(true);
-			} else if (p.getHealth() <= cd.lsthresh && !zap.isInLastStand() && !zap.isInLimbo()) {
-				p.setHealth(cd.lsthresh);
+			} else if (p.getHealth() <= (Integer) Setting.LASTSTANDTHRESHOLD.getSetting() && !zap.isInLastStand() && !zap.isInLimbo()) {
+				p.setHealth((Integer) Setting.LASTSTANDTHRESHOLD.getSetting());
 				zap.toggleLastStand();
 			} else if (zap.isInLastStand())
 				event.setCancelled(true);
@@ -102,7 +104,7 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
 	 * Called when an entity damaged another entity.
 	 * Used mostly for picking someone out of last stand, changing damage, and cancelling damage.
 	 */
-	@EventHandler public void EDBEE(EntityDamageByEntityEvent event) {
+	@EventHandler(priority = EventPriority.HIGHEST) public void EDBEE(EntityDamageByEntityEvent event) {
 		Entity damager = event.getDamager();
 		Entity e = event.getEntity();
 		int evtdmg = event.getDamage();

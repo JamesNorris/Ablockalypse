@@ -8,15 +8,15 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAColor;
+import com.github.JamesNorris.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Interface.Area;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAColor;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
-import com.github.JamesNorris.Util.Enumerated.ZASound;
 import com.github.JamesNorris.Util.Rectangle;
 import com.github.JamesNorris.Util.SoundUtil;
 
@@ -36,6 +36,8 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 */
 	@SuppressWarnings("deprecation") public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
 		data.objects.add(this);
+		this.loc1 = loc1;
+		this.loc2 = loc2;
 		this.zag = zag;
 		opened = false;
 		data.areas.add(this);
@@ -48,7 +50,7 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		for (Location l : rectangle.get3DBorder())
 			blocks.add(l.getBlock());
-		this.blinkers = External.getYamlManager().getConfigurationData().blinkers;
+		this.blinkers = (Boolean) Setting.BLINKERS.getSetting();
 		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 	}
 

@@ -11,7 +11,7 @@ import org.bukkit.entity.Zombie;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.Undead;
@@ -49,7 +49,7 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 		game.setMobCount(game.getMobCount() + 1);
 		if (!data.undead.contains(this))
 			data.undead.add(this);
-		if (game.getLevel() >= External.getYamlManager().getConfigurationData().doubleSpeedLevel)
+		if (game.getLevel() >= (Integer) Setting.DOUBLESPEEDLEVEL.getSetting())
 			setSpeed(0.24F);
 	}
 

@@ -8,7 +8,9 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAColor;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -16,8 +18,6 @@ import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Util.Enumerated.ZAColor;
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
 
 public class GameMobSpawner extends DataManipulator implements ZALocation, Blinkable, GameObject {// TODO annotations
 	private Location loc;
@@ -41,7 +41,7 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 		y = loc.getBlockY();
 		z = loc.getBlockZ();
 		data.objects.add(this);
-		blinkers = External.getYamlManager().getConfigurationData().blinkers;
+		blinkers = (Boolean) Setting.BLINKERS.getSetting();
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(block);
 		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);

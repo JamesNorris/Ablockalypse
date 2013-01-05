@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import com.github.JamesNorris.Util.Enumerated.ZAEffect;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public interface ZALocation {
 	public ZALocation add(double x, double y, double z);

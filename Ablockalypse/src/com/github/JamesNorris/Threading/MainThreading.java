@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
+import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
 import com.github.JamesNorris.Implementation.GameUndead;
@@ -28,12 +28,11 @@ public class MainThreading extends DataManipulator {
 	 */
 	public MainThreading(Plugin instance, boolean wolf, boolean barrier, boolean clearmobs) {
 		this.instance = (Ablockalypse) instance;
-		cd = External.getYamlManager().getConfigurationData();
 		if (wolf)
 			wolfFlames();
 		if (barrier)
 			barrier();
-		if (clearmobs && cd.clearmobs)
+		if (clearmobs && (Boolean) Setting.CLEARMOBS.getSetting())
 			clearMobs();
 	}
 
@@ -90,7 +89,7 @@ public class MainThreading extends DataManipulator {
 	 * Starts a thread that prevents slimes from going near players without dying.
 	 */
 	public void clearMobs() {
-		if (cd.clearmobs)
+		if ((Boolean) Setting.CLEARMOBS.getSetting())
 			id4 = Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, new Runnable() {
 				@Override public void run() {
 					for (Player p : data.players.keySet())
