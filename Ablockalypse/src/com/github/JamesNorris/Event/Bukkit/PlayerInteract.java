@@ -121,7 +121,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				}
 			} else if ((b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) && a == Action.RIGHT_CLICK_BLOCK) {
 				Sign s = (Sign) b.getState();
-				if (s.getLine(0).equalsIgnoreCase(Local.BASESTRING.getSetting())) {// TODO fix
+				if (s.getLine(0).equalsIgnoreCase(Local.BASESTRING.getSetting())) {
 					event.setUseInteractedBlock(Result.DENY);
 					runLines(s, p);
 					return;
@@ -159,7 +159,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 							return;
 						}
 					}
-				} else if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR)// TODO fix deprecated?
+				} else if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR)
 					event.setCancelled(true);
 				else if (b.getType() == Material.FENCE && a == Action.LEFT_CLICK_BLOCK) {
 					/* through-barrier damage */

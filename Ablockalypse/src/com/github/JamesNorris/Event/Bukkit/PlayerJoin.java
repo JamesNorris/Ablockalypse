@@ -21,7 +21,7 @@ public class PlayerJoin extends DataManipulator implements Listener {
 	 * Called when a player joins the server.
 	 * Used mainly for loading game data if it has not already been loaded.
 	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void PJE(PlayerJoinEvent event) {// TODO
+	@EventHandler(priority = EventPriority.HIGHEST) public void PJE(PlayerJoinEvent event) {
 		Player p = event.getPlayer();
 		String name = p.getName();
 		if (offlinePlayers.containsKey(name)) {
