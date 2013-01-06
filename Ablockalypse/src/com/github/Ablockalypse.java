@@ -52,10 +52,6 @@ public class Ablockalypse extends JavaPlugin {
 		this.getClassLoader().clearAssertionStatus();
 	}
 
-	public void onReload() {
-		reloadConfig();
-	}
-
 	@Override public void onEnable() {
 		Ablockalypse.instance = this;
 		External.loadExternalFiles(this);
