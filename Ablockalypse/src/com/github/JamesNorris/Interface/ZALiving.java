@@ -2,12 +2,11 @@ package com.github.JamesNorris.Interface;
 
 public interface ZALiving {
 	/**
-	 * Sets the amount of damage that the entity can absorb each hit, before it hurts the entity.
-	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
+	 * Gets the game the entity is currently in
 	 * 
-	 * @param i The damage absorption of this entity
+	 * @return The game the entity is in
 	 */
-	public void setHitAbsorption(int i);
+	public ZAGame getGame();
 
 	/**
 	 * Gets the hit damage that can be absorbed by this entity.
@@ -17,9 +16,10 @@ public interface ZALiving {
 	public int getHitAbsorption();
 
 	/**
-	 * Gets the game the entity is currently in
+	 * Sets the amount of damage that the entity can absorb each hit, before it hurts the entity.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
 	 * 
-	 * @return The game the entity is in
+	 * @param i The damage absorption of this entity
 	 */
-	public ZAGame getGame();
+	public void setHitAbsorption(int i);
 }

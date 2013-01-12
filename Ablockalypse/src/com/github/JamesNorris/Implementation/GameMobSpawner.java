@@ -20,14 +20,14 @@ import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.EffectUtil;
 
 public class GameMobSpawner extends DataManipulator implements ZALocation, Blinkable, GameObject {// TODO annotations
-	private Location loc;
-	private Block block;
-	private World world;
-	private double X, Y, Z;
-	private int x, y, z;
 	private boolean blinkers;
-	private ZAGame game;
+	private Block block;
 	private BlinkerThread bt;
+	private ZAGame game;
+	private Location loc;
+	private World world;
+	private int x, y, z;
+	private double X, Y, Z;
 
 	public GameMobSpawner(Location loc, ZAGame game) {
 		this.loc = loc;
@@ -75,6 +75,12 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 
 	@Override public Location getBukkitLocation() {
 		return loc;
+	}
+
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(block);
+		return blocks;
 	}
 
 	public ZAGame getGame() {
@@ -129,11 +135,5 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 	@Override public ZALocation subtract(double x, double y, double z) {
 		loc = loc.subtract(x, y, z);
 		return this;
-	}
-
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(block);
-		return blocks;
 	}
 }

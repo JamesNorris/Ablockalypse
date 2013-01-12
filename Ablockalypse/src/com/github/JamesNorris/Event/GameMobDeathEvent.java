@@ -9,9 +9,13 @@ import com.github.JamesNorris.Interface.ZAGame;
 
 public class GameMobDeathEvent extends Event {
 	private static final HandlerList handlers = new HandlerList();
-	private Entity entity;
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 	private boolean cancel;
 	private DamageCause cause;
+	private Entity entity;
+
 	private ZAGame game;
 
 	public GameMobDeathEvent(Entity entity, ZAGame game, DamageCause cause) {
@@ -19,22 +23,6 @@ public class GameMobDeathEvent extends Event {
 		this.entity = entity;
 		this.cause = cause;
 		this.game = game;
-	}
-	
-	public ZAGame getGame() {
-		return game;
-	}
-
-	public boolean isCancelled() {
-		return cancel;
-	}
-
-	public void setCancelled(boolean cancel) {
-		this.cancel = cancel;
-	}
-
-	public static HandlerList getHandlerList() {
-		return handlers;
 	}
 
 	public DamageCause getCause() {
@@ -45,7 +33,19 @@ public class GameMobDeathEvent extends Event {
 		return entity;
 	}
 
+	public ZAGame getGame() {
+		return game;
+	}
+
 	@Override public HandlerList getHandlers() {
 		return null;
+	}
+
+	public boolean isCancelled() {
+		return cancel;
+	}
+
+	public void setCancelled(boolean cancel) {
+		this.cancel = cancel;
 	}
 }

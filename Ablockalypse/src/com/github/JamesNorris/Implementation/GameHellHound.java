@@ -14,22 +14,22 @@ import org.bukkit.entity.Wolf;
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class GameHellHound extends DataManipulator implements HellHound, GameObject {
+	private int absorption = 0;
 	private ZAGame game;
+	private int id;
 	private MobTargettingThread mt;
+	private boolean subtracted = false;
 	private Object target;
 	private Wolf wolf;
-	private int id;
-	private boolean subtracted = false;
-	private int absorption = 0;
 
 	/**
 	 * Creates a new instance of the GameWolf for ZA.
@@ -73,36 +73,6 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	}
 
 	/**
-	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
-	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
-	 * 
-	 * @param i The damage absorption of this mob
-	 */
-	@Override public void setHitAbsorption(int i) {
-		absorption = i;
-	}
-
-	/**
-	 * Gets the hit damage that can be absorbed by this mob.
-	 * 
-	 * @return The amount of damage to be absorbed each time this mob is hit
-	 */
-	@Override public int getHitAbsorption() {
-		return absorption;
-	}
-
-	/**
-	 * Gets the blocks that defines this object as an object.
-	 * 
-	 * @return The blocks assigned to this object
-	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(wolf.getLocation().subtract(0, 1, 0).getBlock());
-		return blocks;
-	}
-
-	/**
 	 * Adds the mobspawner flames effect to the GameWolf for 1 second.
 	 */
 	@Override public void addFlames() {
@@ -136,6 +106,17 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	}
 
 	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(wolf.getLocation().subtract(0, 1, 0).getBlock());
+		return blocks;
+	}
+
+	/**
 	 * Gets the Entity instance of the mob.
 	 * 
 	 * @return The Entity associated with this instance
@@ -151,6 +132,15 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 */
 	@Override public ZAGame getGame() {
 		return game;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this mob.
+	 * 
+	 * @return The amount of damage to be absorbed each time this mob is hit
+	 */
+	@Override public int getHitAbsorption() {
+		return absorption;
 	}
 
 	/**
@@ -236,6 +226,16 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 */
 	@Override public void setHealth(int amt) {
 		wolf.setHealth(amt);
+	}
+
+	/**
+	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
+	 * 
+	 * @param i The damage absorption of this mob
+	 */
+	@Override public void setHitAbsorption(int i) {
+		absorption = i;
 	}
 
 	/**

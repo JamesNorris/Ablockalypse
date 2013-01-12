@@ -11,8 +11,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Local;
-import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Enumerated.ZAEffect;
+import com.github.JamesNorris.Util.EffectUtil;
 
 public class BlockPlace extends DataManipulator implements Listener {
 	/*

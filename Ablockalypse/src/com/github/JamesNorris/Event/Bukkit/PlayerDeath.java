@@ -24,8 +24,8 @@ public class PlayerDeath extends DataManipulator implements Listener {
 			ZAPlayerBase zap = data.players.get(p);
 			zap.setLimbo(true);
 			ZAGame zag = zap.getGame();
-				p.getActivePotionEffects().clear();
-				zap.setHitAbsorption(0);
+			p.getActivePotionEffects().clear();
+			zap.setHitAbsorption(0);
 			if (zag.getRemainingPlayers() > 0) {
 				if (zap.isInLastStand())
 					zap.toggleLastStand();

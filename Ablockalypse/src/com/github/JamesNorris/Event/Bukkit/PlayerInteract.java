@@ -24,16 +24,16 @@ import org.bukkit.inventory.ItemStack;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Local;
 import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Enumerated.ZAEnchantment;
 import com.github.JamesNorris.Enumerated.ZAPerk;
 import com.github.JamesNorris.Enumerated.ZAWeapon;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GameSignClickEvent;
-import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMobSpawner;
-import com.github.JamesNorris.Implementation.SingleMysteryChest;
+import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.GameObject;
@@ -46,19 +46,137 @@ import com.github.JamesNorris.Threading.TeleportThread;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.MathAssist;
 import com.github.JamesNorris.Util.MiscUtil;
-import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class PlayerInteract extends DataManipulator implements Listener {
-	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
-	public static HashMap<String, ZAGameBase> spawnerPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> areaPlayers = new HashMap<String, ZAGameBase>();
+	public static HashMap<String, ZAGameBase> barrierPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, ZAGameBase> chestPlayers = new HashMap<String, ZAGameBase>();
 	public static HashMap<String, Location> locClickers = new HashMap<String, Location>();
 	public static ArrayList<String> removers = new ArrayList<String>();
+	public static HashMap<String, ZAGameBase> spawnerPlayers = new HashMap<String, ZAGameBase>();
 	private ItemManager im;
 
 	public PlayerInteract() {
 		im = new ItemManager();
+	}
+
+	private void buyArea(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		int cost = 1500;
+		try {
+			cost = Integer.parseInt(l3);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		sign.setLine(3, " " + cost + " ");
+		if (zap.getPoints() >= cost) {
+			GameArea a = getClosestArea(sign.getBlock(), (ZAGameBase) zap.getGame());
+			if (a != null) {
+				if (!a.isOpened()) {
+					a.open();
+					EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+					zap.subtractPoints(cost);
+					player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
+					return;
+				} else
+					player.sendMessage(ChatColor.RED + "This area has already been purchased!");
+			} else
+				player.sendMessage(ChatColor.RED + "There is no area close to this sign!");
+			return;
+		} else {
+			player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
+			return;
+		}
+	}
+
+	/*
+	 * Gets the closest game area to the given block.
+	 */
+	private GameArea getClosestArea(Block b, ZAGameBase zag) {
+		int distance = Integer.MAX_VALUE;
+		Location loc = b.getLocation();
+		GameArea lp = null;
+		for (GameArea a : data.areas)
+			if (a.getGame() == zag) {
+				Location l = a.getPoint(1);
+				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+				if (current < distance) {
+					distance = current;
+					lp = a;
+				}
+			}
+		if (lp != null)
+			return lp;
+		return null;
+	}
+
+	private void giveEnchantment(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAEnchantment ench : ZAEnchantment.values()) {
+			if (l3.equalsIgnoreCase(ench.getLabel())) {
+				if (zap.getPoints() < ench.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + ench.getCost() + " points to buy this.");
+					return;
+				}
+				ItemStack hand = player.getItemInHand();
+				player.getInventory().remove(hand);
+				im.addEnchantment(hand, ench.getEnchantment(), 3);
+				zap.subtractPoints(ench.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player);
+				return;
+			}
+		}
+	}
+
+	private void givePerk(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAPerk perk : ZAPerk.values()) {
+			if (l3.equalsIgnoreCase(perk.getLabel()) && zap.getGame().getLevel() >= perk.getLevel()) {
+				if (zap.getPoints() < perk.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + perk.getCost() + " points to buy this.");
+					return;
+				}
+				zap.addPerk(perk, perk.getDuration(), 1);
+				zap.subtractPoints(perk.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + perk.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				return;
+			}
+		}
+	}
+
+	private void giveWeapon(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
+		for (ZAWeapon wep : ZAWeapon.values()) {
+			if (l3.equalsIgnoreCase(wep.getLabel()) && zap.getPoints() >= wep.getCost() && zap.getGame().getLevel() >= wep.getLevel()) {
+				if (zap.getPoints() < wep.getCost()) {
+					player.sendMessage(ChatColor.RED + "You have " + points + " / " + wep.getCost() + " points to buy this.");
+					return;
+				}
+				Material type = wep.getMaterial();
+				if (type != Material.ENDER_PEARL)
+					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 1), player);
+				else
+					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 5), player);
+				zap.subtractPoints(wep.getCost());
+				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + wep.getCost() + " points!");
+				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+				return;
+			}
+		}
+	}
+
+	private void joinGame(Sign sign, Player player, String l3) {
+		if (player.hasPermission("za.create") && !data.games.containsKey(l3)) {
+			setupPlayerWithGame(l3, player);
+			player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
+			return;
+		} else if (data.games.containsKey(l3)) {
+			setupPlayerWithGame(l3, player);
+			EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
+			return;
+		} else {
+			player.sendMessage(ChatColor.RED + "That game does not exist!");
+			return;
+		}
 	}
 
 	/*
@@ -84,10 +202,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				event.setUseInteractedBlock(Result.DENY);
 				ZAGameBase zag = chestPlayers.get(p.getName());
 				if (!data.isMysteryChest(b.getLocation())) {
-					if (MiscUtil.getSecondChest(b) == null)
-						chestPlayers.get(p.getName()).addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
-					else if (MiscUtil.getSecondChest(b) != null)
-						chestPlayers.get(p.getName()).addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b).getLocation(), zag.getActiveMysteryChest() == null));
+					chestPlayers.get(p.getName()).addMysteryChest(new GameMysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
 					p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
 				} else
 					p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
@@ -210,7 +325,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 		String l3 = sign.getLine(2);
 		// String l4 = sign.getLine(3);//UNUSED
 		if (l1.equalsIgnoreCase(Local.BASESTRING.getSetting())) {
-			GameSignClickEvent gsce = new GameSignClickEvent(sign);
+			GameSignClickEvent gsce = new GameSignClickEvent(sign, player);
 			Bukkit.getPluginManager().callEvent(gsce);
 			if (!gsce.isCancelled()) {
 				if (l2.equalsIgnoreCase(Local.BASEJOINSTRING.getSetting()) && !data.players.containsKey(player))// JOIN
@@ -229,125 +344,6 @@ public class PlayerInteract extends DataManipulator implements Listener {
 					player.updateInventory();
 				}
 			}
-		}
-	}
-
-	/*
-	 * Gets the closest game area to the given block.
-	 */
-	private GameArea getClosestArea(Block b, ZAGameBase zag) {
-		int distance = Integer.MAX_VALUE;
-		Location loc = b.getLocation();
-		GameArea lp = null;
-		for (GameArea a : data.areas)
-			if (a.getGame() == zag) {
-				Location l = a.getPoint(1);
-				int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
-				if (current < distance) {
-					distance = current;
-					lp = a;
-				}
-			}
-		if (lp != null)
-			return lp;
-		return null;
-	}
-
-	private void giveWeapon(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
-		for (ZAWeapon wep : ZAWeapon.values()) {
-			if (l3.equalsIgnoreCase(wep.getLabel()) && zap.getPoints() >= wep.getCost() && zap.getGame().getLevel() >= wep.getLevel()) {
-				if (zap.getPoints() < wep.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + wep.getCost() + " points to buy this.");
-					return;
-				}
-				Material type = wep.getMaterial();
-				if (type != Material.ENDER_PEARL)
-					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 1), player);
-				else
-					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 5), player);
-				zap.subtractPoints(wep.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + wep.getCost() + " points!");
-				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
-				return;
-			}
-		}
-	}
-
-	private void buyArea(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
-		int cost = 1500;
-		try {
-			cost = Integer.parseInt(l3);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		sign.setLine(3, " " + cost + " ");
-		if (zap.getPoints() >= cost) {
-			GameArea a = getClosestArea(sign.getBlock(), (ZAGameBase) zap.getGame());
-			if (a != null) {
-				if (!a.isOpened()) {
-					a.open();
-					EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
-					zap.subtractPoints(cost);
-					player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
-					return;
-				} else
-					player.sendMessage(ChatColor.RED + "This area has already been purchased!");
-			} else
-				player.sendMessage(ChatColor.RED + "There is no area close to this sign!");
-			return;
-		} else {
-			player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
-			return;
-		}
-	}
-
-	private void giveEnchantment(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
-		for (ZAEnchantment ench : ZAEnchantment.values()) {
-			if (l3.equalsIgnoreCase(ench.getLabel())) {
-				if (zap.getPoints() < ench.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + ench.getCost() + " points to buy this.");
-					return;
-				}
-				ItemStack hand = player.getItemInHand();
-				player.getInventory().remove(hand);
-				im.addEnchantment(hand, ench.getEnchantment(), 3);
-				zap.subtractPoints(ench.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
-				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
-				MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player);
-				return;
-			}
-		}
-	}
-
-	private void givePerk(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
-		for (ZAPerk perk : ZAPerk.values()) {
-			if (l3.equalsIgnoreCase(perk.getLabel()) && zap.getGame().getLevel() >= perk.getLevel()) {
-				if (zap.getPoints() < perk.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + perk.getCost() + " points to buy this.");
-					return;
-				}
-				zap.addPerk(perk, perk.getDuration(), 1);
-				zap.subtractPoints(perk.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + perk.getCost() + " points!");
-				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
-				return;
-			}
-		}
-	}
-
-	private void joinGame(Sign sign, Player player, String l3) {
-		if (player.hasPermission("za.create") && !data.games.containsKey(l3)) {
-			setupPlayerWithGame(l3, player);
-			player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
-			return;
-		} else if (data.games.containsKey(l3)) {
-			setupPlayerWithGame(l3, player);
-			EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
-			return;
-		} else {
-			player.sendMessage(ChatColor.RED + "That game does not exist!");
-			return;
 		}
 	}
 

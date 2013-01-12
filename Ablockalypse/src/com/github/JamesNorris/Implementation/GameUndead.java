@@ -19,12 +19,12 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 
 public class GameUndead extends DataManipulator implements Undead, GameObject {
+	private int absorption = 0;
+	private boolean fireproof, subtracted = false;
 	private ZAGame game;
 	private MobTargettingThread mt;
 	private Object target;
 	private Zombie zombie;
-	private int absorption = 0;
-	private boolean fireproof, subtracted = false;
 
 	/**
 	 * Creates a new instance of the GameZombie for ZA.
@@ -40,47 +40,13 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 		fireproof = true;
 		Player p = game.getRandomLivingPlayer();
 		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
-		if (targetbarrier != null) {
-			Location gbloc = targetbarrier.getCenter();
-			mt = new MobTargettingThread(Ablockalypse.instance, zombie, gbloc);
-		} else
-			mt = new MobTargettingThread(Ablockalypse.instance, zombie, p);
+		mt = (targetbarrier != null) ? new MobTargettingThread(Ablockalypse.instance, zombie, targetbarrier.getCenter()) : new MobTargettingThread(Ablockalypse.instance, zombie, p);
 		zombie.setHealth(10);
 		game.setMobCount(game.getMobCount() + 1);
 		if (!data.undead.contains(this))
 			data.undead.add(this);
 		if (game.getLevel() >= (Integer) Setting.DOUBLESPEEDLEVEL.getSetting())
 			setSpeed(0.24F);
-	}
-
-	/**
-	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
-	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
-	 * 
-	 * @param i The damage absorption of this mob
-	 */
-	@Override public void setHitAbsorption(int i) {
-		absorption = i;
-	}
-
-	/**
-	 * Gets the hit damage that can be absorbed by this mob.
-	 * 
-	 * @return The amount of damage to be absorbed each time this mob is hit
-	 */
-	@Override public int getHitAbsorption() {
-		return absorption;
-	}
-
-	/**
-	 * Gets the blocks that defines this object as an object.
-	 * 
-	 * @return The blocks assigned to this object
-	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(zombie.getLocation().subtract(0, 1, 0).getBlock());
-		return blocks;
 	}
 
 	/**
@@ -103,6 +69,17 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 	}
 
 	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(zombie.getLocation().subtract(0, 1, 0).getBlock());
+		return blocks;
+	}
+
+	/**
 	 * Gets the Entity instance of the mob.
 	 * 
 	 * @return The Entity associated with this instance
@@ -116,6 +93,15 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 	 */
 	@Override public ZAGame getGame() {
 		return game;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this mob.
+	 * 
+	 * @return The amount of damage to be absorbed each time this mob is hit
+	 */
+	@Override public int getHitAbsorption() {
+		return absorption;
 	}
 
 	/**
@@ -207,6 +193,16 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 	 */
 	@Override public void setHealth(int amt) {
 		zombie.setHealth(amt);
+	}
+
+	/**
+	 * Sets the amount of damage that the mob can absorb each hit, before it hurts the mob.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1.
+	 * 
+	 * @param i The damage absorption of this mob
+	 */
+	@Override public void setHitAbsorption(int i) {
+		absorption = i;
 	}
 
 	/**

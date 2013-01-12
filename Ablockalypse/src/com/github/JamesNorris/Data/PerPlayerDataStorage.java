@@ -13,13 +13,13 @@ import com.github.JamesNorris.Util.SerializableLocation;
 
 public class PerPlayerDataStorage implements Serializable {// TODO annotations
 	private static final long serialVersionUID = -243572474641181441L;
+	private final ArrayList<Map<String, Object>> armor = new ArrayList<Map<String, Object>>();
+	private final ArrayList<Map<String, Object>> inventory = new ArrayList<Map<String, Object>>();
+	private final SerializableLocation location;
 	private final String name, gamename;
 	private final int points, kills, health, food, fire, gm, gameLevel;
 	private final float saturation, fall, exhaust;
 	private final boolean sleepingignored;
-	private final SerializableLocation location;
-	private final ArrayList<Map<String, Object>> inventory = new ArrayList<Map<String, Object>>();
-	private final ArrayList<Map<String, Object>> armor = new ArrayList<Map<String, Object>>();
 
 	public PerPlayerDataStorage(ZAPlayerBase zap) {
 		this.name = zap.getName();
@@ -47,6 +47,70 @@ public class PerPlayerDataStorage implements Serializable {// TODO annotations
 		this.gm = player.getGameMode().getValue();
 	}
 
+	public ArrayList<Map<String, Object>> getArmor() {
+		return armor;
+	}
+
+	public float getExhaust() {
+		return exhaust;
+	}
+
+	public float getFall() {
+		return fall;
+	}
+
+	public int getFire() {
+		return fire;
+	}
+
+	public int getFood() {
+		return food;
+	}
+
+	public int getGameLevel() {
+		return gameLevel;
+	}
+
+	public int getGameModeValue() {
+		return gm;
+	}
+
+	public String getGameName() {
+		return gamename;
+	}
+
+	public int getHealth() {
+		return health;
+	}
+
+	public ArrayList<Map<String, Object>> getInventory() {
+		return inventory;
+	}
+
+	public int getKills() {
+		return kills;
+	}
+
+	public SerializableLocation getLocation() {
+		return location;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getPoints() {
+		return points;
+	}
+
+	public float getSaturation() {
+		return saturation;
+	}
+
+	public boolean isSleepingignored() {
+		return sleepingignored;
+	}
+
 	public void loadToPlayer(ZAPlayerBase zap) {
 		Player p = zap.getPlayer();
 		zap.setPoints(points);
@@ -64,69 +128,5 @@ public class PerPlayerDataStorage implements Serializable {// TODO annotations
 			p.getInventory().addItem(ItemStack.deserialize(is));
 		for (Map<String, Object> is : armor)
 			p.getInventory().addItem(ItemStack.deserialize(is));
-	}
-
-	public int getGameLevel() {
-		return gameLevel;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public String getGameName() {
-		return gamename;
-	}
-
-	public int getPoints() {
-		return points;
-	}
-
-	public int getKills() {
-		return kills;
-	}
-
-	public int getHealth() {
-		return health;
-	}
-
-	public int getFood() {
-		return food;
-	}
-
-	public int getFire() {
-		return fire;
-	}
-
-	public int getGameModeValue() {
-		return gm;
-	}
-
-	public float getSaturation() {
-		return saturation;
-	}
-
-	public float getFall() {
-		return fall;
-	}
-
-	public float getExhaust() {
-		return exhaust;
-	}
-
-	public boolean isSleepingignored() {
-		return sleepingignored;
-	}
-
-	public SerializableLocation getLocation() {
-		return location;
-	}
-
-	public ArrayList<Map<String, Object>> getInventory() {
-		return inventory;
-	}
-
-	public ArrayList<Map<String, Object>> getArmor() {
-		return armor;
 	}
 }

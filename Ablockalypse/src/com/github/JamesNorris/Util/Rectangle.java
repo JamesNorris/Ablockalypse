@@ -9,10 +9,10 @@ import org.bukkit.Material;
 import org.bukkit.World;
 
 public class Rectangle {
+	private ArrayList<Location> border2D = new ArrayList<Location>();
+	private ArrayList<Location> border3D = new ArrayList<Location>();
 	private Location loc1, loc2, loc3, loc4;
 	private HashMap<Location, Material> locs = new HashMap<Location, Material>();
-	private ArrayList<Location> border3D = new ArrayList<Location>();
-	private ArrayList<Location> border2D = new ArrayList<Location>();
 
 	/**
 	 * Creates a new rectangle from one location to the next.
@@ -127,16 +127,23 @@ public class Rectangle {
 	}
 
 	/**
-	 * Gets all the locations from the rectangle in a list.
+	 * Gets the 2D border of blocks around the rectangle.
 	 * 
-	 * @return A list of all locations in the rectangle
+	 * @return The rectangle's 2D border
 	 */
-	public List<Location> getLocations() {
-		ArrayList<Location> locations = new ArrayList<Location>();
-		for (Location l : locs.keySet()) {
-			locations.add(l);
-		}
-		return locations;
+	public ArrayList<Location> get2DBorder() {
+		return border2D;
+	}
+
+	/**
+	 * @deprecated The border is slightly off
+	 * 
+	 *             Gets the 3D border of blocks around the rectangle.
+	 * 
+	 * @return The rectangle's 3D border
+	 */
+	public ArrayList<Location> get3DBorder() {
+		return border3D;
 	}
 
 	/**
@@ -160,22 +167,15 @@ public class Rectangle {
 	}
 
 	/**
-	 * @deprecated The border is slightly off
+	 * Gets all the locations from the rectangle in a list.
 	 * 
-	 *             Gets the 3D border of blocks around the rectangle.
-	 * 
-	 * @return The rectangle's 3D border
+	 * @return A list of all locations in the rectangle
 	 */
-	public ArrayList<Location> get3DBorder() {
-		return border3D;
-	}
-
-	/**
-	 * Gets the 2D border of blocks around the rectangle.
-	 * 
-	 * @return The rectangle's 2D border
-	 */
-	public ArrayList<Location> get2DBorder() {
-		return border2D;
+	public List<Location> getLocations() {
+		ArrayList<Location> locations = new ArrayList<Location>();
+		for (Location l : locs.keySet()) {
+			locations.add(l);
+		}
+		return locations;
 	}
 }

@@ -13,9 +13,8 @@ import org.bukkit.plugin.Plugin;
 import com.github.Ablockalypse;
 
 public class Update {
-	private Ablockalypse plugin;
-	private PluginMaster pm;
 	private String finished = "[Ablockalypse] Update completed, please restart the server!";
+	private Ablockalypse plugin;
 	private String started = "[Ablockalypse] Update found, please wait while the new version is downloaded...";
 
 	/**
@@ -27,7 +26,32 @@ public class Update {
 	 */
 	public Update(Plugin instance) {
 		plugin = (Ablockalypse) instance;
-		pm = Ablockalypse.getMaster();
+	}
+
+	/**
+	 * Checks if an update is needed.
+	 * If an update is needed, updates.
+	 * 
+	 * @return Whether or not an update is started
+	 */
+	public boolean check() {
+		try {
+			URL url = new URL(Ablockalypse.getUpdateURL());
+			URLConnection connection = url.openConnection();
+			File local = new File(Ablockalypse.getJARPath());
+			long lastmodURL = connection.getLastModified();
+			long lastmodFile = local.lastModified();
+			if (lastmodURL > lastmodFile) {
+				System.out.println(started);
+				download();
+				return true;
+			} else
+				return false;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		plugin.getServer().notify();
+		return false;
 	}
 
 	/*
@@ -37,8 +61,8 @@ public class Update {
 		InputStream in = null;
 		OutputStream out = null;
 		try {
-			URL url = new URL(pm.getUpdateURL());
-			out = new BufferedOutputStream(new FileOutputStream(pm.getJARPath()));
+			URL url = new URL(Ablockalypse.getUpdateURL());
+			out = new BufferedOutputStream(new FileOutputStream(Ablockalypse.getJARPath()));
 			URLConnection connection = url.openConnection();
 			in = connection.getInputStream();
 			byte[] buffer = new byte[1024];
@@ -60,29 +84,17 @@ public class Update {
 		}
 	}
 
-	/**
-	 * Checks if an update is needed.
-	 * If an update is needed, updates.
-	 * 
-	 * @return Whether or not an update is started
-	 */
-	public boolean check() {
+	public boolean updateAvailable() {
 		try {
-			URL url = new URL(pm.getUpdateURL());
+			URL url = new URL(Ablockalypse.getUpdateURL());
 			URLConnection connection = url.openConnection();
-			File local = new File(pm.getJARPath());
+			File local = new File(Ablockalypse.getJARPath());
 			long lastmodURL = connection.getLastModified();
 			long lastmodFile = local.lastModified();
-			if (lastmodURL > lastmodFile) {
-				System.out.println(started);
-				download();
-				return true;
-			} else
-				return false;
+			return (lastmodURL > lastmodFile);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		plugin.getServer().notify();
 		return false;
 	}
 }

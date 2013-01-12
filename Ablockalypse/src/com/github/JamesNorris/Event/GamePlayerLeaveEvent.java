@@ -20,8 +20,8 @@ public class GamePlayerLeaveEvent extends Event {
 	}
 
 	private boolean cancel;
-	private ZAPlayer zap;
 	private ZAGame game;
+	private ZAPlayer zap;
 
 	/**
 	 * Called when a player leaves a game.

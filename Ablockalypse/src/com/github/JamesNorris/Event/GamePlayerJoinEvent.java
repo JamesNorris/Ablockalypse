@@ -20,8 +20,8 @@ public class GamePlayerJoinEvent extends Event {
 	}
 
 	private boolean cancel;
-	private ZAPlayer zap;
 	private ZAGame game;
+	private ZAPlayer zap;
 
 	/**
 	 * Called when a player joins a game.

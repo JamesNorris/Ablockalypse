@@ -1,11 +1,12 @@
 package com.github.JamesNorris.Threading;
 
 /* Breakable Packages */
-import net.minecraft.server.v1_4_6.*;
-import org.bukkit.craftbukkit.v1_4_6.entity.*;
-/* End Breakable Packages */
+import net.minecraft.server.v1_4_6.EntityCreature;
+import net.minecraft.server.v1_4_6.PathEntity;
+import net.minecraft.server.v1_4_6.PathPoint;
 
 import org.bukkit.Location;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftCreature;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -16,19 +17,20 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.MathAssist;
+/* End Breakable Packages */
 
 public class MobTargettingThread extends DataManipulator {
-	private final Plugin plugin;
-	private Player p;
 	private Creature c;
-	private Location location;
-	private int id, wait = 0;
 	private boolean hasTarget = false;
-	private float speed = 0.18F;// The default speed of the mob
+	private int id, wait = 0;
+	private Location last;
+	private Location location;
+	private Player p;
+	private final Plugin plugin;
 	private float radius = 16.0F;// the radius of the path (if set above 16, will cause weird behavior)
+	private float speed = 0.18F;// The default speed of the mob
 	private int standStill = (int) MathAssist.line(28, 0.18F, 5);// TODO test - time in ticks before the mob should rethink the path (if it is standing still)
 	private ZAMob zam;
-	private Location last;
 
 	/**
 	 * Creates a new mobtargetter, that can target specific locations.
@@ -40,10 +42,7 @@ public class MobTargettingThread extends DataManipulator {
 	public MobTargettingThread(Plugin plugin, Creature c, Location loc) {
 		this.plugin = plugin;
 		this.c = c;
-		if (data.isZAMob(c))
-			zam = (ZAMob) (c);
-		else
-			zam = null;
+		zam = (data.isZAMob(c)) ? (ZAMob) c : null;
 		location = loc;
 		setTarget(loc);
 	}
@@ -58,10 +57,7 @@ public class MobTargettingThread extends DataManipulator {
 	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
 		this.plugin = plugin;
 		this.c = c;
-		if (data.isZAMob(c))
-			zam = (ZAMob) (c);
-		else
-			zam = null;
+		zam = (data.isZAMob(c)) ? (ZAMob) c : null;
 		this.p = p;
 		setTarget(p);
 	}
@@ -81,16 +77,8 @@ public class MobTargettingThread extends DataManipulator {
 		Location l = c.getLocation();
 		int X = l.getBlockX();
 		int Z = l.getBlockZ();
-		double modX = 0;
-		double modZ = 0;
-		if (X < loc.getBlockX())
-			modX = speed;
-		else
-			modX = -speed;
-		if (Z < loc.getBlockZ())
-			modZ = speed;
-		else
-			modZ = -speed;
+		double modX = (X < loc.getBlockX()) ? speed : -speed;
+		double modZ = (Z < loc.getBlockZ()) ? speed : -speed;
 		EntityCreature mob = ((CraftCreature) c).getHandle();
 		mob.setPosition(l.getX() + modX, l.getY(), l.getZ() + modZ);
 	}
@@ -130,6 +118,18 @@ public class MobTargettingThread extends DataManipulator {
 		}
 		if (p != null && !data.players.containsKey(p))
 			cancel();
+	}
+
+	/*
+	 * Checks if all pathpoints to the player are clear.
+	 */
+	private boolean pathIsClear(PathEntity pe) {// TODO test
+		for (int i = 0; i < 16; i++) {
+			PathPoint pt = pe.a(i);
+			if (pt != null && !c.getWorld().getBlockAt(pt.a, pt.b, pt.c).isEmpty())
+				return false;
+		}
+		return true;
 	}
 
 	/*
@@ -203,18 +203,6 @@ public class MobTargettingThread extends DataManipulator {
 		if (p != null)
 			this.p = p;
 		target();
-	}
-
-	/*
-	 * Checks if all pathpoints to the player are clear.
-	 */
-	private boolean pathIsClear(PathEntity pe) {// TODO test
-		for (int i = 0; i < 16; i++) {
-			PathPoint pt = pe.a(i);
-			if (pt != null && !c.getWorld().getBlockAt(pt.a, pt.b, pt.c).isEmpty())
-				return false;
-		}
-		return true;
 	}
 
 	/*

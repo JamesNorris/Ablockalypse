@@ -22,10 +22,10 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public class ProjectileHit extends DataManipulator implements Listener {
 	public static HashMap<UUID, String> uuids;

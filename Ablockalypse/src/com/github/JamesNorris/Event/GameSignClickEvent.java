@@ -2,6 +2,7 @@ package com.github.JamesNorris.Event;
 
 import org.bukkit.World;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
@@ -18,6 +19,7 @@ public class GameSignClickEvent extends Event {
 	}
 
 	private boolean cancel;
+	private Player player;
 	private Sign sign;
 
 	/**
@@ -25,12 +27,22 @@ public class GameSignClickEvent extends Event {
 	 * 
 	 * @param sign The sign clicked
 	 */
-	public GameSignClickEvent(Sign sign) {
+	public GameSignClickEvent(Sign sign, Player player) {
 		this.sign = sign;
+		this.player = player;
 	}
 
 	@Override public HandlerList getHandlers() {
 		return handlers;
+	}
+
+	/**
+	 * Gets the player associated with this event.
+	 * 
+	 * @return The player that calls this event
+	 */
+	public Player getPlayer() {
+		return player;
 	}
 
 	/**

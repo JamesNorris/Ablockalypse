@@ -14,8 +14,8 @@ import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 
 public class PlayerJoin extends DataManipulator implements Listener {
-	public static HashMap<String, PerPlayerDataStorage> offlinePlayers = new HashMap<String, PerPlayerDataStorage>();
 	public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
+	public static HashMap<String, PerPlayerDataStorage> offlinePlayers = new HashMap<String, PerPlayerDataStorage>();
 
 	/*
 	 * Called when a player joins the server.

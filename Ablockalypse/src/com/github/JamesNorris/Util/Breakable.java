@@ -1,20 +1,26 @@
 package com.github.JamesNorris.Util;
 
 /* Breakable Packages */
-import net.minecraft.server.v1_4_6.*;
-import org.bukkit.craftbukkit.v1_4_6.*;
-import org.bukkit.craftbukkit.v1_4_6.inventory.*;
-import org.bukkit.craftbukkit.v1_4_6.entity.*;
-/* End Breakable Packages */
+import net.minecraft.server.v1_4_6.EntityPlayer;
+import net.minecraft.server.v1_4_6.EntityWolf;
+import net.minecraft.server.v1_4_6.NBTTagCompound;
+import net.minecraft.server.v1_4_6.Packet40EntityMetadata;
+import net.minecraft.server.v1_4_6.WorldServer;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_4_6.CraftWorld;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_4_6.entity.CraftWolf;
+import org.bukkit.craftbukkit.v1_4_6.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.JamesNorris.Data.ByteData;
+/* End Breakable Packages */
 
 /**
  * The class for all breakable methods and code.
@@ -111,12 +117,10 @@ public class Breakable {
 	public static void setSitting(Player player, boolean tf) {
 		for (Player p : Bukkit.getOnlinePlayers()) {
 			EntityPlayer ep = Breakable.getNMSPlayer(p);
-			if (tf)
-				ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x04), true));// TODO test
-			else
-				ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData((byte) 0x00), true));
+			byte b1 = (tf) ? (byte) 0x04 : (byte) 0x00;
+			ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData(b1), true));// TODO test
 		}
-		if (tf)
-			player.teleport(player.getLocation().subtract(0, .5, 0));
+		double modY = (tf) ? -.5 : .5;
+		player.teleport(player.getLocation().add(0, modY, 0));
 	}
 }

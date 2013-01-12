@@ -5,24 +5,28 @@ import java.util.Map;
 import com.google.common.collect.Maps;
 
 public enum ZAEffect {
-	/**@formatter:off**/
-	SMOKE(1), FLAMES(2), POTION_BREAK(3), EXTINGUISH(4), WOOD_BREAK(5), IRON_BREAK(6), TELEPORTATION(7), LIGHTNING(8), BEACON(9);
-	/**@formatter:on**/
-	private int id;
+	//@formatter:off
+	BEACON(9), EXTINGUISH(4), FLAMES(2), IRON_BREAK(6), LIGHTNING(8), POTION_BREAK(3),
+	SMOKE(1), TELEPORTATION(7), WOOD_BREAK(5);
+	//@formatter:on
+	//
 	private final static Map<Integer, ZAEffect> BY_ID = Maps.newHashMap();
-	
-	ZAEffect(int id) {
-		this.id = id;
-	}
-	
-	public int getId() {
-		return id;
-	}
-	
+
+
 	public static ZAEffect getById(final int id) {
 		return BY_ID.get(id);
 	}
 
+	private int id;
+
+	ZAEffect(int id) {
+		this.id = id;
+	}
+
+	public int getId() {
+		return id;
+	}
+	
 	static {
 		for (ZAEffect setting : values()) {
 			BY_ID.put(setting.id, setting);

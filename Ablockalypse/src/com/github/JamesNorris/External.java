@@ -22,28 +22,45 @@ import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.PerGameDataStorage;
 import com.github.JamesNorris.Data.PerPlayerDataStorage;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
-import com.github.JamesNorris.Implementation.DoubleMysteryChest;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameMobSpawner;
-import com.github.JamesNorris.Implementation.SingleMysteryChest;
+import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
-import com.github.JamesNorris.Util.MiscUtil;
 
 public class External {
 	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
 	public static boolean CommandsEXPresent = (CommandsEX != null && CommandsEX.isEnabled());
+	public static String config = "config.yml";
 	private static FileConfiguration fc;
-	public static Ablockalypse instance;
-	public static File localizationFile, configFile, gameDataFile;
+	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
 	/* .bin paths */
 	public static String folderlocation = "saved_data" + File.separatorChar;
-	public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
-	public static String local = "local.yml";
-	public static String config = "config.yml";
 	public static String gameData = folderlocation + "game_data.bin";
+	public static Ablockalypse instance;
+	public static String local = "local.yml";
+	public static File localizationFile, configFile, gameDataFile;
+
+	/**
+	 * Deletes the file given.
+	 * 
+	 * @param file The file to delete
+	 */
+	public static void deleteFile(File file) {
+		File[] files = file.listFiles();
+		if (files != null) {
+			for (File f : files) {
+				if (f.isDirectory()) {
+					deleteFile(f);
+				} else {
+					f.delete();
+				}
+			}
+		}
+		file.delete();
+	}
 
 	/* end .bin paths */
 	/**
@@ -98,10 +115,8 @@ public class External {
 				if (pgds.getMainframe() != null)
 					zag.setMainframe(pgds.getMainframe());
 				int level = pgds.getLevel();
-				if (zag.getPlayers().size() > 0)
-					zag.setLevel(level);
-				else
-					zag.setLevel(0);
+				int setLevel = (zag.getPlayers().size() > 0) ? level : 0;
+				zag.setLevel(setLevel);
 				for (PerPlayerDataStorage spds : pgds.getPlayerData()) {
 					Player p = Bukkit.getPlayer(spds.getName());
 					Ablockalypse.getData();
@@ -129,10 +144,7 @@ public class External {
 				}
 				for (Location l : pgds.getMysteryChestLocations()) {
 					Block b = l.getBlock();
-					if (MiscUtil.getSecondChest(b) == null)
-						zag.addMysteryChest(new SingleMysteryChest(b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
-					else if (MiscUtil.getSecondChest(b) != null)
-						zag.addMysteryChest(new DoubleMysteryChest(b.getState(), zag, b.getLocation(), MiscUtil.getSecondChest(b).getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
+					zag.addMysteryChest(new GameMysteryChest(b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
 				}
 				for (Location l : pgds.getMobSpawnerLocations()) {
 					GameMobSpawner zaloc = new GameMobSpawner(l, zag);
@@ -142,25 +154,6 @@ public class External {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Deletes the file given.
-	 * 
-	 * @param file The file to delete
-	 */
-	public static void deleteFile(File file) {
-		File[] files = file.listFiles();
-		if (files != null) {
-			for (File f : files) {
-				if (f.isDirectory()) {
-					deleteFile(f);
-				} else {
-					f.delete();
-				}
-			}
-		}
-		file.delete();
 	}
 
 	/**

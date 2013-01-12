@@ -24,6 +24,21 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
 	public static ArrayList<UUID> instakillids = new ArrayList<UUID>();
 
 	/*
+	 * Called when an entity damaged another entity.
+	 * Used mostly for picking someone out of last stand, changing damage, and cancelling damage.
+	 */
+	@EventHandler(priority = EventPriority.HIGHEST) public void EDBEE(EntityDamageByEntityEvent event) {
+		Entity damager = event.getDamager();
+		Entity e = event.getEntity();
+		int evtdmg = event.getDamage();
+		if (data.isZAMob(e)) {
+			mobDamage(event, damager, e, evtdmg);
+		} else if (e instanceof Player) {
+			playerDamage(event, damager, e, evtdmg);
+		}
+	}
+
+	/*
 	 * Used to separate mob damage from player damage.
 	 * This is the mob version.
 	 */
@@ -97,21 +112,6 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
 					event.setCancelled(true);
 				else if (zag.friendlyFireEnabled())
 					event.setDamage(evtdmg - zap.getHitAbsorption());
-		}
-	}
-
-	/*
-	 * Called when an entity damaged another entity.
-	 * Used mostly for picking someone out of last stand, changing damage, and cancelling damage.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void EDBEE(EntityDamageByEntityEvent event) {
-		Entity damager = event.getDamager();
-		Entity e = event.getEntity();
-		int evtdmg = event.getDamage();
-		if (data.isZAMob(e)) {
-			mobDamage(event, damager, e, evtdmg);
-		} else if (e instanceof Player) {
-			playerDamage(event, damager, e, evtdmg);
 		}
 	}
 }

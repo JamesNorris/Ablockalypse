@@ -26,8 +26,8 @@ import com.github.JamesNorris.Manager.ItemManager;
  * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
  */
 public class MiscUtil {
-	private static Random rand;
 	private static ItemManager im = new ItemManager();
+	private static Random rand;
 
 	/**
 	 * Drops an item in the direction of the player, then has them pick it up.
@@ -49,23 +49,6 @@ public class MiscUtil {
 			}
 		}, 20);
 		return i;
-	}
-
-	/**
-	 * Gets a random enchantment
-	 */
-	public static Enchantment randomEnchant() {
-		Random rand = new Random();
-		int type = rand.nextInt(3) + 1;
-		switch (type) {
-			case 1:
-				return Enchantment.DAMAGE_ALL;
-			case 2:
-				return Enchantment.FIRE_ASPECT;
-			case 3:
-				return Enchantment.KNOCKBACK;
-		}
-		return Enchantment.DURABILITY;
 	}
 
 	/**
@@ -106,6 +89,23 @@ public class MiscUtil {
 			return (i != null && (t == Material.WOOD_SWORD || t == Material.STONE_SWORD || t == Material.IRON_SWORD || t == Material.DIAMOND_SWORD || t == Material.GOLD_SWORD));
 		}
 		return false;
+	}
+
+	/**
+	 * Gets a random enchantment
+	 */
+	public static Enchantment randomEnchant() {
+		Random rand = new Random();
+		int type = rand.nextInt(3) + 1;
+		switch (type) {
+			case 1:
+				return Enchantment.DAMAGE_ALL;
+			case 2:
+				return Enchantment.FIRE_ASPECT;
+			case 3:
+				return Enchantment.KNOCKBACK;
+		}
+		return Enchantment.DURABILITY;
 	}
 
 	/**

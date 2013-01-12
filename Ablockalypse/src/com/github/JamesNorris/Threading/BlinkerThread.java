@@ -14,15 +14,15 @@ import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.GameObject;
 
 public class BlinkerThread extends DataManipulator {
-	private int id, delay;
-	private ZAColor color;
-	private boolean colored, running;
 	private HashMap<Block, Byte> blockdata = new HashMap<Block, Byte>();
 	private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
+	private ZAColor color;
+	private boolean colored, running;
 	private ZAGameBase game = null;
-	private Object type;
 	private GameObject gameObj;
 	private boolean gameSupport = game != null && gameObj.getGame() != null && game.hasStarted() && !game.isPaused() && data.blinkers.contains(this) && data.objects.contains(this);
+	private int id, delay;
+	private Object type;
 
 	/**
 	 * Creates a new thread that makes a block blink a colored wool.
@@ -54,18 +54,6 @@ public class BlinkerThread extends DataManipulator {
 	}
 
 	/**
-	 * Synchronizes with all of the other BlinkerThreads, so that blinkers with equal waits will blink at the same time.
-	 */
-	public void synchronize() {
-		for (BlinkerThread bt : data.blinkers) {
-			if (!(gameSupport)) {
-				bt.cancel();
-				bt.blink();
-			}
-		}
-	}
-
-	/**
 	 * Makes the blinker blink in an alternating way.
 	 */
 	public void blink() {
@@ -86,7 +74,46 @@ public class BlinkerThread extends DataManipulator {
 				}
 			}, delay, delay);
 		} else
-			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A BlinkerThread has been told to run over the same repeating task, therefore this action has been cancelled to maintain safety.", false);
+			Ablockalypse.crash("A BlinkerThread has been told to run over the same repeating task, therefore this action has been cancelled to maintain safety.", false);
+	}
+
+	/**
+	 * Cancels the thread.
+	 */
+	public void cancel() {
+		running = false;
+		revertBlocks();
+		Bukkit.getScheduler().cancelTask(id);
+		id = -1;
+	}
+
+	/**
+	 * Gets the associated type to this blinker.
+	 * 
+	 * @return The associated object
+	 */
+	public Object getAssociate() {
+		return type;
+	}
+
+	/**
+	 * Checks if the thread is currently running.
+	 * 
+	 * @return Whether or not the thread is making a block blink
+	 */
+	public boolean isRunning() {
+		return running;
+	}
+
+	/**
+	 * Reverts the blocks to original state.
+	 */
+	public void revertBlocks() {
+		colored = false;
+		for (Block b : blocks.keySet()) {
+			b.setType(blocks.get(b));
+			b.setData(blockdata.get(b));
+		}
 	}
 
 	/**
@@ -116,36 +143,6 @@ public class BlinkerThread extends DataManipulator {
 	}
 
 	/**
-	 * Reverts the blocks to original state.
-	 */
-	public void revertBlocks() {
-		colored = false;
-		for (Block b : blocks.keySet()) {
-			b.setType(blocks.get(b));
-			b.setData(blockdata.get(b));
-		}
-	}
-
-	/**
-	 * Cancels the thread.
-	 */
-	public void cancel() {
-		running = false;
-		revertBlocks();
-		Bukkit.getScheduler().cancelTask(id);
-		id = -1;
-	}
-
-	/**
-	 * Checks if the thread is currently running.
-	 * 
-	 * @return Whether or not the thread is making a block blink
-	 */
-	public boolean isRunning() {
-		return running;
-	}
-
-	/**
 	 * Sets the color of the blinker.
 	 * 
 	 * @param color The color to blink
@@ -164,11 +161,14 @@ public class BlinkerThread extends DataManipulator {
 	}
 
 	/**
-	 * Gets the associated type to this blinker.
-	 * 
-	 * @return The associated object
+	 * Synchronizes with all of the other BlinkerThreads, so that blinkers with equal waits will blink at the same time.
 	 */
-	public Object getAssociate() {
-		return type;
+	public void synchronize() {
+		for (BlinkerThread bt : data.blinkers) {
+			if (!(gameSupport)) {
+				bt.cancel();
+				bt.blink();
+			}
+		}
 	}
 }

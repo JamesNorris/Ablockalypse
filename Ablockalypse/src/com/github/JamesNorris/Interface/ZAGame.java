@@ -29,15 +29,13 @@ public interface ZAGame {
 
 	public void end();
 
+	public boolean friendlyFireEnabled();
+
 	public MysteryChest getActiveMysteryChest();
 
 	public ArrayList<GameArea> getAreas();
 
 	public List<GameBarrier> getBarriers();
-
-	public boolean friendlyFireEnabled();
-
-	public void setFriendlyFire(boolean tf);
 
 	public int getLevel();
 
@@ -90,6 +88,8 @@ public interface ZAGame {
 	public void removePlayer(Player player);
 
 	public void setActiveMysteryChest(MysteryChest mc);
+
+	public void setFriendlyFire(boolean tf);
 
 	public void setLevel(int i);
 

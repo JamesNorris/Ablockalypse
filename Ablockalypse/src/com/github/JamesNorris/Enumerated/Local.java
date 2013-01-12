@@ -8,16 +8,28 @@ import com.github.JamesNorris.External;
 import com.google.common.collect.Maps;
 
 public enum Local {
-	/**@formatter:off**/
-	ENCHANTMENTRANDOMSTRING(1, "enchantmentRandomString"), BASEWEAPONSTRING(2, "weaponString"), WEAPONWOODSTRING(3, "weaponWoodSwordString"), WEAPONSTONESTRING(4, "weaponStoneSwordString"), WEAPONIRONSTRING(5, "weaponIronSwordString"),
-	WEAPONDIAMONDSTRING(6, "weaponDiamondSwordString"), BASESTRING(7, "baseString"), BASEPERKSTRING(8, "perkString"), PERKHEALSTRING(9, "perkHealString"), PERKSPEEDSTRING(10, "perkSpeedString"), PERKDAMAGESTRING(11, "perkDamageString"),
-	PERKREGENERATIONSTRING(11, "perkRegenerationString"), WEAPONGOLDSTRING(12, "weaponGoldSwordString"), WEAPONGRENADESTRING(13, "weaponGrenadeString"), BASEAREASTRING(14, "areaString"), BASEJOINSTRING(15, "joinString"), NAMEDWOODSWORD(16, "woodSword"),
-	NAMEDSTONESWORD(17, "stoneSword"), NAMEDIRONSWORD(18, "ironSword"), NAMEDDIAMONDSWORD(19, "diamondSword"), NAMEDGOLDSWORD(20, "goldSword"), NAMEDBOW(21, "bow"), BASEENCHANTMENTSTRING(22, "enchantmentString"),
-	ENCHANTMENTDAMAGESTRING(23, "enchantmentDamageString"), PERKJUGGERNAUTSTRING(24, "perkJuggernautString");
-	/**@formatter:on**/
-	private int id;
-	private String setting, object;
+	//@formatter:off
+	BASEAREASTRING(14, "areaString"), BASEENCHANTMENTSTRING(22, "enchantmentString"), BASEJOINSTRING(15, "joinString"), BASEPERKSTRING(8, "perkString"), BASESTRING(7, "baseString"),
+	BASEWEAPONSTRING(2, "weaponString"), ENCHANTMENTDAMAGESTRING(23, "enchantmentDamageString"),
+	ENCHANTMENTRANDOMSTRING(1, "enchantmentRandomString"), NAMEDBOW(21, "bow"), NAMEDDIAMONDSWORD(19, "diamondSword"), NAMEDGOLDSWORD(20, "goldSword"),
+	NAMEDIRONSWORD(18, "ironSword"), NAMEDSTONESWORD(17, "stoneSword"), NAMEDWOODSWORD(16, "woodSword"), PERKDAMAGESTRING(11, "perkDamageString"), PERKHEALSTRING(9, "perkHealString"), PERKJUGGERNAUTSTRING(24, "perkJuggernautString"),
+	PERKREGENERATIONSTRING(11, "perkRegenerationString"), PERKSPEEDSTRING(10, "perkSpeedString"), WEAPONDIAMONDSTRING(6, "weaponDiamondSwordString"), WEAPONGOLDSTRING(12, "weaponGoldSwordString"), WEAPONGRENADESTRING(13, "weaponGrenadeString"), WEAPONIRONSTRING(5, "weaponIronSwordString"),
+	WEAPONSTONESTRING(4, "weaponStoneSwordString"), WEAPONWOODSTRING(3, "weaponWoodSwordString");
+	//@formatter:on
+	//
 	private final static Map<Integer, Local> BY_ID = Maps.newHashMap();
+	
+	public static Local getById(final int id) {
+		return BY_ID.get(id);
+	}
+
+	public static int getHighestId() {
+		return BY_ID.size();
+	}
+
+	private int id;
+
+	private String setting, object;
 
 	Local(int id, String setting) {
 		this.id = id;
@@ -32,22 +44,14 @@ public enum Local {
 		return setting;
 	}
 
-	public void set(String object) {
-		this.object = object;
-	}
-
 	public String getSetting() {
 		return object;
 	}
 
-	public static int getHighestId() {
-		return BY_ID.size();
+	public void set(String object) {
+		this.object = object;
 	}
-
-	public static Local getById(final int id) {
-		return BY_ID.get(id);
-	}
-
+	
 	static {
 		FileConfiguration local = External.getConfig(External.localizationFile, External.local);
 		for (Local setting : values()) {

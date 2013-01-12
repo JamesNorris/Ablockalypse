@@ -20,8 +20,12 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Enumerated.PlayerStatus;
+import com.github.JamesNorris.Enumerated.PowerupType;
 import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Enumerated.ZAPerk;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
 import com.github.JamesNorris.Interface.GameObject;
@@ -31,14 +35,11 @@ import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Threading.LastStandThread;
 import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
-import com.github.JamesNorris.Enumerated.PlayerStatus;
-import com.github.JamesNorris.Enumerated.PowerupType;
-import com.github.JamesNorris.Enumerated.ZAEffect;
-import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
 public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObject {
+	private int absorption = 0;// less than mobs, used to add juggernaut
 	private Location before;
 	private float exp, saturation, fall, exhaust;
 	private ZAGame game;
@@ -47,11 +48,10 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	private boolean laststand, sleepingignored, sent, limbo, teleporting, instakill;
 	private int level, health, food, fire, points = 0, kills = 0;
 	private String name;
+	private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
 	private Player player;
 	private HashMap<String, Integer> point;
 	private Collection<PotionEffect> pot;
-	private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
-	private int absorption = 0;// less than mobs, used to add juggernaut
 
 	/**
 	 * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -69,55 +69,6 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 		point = new HashMap<String, Integer>();
 		data.players.put(player, this);
 		player.setLevel(game.getLevel());
-	}
-
-	/**
-	 * Sets the amount of damage that the player can absorb each hit, before it hurts the player.
-	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1 or higher.
-	 * 
-	 * @param i The damage absorption of this player
-	 */
-	@Override public void setHitAbsorption(int i) {
-		absorption = i;
-	}
-
-	/**
-	 * Gets the hit damage that can be absorbed by this player.
-	 * 
-	 * @return The amount of damage to be absorbed each time this player is hit
-	 */
-	@Override public int getHitAbsorption() {
-		return absorption;
-	}
-
-	/**
-	 * Gets the kills the player has.
-	 * 
-	 * @return The amount of kills the player has
-	 */
-	@Override public int getKills() {
-		return kills;
-	}
-
-	/**
-	 * Sets the amount of kills that the player has.
-	 * NOTE: This does not affect score.
-	 * 
-	 * @param i The amount of kills to set the player to
-	 */
-	@Override public void setKills(int i) {
-		kills = i;
-	}
-
-	/**
-	 * Gets the blocks that defines this object as an object.
-	 * 
-	 * @return The blocks assigned to this object
-	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(player.getLocation().subtract(0, 1, 0).getBlock());
-		return blocks;
 	}
 
 	/**
@@ -165,12 +116,41 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	}
 
 	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		blocks.add(player.getLocation().subtract(0, 1, 0).getBlock());
+		return blocks;
+	}
+
+	/**
 	 * Gets the game the player is currently in
 	 * 
 	 * @return The game the player is in
 	 */
 	@Override public ZAGame getGame() {
 		return game;
+	}
+
+	/**
+	 * Gets the hit damage that can be absorbed by this player.
+	 * 
+	 * @return The amount of damage to be absorbed each time this player is hit
+	 */
+	@Override public int getHitAbsorption() {
+		return absorption;
+	}
+
+	/**
+	 * Gets the kills the player has.
+	 * 
+	 * @return The amount of kills the player has
+	 */
+	@Override public int getKills() {
+		return kills;
 	}
 
 	/**
@@ -346,6 +326,26 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 		}
 	}
 
+	private void pickUp() {
+		LastStandEvent lse = new LastStandEvent(player, this, false);
+		Bukkit.getServer().getPluginManager().callEvent(lse);
+		if (!lse.isCancelled()) {
+			for (PotionEffect pe : player.getActivePotionEffects())
+				if (pe.getType() == PotionEffectType.CONFUSION)
+					player.removePotionEffect(pe.getType());
+			player.sendMessage(ChatColor.GRAY + "You have been picked up!");
+			game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
+			laststand = false;
+			Breakable.setSitting(player, false);
+			if (player.getVehicle() != null)
+				player.getVehicle().remove();
+			player.setFoodLevel(20);
+			Entity v = player.getVehicle();
+			if (v != null)
+				v.remove();
+		}
+	}
+
 	/*
 	 * Clearing the player status to allow the player to be put in the game without carrying over items.
 	 */
@@ -439,15 +439,6 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 		}
 	}
 
-	/**
-	 * Sets the amount of points the player has.
-	 * 
-	 * @param i The amount of points to set the player to
-	 */
-	public void setPoints(int i) {
-		points = i;
-	}
-
 	/*
 	 * Saving the player status, so when the player is removed from the game, they are set back to where they were before.
 	 */
@@ -491,12 +482,32 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	}
 
 	/**
+	 * Sets the amount of damage that the player can absorb each hit, before it hurts the player.
+	 * NOTE: If this nulls out the damage, the damage will automatically be set to 1 or higher.
+	 * 
+	 * @param i The damage absorption of this player
+	 */
+	@Override public void setHitAbsorption(int i) {
+		absorption = i;
+	}
+
+	/**
 	 * Enables insta-kill for this player.
 	 * 
 	 * @param tf Whether or not to start/cancel insta-kill
 	 */
 	@Override public void setInstaKill(boolean tf) {
 		instakill = tf;
+	}
+
+	/**
+	 * Sets the amount of kills that the player has.
+	 * NOTE: This does not affect score.
+	 * 
+	 * @param i The amount of kills to set the player to
+	 */
+	@Override public void setKills(int i) {
+		kills = i;
 	}
 
 	/**
@@ -507,12 +518,47 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	}
 
 	/**
+	 * Sets the amount of points the player has.
+	 * 
+	 * @param i The amount of points to set the player to
+	 */
+	public void setPoints(int i) {
+		points = i;
+	}
+
+	/**
 	 * Changes the teleportation status of the player.
 	 * 
 	 * @param tf What to change the status to
 	 */
 	@Override public void setTeleporting(boolean tf) {
 		teleporting = tf;
+	}
+
+	private void sitDown() {
+		LastStandEvent lse = new LastStandEvent(player, this, true);
+		Bukkit.getServer().getPluginManager().callEvent(lse);
+		if (!lse.isCancelled())
+			if (!(getGame().getRemainingPlayers() <= 1)) {
+				player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
+				laststand = true;
+				Entity v = player.getVehicle();
+				if (v != null)
+					v.remove();
+				rename(name, "[LS]");
+				player.setFoodLevel(0);
+				player.setHealth(5);
+				SoundUtil.generateSound(player, ZASound.LAST_STAND);
+				Breakable.setSitting(player, true);
+				game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
+				new LastStandThread(this, true);
+				if ((Boolean) Setting.LOSEPERKSONLASTSTAND.getSetting()) {
+					player.getActivePotionEffects().clear();
+					setHitAbsorption(0);
+				}
+				player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
+			} else
+				removeFromGame();
 	}
 
 	/**
@@ -557,47 +603,9 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 */
 	@Override public void toggleLastStand() {
 		if (!laststand) {
-			LastStandEvent lse = new LastStandEvent(player, this, true);
-			Bukkit.getServer().getPluginManager().callEvent(lse);
-			if (!lse.isCancelled())
-				if (!(getGame().getRemainingPlayers() <= 1)) {
-					player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
-					laststand = true;
-					Entity v = player.getVehicle();
-					if (v != null)
-						v.remove();
-					rename(name, "[LS]");
-					player.setFoodLevel(0);
-					player.setHealth(5);
-					SoundUtil.generateSound(player, ZASound.LAST_STAND);
-					Breakable.setSitting(player, true);
-					game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
-					new LastStandThread(this, true);
-					if ((Boolean) Setting.LOSEPERKSONLASTSTAND.getSetting()) {
-						player.getActivePotionEffects().clear();
-						setHitAbsorption(0);
-					}
-					player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
-				} else
-					removeFromGame();
+			sitDown();
 		} else {
-			LastStandEvent lse = new LastStandEvent(player, this, false);
-			Bukkit.getServer().getPluginManager().callEvent(lse);
-			if (!lse.isCancelled()) {
-				for (PotionEffect pe : player.getActivePotionEffects())
-					if (pe.getType() == PotionEffectType.CONFUSION)
-						player.removePotionEffect(pe.getType());
-				player.sendMessage(ChatColor.GRAY + "You have been picked up!");
-				game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
-				laststand = false;
-				Breakable.setSitting(player, false);
-				if (player.getVehicle() != null)
-					player.getVehicle().remove();
-				player.setFoodLevel(20);
-				Entity v = player.getVehicle();
-				if (v != null)
-					v.remove();
-			}
+			pickUp();
 		}
 	}
 }

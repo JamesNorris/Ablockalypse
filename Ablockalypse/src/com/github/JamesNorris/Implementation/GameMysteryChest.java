@@ -27,48 +27,48 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
 
-public class DoubleMysteryChest extends DataManipulator implements MysteryChest, GameObject {// TODO annotations
-	private Location loc1, loc2;
-	private Object chest;
-	private Random rand;
-	private Item item;
+public class GameMysteryChest extends DataManipulator implements MysteryChest, GameObject {
 	private boolean active = true;
-	private int uses;
-	private ZAGame game;
-	private ArrayList<ItemStack> its = new ArrayList<ItemStack>();
-	private ItemManager im;
 	private BlinkerThread bt;
+	private Object chest;
+	private ZAGame game;
+	private ItemManager im;
+	private Item item;
+	private ArrayList<ItemStack> its = new ArrayList<ItemStack>();
+	private Location[] locs;
+	private Random rand;
+	private int uses;
 
-	public DoubleMysteryChest(Object chest, ZAGame game, Location loc1, Location loc2, boolean active) {
-		this.loc1 = loc1;
-		this.loc2 = loc2;
+	/**
+	 * Creates a new instance of the GameMysteryChest.
+	 * 
+	 * @param chest The chest to be made into this instance
+	 */
+	public GameMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
 		data.objects.add(this);
-		data.chests.put(loc1, this);
-		data.chests.put(loc2, this);
+		Block b2 = MiscUtil.getSecondChest(loc.getBlock());
+		this.locs = (b2 != null) ? new Location[] {loc, b2.getLocation()} : new Location[] {loc};
+		for (Location location : locs)
+			data.chests.put(location, this);
 		this.chest = chest;
 		im = new ItemManager();
 		rand = new Random();
 		this.game = game;
+		game.addMysteryChest(this);
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
-		game.addMysteryChest(this);
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(loc1.getBlock());
-		blocks.add(loc2.getBlock());
+		ArrayList<Block> blocks = getDefiningBlocks();
 		boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
 		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
 	}
 
 	/**
-	 * Gets the blocks that defines this object as an object.
+	 * Gets the uses that this chest has before the mystery chest moves to another location.
 	 * 
-	 * @return The blocks assigned to this object
+	 * @return The uses before movement
 	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> blocks = new ArrayList<Block>();
-		blocks.add(loc1.getBlock());
-		blocks.add(loc2.getBlock());
-		return blocks;
+	@Override public int getActiveUses() {
+		return uses;
 	}
 
 	/**
@@ -80,25 +80,51 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 		return bt;
 	}
 
-	@Override public int getActiveUses() {
-		return uses;
-	}
-
+	/**
+	 * Gets the chest associated with this instance.
+	 * 
+	 * @return The chest associated with this instance
+	 */
 	@Override public Object getChest() {
 		if (chest instanceof Chest)
 			return chest;
 		return null;
 	}
 
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> blocks = new ArrayList<Block>();
+		for (Location loc : locs)
+			blocks.add(loc.getBlock());
+		return blocks;
+	}
+
+	/**
+	 * Gets the game that this MysteryChest is attached to.
+	 * 
+	 * @return The game that uses this chest
+	 */
 	@Override public ZAGame getGame() {
 		return game;
 	}
 
+	/**
+	 * Gets the location that the chest is located at.
+	 * 
+	 * @return The location of the chest
+	 */
 	@Override public Location getLocation() {
-		return loc1;
+		return locs[1];
 	}
 
-	@Override public void giveRandomItem(Player p) {
+	/**
+	 * Randomizes the contents of the MysteryChest.
+	 */
+	@SuppressWarnings("deprecation") @Override public void giveRandomItem(final Player p) {
 		if (active) {
 			--uses;
 			int i = rand.nextInt(100);
@@ -126,11 +152,12 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 			else
 				its.add(new ItemStack(Material.ENDER_PEARL, 10));
 			for (ItemStack it : its)
-				MiscUtil.dropItemAtPlayer(loc1, it, p);
+				MiscUtil.dropItemAtPlayer(locs[1], it, p);
 			if ((Boolean) Setting.EXTRAEFFECTS.getSetting()) {
 				SoundUtil.generateSound(p, ZASound.ACHIEVEMENT);
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
 			}
+			p.updateInventory();
 			if (uses == 0)
 				if ((Boolean) Setting.MOVINGCHESTS.getSetting()) {
 					setActive(false);
@@ -140,16 +167,24 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 			p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
 	}
 
+	/**
+	 * Checks if the chest is active or not.
+	 * 
+	 * @return Whether or not the chest is active and can be used
+	 */
 	@Override public boolean isActive() {
 		return active;
 	}
 
+	/**
+	 * Removes the mystery chest completely.
+	 */
 	@Override public void remove() {
 		setActive(false);
 		game.removeMysteryChest(this);
 		data.objects.remove(this);
-		data.chests.remove(loc1);
-		data.chests.remove(loc2);
+		for (Location loc : locs)
+			data.chests.remove(loc);
 		int size = game.getMysteryChests().size();
 		if (size >= 1)
 			game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(size)));
@@ -159,19 +194,26 @@ public class DoubleMysteryChest extends DataManipulator implements MysteryChest,
 		game = null;
 	}
 
+	/**
+	 * Changes whether or not the chest will be active.
+	 * 
+	 * @param tf Whether or not the chest should be active
+	 */
 	@Override public void setActive(boolean tf) {
 		if (tf) {
 			if (uses == 0)
 				uses = rand.nextInt(8) + 2;
-			// if (cd.beacons)//TODO beacons
-			if (chest instanceof Chest) {
-				EffectUtil.generateEffect(((Chest) chest).getWorld(), loc1, ZAEffect.BEACON);
-				EffectUtil.generateEffect(((Chest) chest).getWorld(), loc2, ZAEffect.BEACON);
-			}
+			if ((Boolean) Setting.BEACONS.getSetting() && chest instanceof Chest)
+				EffectUtil.generateEffect(((Chest) chest).getWorld(), ((Chest) chest).getLocation(), ZAEffect.BEACON);
 		}
 		active = tf;
 	}
 
+	/**
+	 * Sets the uses before the mystery chest moves.
+	 * 
+	 * @param i The uses before movement
+	 */
 	@Override public void setActiveUses(int i) {
 		uses = i;
 	}

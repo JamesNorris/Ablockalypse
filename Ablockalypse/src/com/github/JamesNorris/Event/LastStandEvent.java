@@ -39,6 +39,15 @@ public class LastStandEvent extends Event {
 		cancel = false;
 	}
 
+	/**
+	 * Gets the game the player is involved in.
+	 * 
+	 * @return The game the player is involved in
+	 */
+	public ZAGame getGame() {
+		return game;
+	}
+
 	@Override public HandlerList getHandlers() {
 		return handlers;
 	}
@@ -50,15 +59,6 @@ public class LastStandEvent extends Event {
 	 */
 	public Player getPlayer() {
 		return p;
-	}
-
-	/**
-	 * Gets the game the player is involved in.
-	 * 
-	 * @return The game the player is involved in
-	 */
-	public ZAGame getPlayerGame() {
-		return game;
 	}
 
 	/**

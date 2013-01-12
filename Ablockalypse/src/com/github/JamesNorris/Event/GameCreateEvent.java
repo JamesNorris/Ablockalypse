@@ -57,7 +57,7 @@ public class GameCreateEvent extends Event {
 	 * 
 	 * @return The player creator of the game
 	 */
-	public Player getPlayerCreator() {
+	public Player getPlayer() {
 		return player;
 	}
 
@@ -67,7 +67,7 @@ public class GameCreateEvent extends Event {
 	 * 
 	 * @return The commandsender creator of the game
 	 */
-	public CommandSender getSenderCreator() {
+	public CommandSender getSender() {
 		return sender;
 	}
 
@@ -86,9 +86,7 @@ public class GameCreateEvent extends Event {
 	 * @return Whether or not the creator of the game was a commandsender
 	 */
 	public boolean isCommandSender() {
-		if (sender != null)
-			return true;
-		return false;
+		return (sender != null) ? true : false;
 	}
 
 	/**
@@ -97,9 +95,7 @@ public class GameCreateEvent extends Event {
 	 * @return Whether or not the creator of the game was a player
 	 */
 	public boolean isPlayer() {
-		if (player != null)
-			return true;
-		return false;
+		return (player != null) ? true : false;
 	}
 
 	/**

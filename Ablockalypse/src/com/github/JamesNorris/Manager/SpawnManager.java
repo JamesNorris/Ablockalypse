@@ -28,9 +28,9 @@ import com.github.JamesNorris.Util.MathAssist;
 
 public class SpawnManager {
 	private ZAGame game;
+	public ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
 	private Random rand;
 	private World world;
-	public ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
 
 	/**
 	 * Creates a new spawn manager for spawning mobs in a game.
@@ -196,11 +196,8 @@ public class SpawnManager {
 					hp = l1;
 			}
 		}
-		if (hp != null)
-			return hp;
-		else if (lp != null)
-			return lp;
-		return null;
+		ZALocation priority = (hp != null) ? hp : lp;
+		return priority;
 	}
 
 	/**

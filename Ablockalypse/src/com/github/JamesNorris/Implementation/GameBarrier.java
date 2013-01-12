@@ -33,16 +33,16 @@ import com.github.JamesNorris.Util.Square;
 
 public class GameBarrier extends DataManipulator implements Barrier, GameObject, Blinkable {
 	private ArrayList<Block> blocks = new ArrayList<Block>();
+	private BlinkerThread bt;
 	private Location center, spawnloc;
-	private int radius, blockamt, id, id2;
-	private int hittimesoriginal = 5, fixtimesoriginal = 3;
-	private int hittimes;
+	private boolean correct;
 	private int fixtimes;
 	private ZAGameBase game;
-	private Square square;
-	private BlinkerThread bt;
-	private boolean correct;
+	private int hittimes;
+	private int hittimesoriginal = 5, fixtimesoriginal = 3;
 	private Player p;
+	private int radius, blockamt, id, id2;
+	private Square square;
 
 	/**
 	 * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
@@ -74,7 +74,7 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 			z = z - modZ;
 		spawnloc = w.getBlockAt(x, y, z).getLocation();
 		if (spawnloc == null)
-			Ablockalypse.getMaster().crash(Ablockalypse.instance, "A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
+			Ablockalypse.crash("A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
 		/* end finding spawnloc */
 		game.addBarrier(this);
 		Location l = center.getLocation();
@@ -108,15 +108,6 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 				bt.setColor(ZAColor.BLUE);
 			}
 		}, 200);
-	}
-
-	/**
-	 * Gets the blocks that defines this object as an object.
-	 * 
-	 * @return The blocks assigned to this object
-	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		return blocks;
 	}
 
 	/**
@@ -270,6 +261,15 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 */
 	@Override public Location getCenter() {
 		return center;
+	}
+
+	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		return blocks;
 	}
 
 	/**

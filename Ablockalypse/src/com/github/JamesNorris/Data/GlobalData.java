@@ -36,6 +36,8 @@ public class GlobalData {
 	public List<String> authors;
 	public HashMap<GameBarrier, Location> barrierpanels = new HashMap<GameBarrier, Location>();
 	public HashMap<Location, String> barriers = new HashMap<Location, String>();
+	public ArrayList<BlinkerThread> blinkers = new ArrayList<BlinkerThread>();
+	public HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
 	public String description;
 	public ArrayList<GameBarrier> gamebarriers = new ArrayList<GameBarrier>();
 	public HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
@@ -43,16 +45,14 @@ public class GlobalData {
 	public ArrayList<GameHellHound> hellhounds = new ArrayList<GameHellHound>();
 	public HashMap<String, Location> mainframes = new HashMap<String, Location>();
 	public ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
+	public ArrayList<GameObject> objects = new ArrayList<GameObject>();
 	public HashMap<String, String> playergames = new HashMap<String, String>();
 	public HashMap<String, HashMap<String, Integer>> playerPoints = new HashMap<String, HashMap<String, Integer>>();
 	public HashMap<Player, ZAPlayerBase> players = new HashMap<Player, ZAPlayerBase>();
 	public Ablockalypse plugin;
+	public HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
 	public HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
-	public HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
-	public HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
-	public ArrayList<GameObject> objects = new ArrayList<GameObject>();
-	public ArrayList<BlinkerThread> blinkers = new ArrayList<BlinkerThread>();
 	public String version;
 
 	/**
@@ -68,18 +68,6 @@ public class GlobalData {
 	}
 
 	/**
-	 * Refreshes the refreshable data in the Data class.
-	 */
-	public void refresh() {
-		for (ZAPlayerBase zap : players.values()) {
-			String s1 = zap.getGame().getName();
-			String s2 = zap.getName();
-			if (!playergames.containsValue(s2))
-				playergames.put(s1, s2);
-		}
-	}
-
-	/**
 	 * Checks if the game exists, if not, creates a new game.
 	 * 
 	 * @param name The name of the ZAGame
@@ -87,12 +75,7 @@ public class GlobalData {
 	 * @return The ZAGame found from the name given
 	 */
 	public ZAGame findGame(String name) {
-		ZAGameBase zag;
-		if (games.containsKey(name))
-			zag = games.get(name);
-		else
-			zag = new ZAGameBase(name);
-		return zag;
+		return (games.containsKey(name)) ? games.get(name) : new ZAGameBase(name);
 	}
 
 	/**
@@ -244,5 +227,17 @@ public class GlobalData {
 		if (players.containsKey(player))
 			return true;
 		return false;
+	}
+
+	/**
+	 * Refreshes the refreshable data in the Data class.
+	 */
+	public void refresh() {
+		for (ZAPlayerBase zap : players.values()) {
+			String s1 = zap.getGame().getName();
+			String s2 = zap.getName();
+			if (!playergames.containsValue(s2))
+				playergames.put(s1, s2);
+		}
 	}
 }

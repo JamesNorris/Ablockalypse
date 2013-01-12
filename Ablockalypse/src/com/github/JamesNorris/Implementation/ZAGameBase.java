@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Setting;
+import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Event.GameEndEvent;
 import com.github.JamesNorris.Interface.Blinkable;
 import com.github.JamesNorris.Interface.MysteryChest;
@@ -21,27 +22,24 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.NextLevelThread;
-import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Util.SoundUtil;
-import com.github.iKeirNez.Util.XMPP;
-import com.github.iKeirNez.Util.XMPP.XMPPType;
 
 public class ZAGameBase extends DataManipulator implements ZAGame {
-	private int level, mobcount, startpoints;
-	private String name;
-	private HashMap<String, Integer> players = new HashMap<String, Integer>();
-	private ArrayList<GameBarrier> barriers = new ArrayList<GameBarrier>();
-	private ArrayList<GameArea> areas = new ArrayList<GameArea>();
-	private ArrayList<GameMobSpawner> spawners = new ArrayList<GameMobSpawner>();
-	private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
-	private ArrayList<Blinkable> blinkable = new ArrayList<Blinkable>();
-	private List<Integer> wolfLevels = new ArrayList<Integer>();
-	private Random rand;
-	private Location mainframe;
-	private SpawnManager spawnManager;
-	private boolean wolfRound, paused, started, friendlyFire;
-	private NextLevelThread nlt;
 	private MysteryChest active;
+	private ArrayList<GameArea> areas = new ArrayList<GameArea>();
+	private ArrayList<GameBarrier> barriers = new ArrayList<GameBarrier>();
+	private ArrayList<Blinkable> blinkable = new ArrayList<Blinkable>();
+	private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
+	private int level, mobcount, startpoints;
+	private Location mainframe;
+	private String name;
+	private NextLevelThread nlt;
+	private HashMap<String, Integer> players = new HashMap<String, Integer>();
+	private Random rand;
+	private ArrayList<GameMobSpawner> spawners = new ArrayList<GameMobSpawner>();
+	private SpawnManager spawnManager;
+	private List<Integer> wolfLevels = new ArrayList<Integer>();
+	private boolean wolfRound, paused, started, friendlyFire;
 
 	/**
 	 * Creates a new instance of a game.
@@ -59,7 +57,6 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 		startpoints = (Integer) Setting.STARTINGPOINTS.getSetting();
 		friendlyFire = (Boolean) Setting.DEFAULTFRIENDLYFIREMODE.getSetting();
 		data.games.put(name, this);
-		XMPP.sendMessage("A new game of Zombie Ablockalypse (" + name + ") has been started.", XMPPType.ZA_GAME_START);
 	}
 
 	/**
@@ -181,6 +178,15 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Checks the friendly fire mode of this game.
+	 * 
+	 * @return Whether or not friendly fire is enabled
+	 */
+	@Override public boolean friendlyFireEnabled() {
+		return friendlyFire;
 	}
 
 	/**
@@ -416,7 +422,6 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 			if (level != 1)
 				broadcastPoints();
 		}
-		
 		if (wolfLevels != null && wolfLevels.contains(level))
 			wolfRound = true;
 		if (paused == true)
@@ -511,6 +516,15 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	}
 
 	/**
+	 * Sets the friendly fire mode for this game.
+	 * 
+	 * @param tf The new setting of friendly fire
+	 */
+	@Override public void setFriendlyFire(boolean tf) {
+		friendlyFire = tf;
+	}
+
+	/**
 	 * Sets the game to the specified level.
 	 * 
 	 * @param i The level the game will be set to
@@ -583,23 +597,5 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 			spawnManager = new SpawnManager(this, mainframe.getWorld());
 		spawnManager.spawnWave();
 		started = true;
-	}
-
-	/**
-	 * Checks the friendly fire mode of this game.
-	 * 
-	 * @return Whether or not friendly fire is enabled
-	 */
-	@Override public boolean friendlyFireEnabled() {
-		return friendlyFire;
-	}
-
-	/**
-	 * Sets the friendly fire mode for this game.
-	 * 
-	 * @param tf The new setting of friendly fire
-	 */
-	@Override public void setFriendlyFire(boolean tf) {
-		friendlyFire = tf;
 	}
 }

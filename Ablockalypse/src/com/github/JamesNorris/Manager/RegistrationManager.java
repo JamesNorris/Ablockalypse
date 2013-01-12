@@ -4,6 +4,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.XMPP;
 import com.github.JamesNorris.Event.Bukkit.BlockBreak;
 import com.github.JamesNorris.Event.Bukkit.BlockPlace;
 import com.github.JamesNorris.Event.Bukkit.EntityBreakDoor;
@@ -57,6 +58,7 @@ public class RegistrationManager {
 		pm.registerEvents(new BlockBreak(), instance);
 		pm.registerEvents(new PlayerDropItem(), instance);
 		pm.registerEvents(new PlayerKick(), instance);
+		pm.registerEvents(new XMPP(), instance);
 		/* COMMANDS */
 		((Ablockalypse) instance).getCommand("za").setExecutor(new BaseCommand());
 	}

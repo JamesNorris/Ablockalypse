@@ -22,13 +22,6 @@ public interface ZAPlayer extends ZALiving {
 	public void addPerk(ZAPerk perk, int duration, int power);
 
 	/**
-	 * Sets the amount of points the player has.
-	 * 
-	 * @param i The amount of points to set the player to
-	 */
-	public void setPoints(int i);
-
-	/**
 	 * Gives points to the player.
 	 * 
 	 * @param i The amount of points to give the player
@@ -41,14 +34,6 @@ public interface ZAPlayer extends ZALiving {
 	 * @return The amount of kills the player has
 	 */
 	public int getKills();
-
-	/**
-	 * Sets the amount of kills that the player has.
-	 * NOTE: This does not affect score.
-	 * 
-	 * @param i The amount of kills to set the player to
-	 */
-	public void setKills(int i);
 
 	/**
 	 * Returns the players' name.
@@ -149,9 +134,24 @@ public interface ZAPlayer extends ZALiving {
 	public void setInstaKill(boolean tf);
 
 	/**
+	 * Sets the amount of kills that the player has.
+	 * NOTE: This does not affect score.
+	 * 
+	 * @param i The amount of kills to set the player to
+	 */
+	public void setKills(int i);
+
+	/**
 	 * Changes the player limbo status.
 	 */
 	public void setLimbo(boolean tf);
+
+	/**
+	 * Sets the amount of points the player has.
+	 * 
+	 * @param i The amount of points to set the player to
+	 */
+	public void setPoints(int i);
 
 	/**
 	 * Changes the teleportation status of the player.

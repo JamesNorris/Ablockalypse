@@ -15,8 +15,8 @@ public class NextLevelThread extends DataManipulator {
 	private ZAGame game;
 	private int id, counter, wait;
 	private Ablockalypse instance;
-	private boolean played, running;
 	private String name;
+	private boolean played, running;
 
 	/**
 	 * The thread for checking for next level, depending on remaining mobs.

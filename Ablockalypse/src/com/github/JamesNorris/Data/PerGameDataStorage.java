@@ -21,15 +21,15 @@ import com.github.JamesNorris.Util.SerializableLocation;
 
 public class PerGameDataStorage implements Serializable {// TODO annotations
 	private static final long serialVersionUID = 7825383085566172198L;
-	private final String name;
 	private final SerializableLocation activechest, mainframe;
-	private final ArrayList<SerializableLocation> chests = new ArrayList<SerializableLocation>();
-	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>();
-	private final ArrayList<SerializableLocation> spawns = new ArrayList<SerializableLocation>();
-	private final ArrayList<SerializableLocation> openedareas = new ArrayList<SerializableLocation>();
-	private final int level;
-	private final ArrayList<PerPlayerDataStorage> playerStorage = new ArrayList<PerPlayerDataStorage>();
 	private final HashMap<SerializableLocation, SerializableLocation> areapoints = new HashMap<SerializableLocation, SerializableLocation>();
+	private final ArrayList<SerializableLocation> barriers = new ArrayList<SerializableLocation>();
+	private final ArrayList<SerializableLocation> chests = new ArrayList<SerializableLocation>();
+	private final int level;
+	private final String name;
+	private final ArrayList<SerializableLocation> openedareas = new ArrayList<SerializableLocation>();
+	private final ArrayList<PerPlayerDataStorage> playerStorage = new ArrayList<PerPlayerDataStorage>();
+	private final ArrayList<SerializableLocation> spawns = new ArrayList<SerializableLocation>();
 
 	public PerGameDataStorage(ZAGame game) {
 		name = game.getName();
@@ -40,10 +40,7 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
 		for (MysteryChest mc : game.getMysteryChests())
 			chests.add(new SerializableLocation(mc.getLocation()));
 		Location mf = game.getMainframe();
-		if (mf != null)
-			mainframe = new SerializableLocation(mf);
-		else
-			mainframe = null;
+		mainframe = (mf != null) ? new SerializableLocation(mf) : null;
 		level = game.getLevel();
 		for (String s : game.getPlayers()) {
 			Player p = Bukkit.getPlayer(s);

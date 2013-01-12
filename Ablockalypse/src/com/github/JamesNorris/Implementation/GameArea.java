@@ -21,13 +21,13 @@ import com.github.JamesNorris.Util.Rectangle;
 import com.github.JamesNorris.Util.SoundUtil;
 
 public class GameArea extends DataManipulator implements Area, GameObject, Blinkable {
-	private Location loc1, loc2;
-	private HashMap<Location, Material> locs = new HashMap<Location, Material>();
-	private HashMap<Location, Byte> locdata = new HashMap<Location, Byte>();
-	private boolean opened, blinkers;
-	private ZAGameBase zag;
 	private BlinkerThread bt;
+	private Location loc1, loc2;
+	private HashMap<Location, Byte> locdata = new HashMap<Location, Byte>();
+	private HashMap<Location, Material> locs = new HashMap<Location, Material>();
+	private boolean opened, blinkers;
 	private Rectangle rectangle;
+	private ZAGameBase zag;
 
 	/**
 	 * Creates a new Area instance, that can be bought for a set price.
@@ -52,18 +52,6 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 			blocks.add(l.getBlock());
 		this.blinkers = (Boolean) Setting.BLINKERS.getSetting();
 		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
-	}
-
-	/**
-	 * Gets the blocks that defines this object as an object.
-	 * 
-	 * @return The blocks assigned to this object
-	 */
-	@Override public ArrayList<Block> getDefiningBlocks() {
-		ArrayList<Block> bs = new ArrayList<Block>();
-		for (Location l : locs.keySet())
-			bs.add(l.getBlock());
-		return bs;
 	}
 
 	/**
@@ -110,6 +98,18 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	}
 
 	/**
+	 * Gets the blocks that defines this object as an object.
+	 * 
+	 * @return The blocks assigned to this object
+	 */
+	@Override public ArrayList<Block> getDefiningBlocks() {
+		ArrayList<Block> bs = new ArrayList<Block>();
+		for (Location l : locs.keySet())
+			bs.add(l.getBlock());
+		return bs;
+	}
+
+	/**
 	 * Gets the game this area is assigned to.
 	 * 
 	 * @return The game this area is assigned to
@@ -125,11 +125,8 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 * @return The location of the point
 	 */
 	@Override public Location getPoint(int i) {
-		if (i == 1)
-			return loc1;
-		if (i == 2)
-			return loc2;
-		return null;
+		Location loc = (i == 1) ? loc1 : loc2;
+		return loc;
 	}
 
 	/**
