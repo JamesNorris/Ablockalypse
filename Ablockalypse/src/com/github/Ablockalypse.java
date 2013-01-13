@@ -6,13 +6,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.External;
+import com.github.JamesNorris.MessageTransfer;
 import com.github.JamesNorris.Update;
 import com.github.JamesNorris.Data.GlobalData;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Threading.MainThreading;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class Ablockalypse extends JavaPlugin {
 	private static String address = "http://api.bukget.org/api2/bukkit/plugin/Ablockalypse/latest";
@@ -23,26 +26,31 @@ public class Ablockalypse extends JavaPlugin {
 	private static String path = "plugins" + File.separator + "Ablockalypse.jar";
 	private static Update upd;
 	/**
-	 * Called when something that is in the breakable category breaks.
+	 * Called when something is not working, and the plugin needs to be monitored.
 	 * 
 	 * @param reason The reason for the exception
 	 * @param disable Whether or not the Ablockalypse plugin should stop working
 	 */
 	public static void crash(String reason, boolean disable) {
 		/* Everything in this method should be static, except for strings */
-		System.err.println("An aspect of Ablockalypse is broken, please report at:");
-		System.err.println(getIssuesURL());
-		System.err.println("--------------------------[ERROR REPORT]--------------------------");
-		Ablockalypse.getData();
-		System.err.println("VERSION: " + DataManipulator.data.version);
-		System.err.println("BREAK REASON: " + reason);
-		System.err.println("---------------------------[END REPORT]---------------------------");
-		if (!disable)
-			System.err.println("The plugin will now continue working...");
-		else {
-			System.err.println("FATAL ERROR, the plugin will now shut down!");
+		StringBuilder sb = new StringBuilder();
+		StringBuilder sb2 = new StringBuilder();
+		sb.append("An aspect of Ablockalypse is broken, please report at: \n");
+		sb.append(getIssuesURL() + "\n");
+		sb.append("--------------------------[ERROR REPORT]--------------------------\n");
+		sb.append("VERSION: " + DataManipulator.data.version + "\n");
+		sb.append("BREAK REASON: " + reason + "\n");
+		sb.append("---------------------------[END REPORT]---------------------------\n");
+		if (!disable) {
+			sb.append("The plugin will now continue working...\n");
+			sb2.append("The error was NOT FATAL, therefore Ablockalypse will continue running.");
+		} else {
+			sb.append("FATAL ERROR, the plugin will now shut down!\n");
+			sb2.append("The error was FATAL, therefore Ablockalypse will shut down.");
 			Ablockalypse.kill();
 		}
+		MessageTransfer.sendMessage(MessageDirection.CONSOLE_ERROR, new SpecificMessage(sb.toString()));
+		MessageTransfer.sendMessage(MessageDirection.XMPP, new SpecificMessage("An error occurred! " + sb2.toString()));
 	}
 
 	public static DataManipulator getData() {
@@ -125,12 +133,12 @@ public class Ablockalypse extends JavaPlugin {
 		upd = new Update(this);
 		data = new GlobalData(this);
 		dm = new DataManipulator();
-		System.out.println("[Ablockalypse] Checking for updates...");
+		MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] Checking for updates..."));
 		if (!(Boolean) Setting.ENABLEAUTOUPDATE.getSetting() && upd.check()) {
 			this.getServer().getPluginManager().disablePlugin(this);
-			System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
+			MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] An update has occurred, please restart the server to enable it!"));
 		} else {
-			System.out.println("[Ablockalypse] No updates found.");
+			MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] No updates found."));
 			RegistrationManager.register(this);
 			External.loadData();
 			new MainThreading(this, true, true, true);

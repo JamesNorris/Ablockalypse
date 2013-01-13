@@ -5,6 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.ZAEventType;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GameEndEvent;
@@ -14,7 +15,7 @@ import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Event.GameSignClickEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
-import com.github.zathrus_writer.commandsex.api.XMPPAPI;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class XMPP implements Listener {
 	private String gameString = "@game@";
@@ -74,8 +75,10 @@ public class XMPP implements Listener {
 					String sat = (lse.isSitDown()) ? "knocked down" : "picked up";
 					base = base.replaceAll(lastStandStatusString, sat);
 				break;
+				case MESSAGETRANSFEREVENT:
+					break;//To prevent looping
 			}
-			XMPPAPI.sendMessage(base);// Hooks into CommandsEX XMPPAPI to send the base message to the server.
+			MessageTransfer.sendMessage(MessageDirection.XMPP, new SpecificMessage(base));
 		}
 	}
 }

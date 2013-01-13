@@ -10,6 +10,7 @@ import com.github.JamesNorris.Event.GamePlayerJoinEvent;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Event.GameSignClickEvent;
 import com.github.JamesNorris.Event.LastStandEvent;
+import com.github.JamesNorris.Event.MessageTransferEvent;
 import com.google.common.collect.Maps;
 
 public enum ZAEventType {
@@ -21,7 +22,8 @@ public enum ZAEventType {
 	GAMEPLAYERJOINEVENT(5, "Player @player@ has joined the Ablockalypse game @game@.", GamePlayerJoinEvent.class),
 	GAMEPLAYERLEAVEEVENT(6, "Player @player@ has left the Ablockalypse game @game@.", GamePlayerLeaveEvent.class),
 	GAMESIGNCLICKEVENT(7, "The @line2@ sign at @location@ has been clicked by @player@.", GameSignClickEvent.class),
-	LASTSTANDEVENT(8, "Player @player@ in game @game@ has been @laststandstatus@.", LastStandEvent.class);
+	LASTSTANDEVENT(8, "Player @player@ in game @game@ has been @laststandstatus@.", LastStandEvent.class),
+	MESSAGETRANSFEREVENT(9, "<SHOULD NOT BE SENT DUE TO LOOPING>", MessageTransferEvent.class);
 	//@formatter:on
 	//
 	private final static Map<Integer, ZAEventType> BY_ID = Maps.newHashMap();
