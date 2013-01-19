@@ -92,10 +92,14 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 				++blockamt;
 			}
 		}
+		initBlinker();
+	}
+	
+	private void initBlinker() {
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(this.center.getBlock());
 		boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
 		if (blockamt == 9) {
 			bt.setColor(ZAColor.GREEN);
 			correct = true;
@@ -126,7 +130,7 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 */
 	@Override public void breakBarrier(final LivingEntity e) {
 		if (bt.isRunning())
-			bt.cancel();
+			bt.remove();
 		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
 			@Override public void run() {
 				if (!e.isDead() && isWithinRadius(e) && !isBroken()) {
@@ -196,7 +200,7 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 */
 	@Override public void fixBarrier(final LivingEntity e) {
 		if (bt.isRunning())
-			bt.cancel();
+			bt.remove();
 		if (e instanceof Player)
 			p = (Player) e;
 		if (data.playerExists(p)) {
@@ -380,9 +384,12 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
 	 */
 	@Override public void setBlinking(boolean tf) {
 		if (bt.isRunning())
-			bt.cancel();
-		if (tf)
-			bt.blink();
+			bt.remove();
+		if (tf) {
+			if (!data.thread.contains(bt))
+				initBlinker();
+			bt.setRunThrough(true);
+		}
 	}
 
 	/**

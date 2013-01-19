@@ -1,17 +1,18 @@
 package com.github.JamesNorris.Threading;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Interface.ZAThread;
+import com.github.JamesNorris.Util.MiscUtil;
 
-public class RespawnThread extends DataManipulator {
+public class RespawnThread extends DataManipulator implements ZAThread {
 	private Player player;
-	private int time, id, level;
+	private int time, level, count = 0, interval;
 	private ZAPlayer zap;
+	private boolean runThrough = false, messageSent = false;
 
 	/**
 	 * Creates a new RespawnThread instance.
@@ -26,39 +27,57 @@ public class RespawnThread extends DataManipulator {
 		zap = data.getZAPlayer(player);
 		level = zap.getGame().getLevel();
 		if (autorun)
-			waitToRespawn();
+			setRunThrough(true);
+		data.thread.add(this);
 	}
 
-	/**
-	 * Cancels the thread.
-	 */
-	protected void cancel() {
-		Bukkit.getScheduler().cancelTask(id);
+	@Override public int getCount() {
+		return count;
 	}
 
-	/**
-	 * Counts down for the player to respawn.
-	 */
-	protected void waitToRespawn() {
-		player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			@Override public void run() {
-				if (data.playerExists(player)) {
-					if (zap.getGame().getLevel() > level) {
-						if (time == 0) {
-							ZAPlayer zap = data.players.get(player);
-							if (zap.getGame() == null)
-								cancel();
-							zap.sendToMainframe("Respawn");
-							zap.setLimbo(false);
-							cancel();
-						} else
-							player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
-						--time;
-					}
+	@Override public int getInterval() {
+		return interval;
+	}
+
+	@Override public void setCount(int i) {
+		count = i;
+	}
+
+	@Override public void setInterval(int i) {
+		interval = i;
+	}
+
+	@Override public boolean runThrough() {
+		return runThrough;
+	}
+
+	@Override public void setRunThrough(boolean tf) {
+		runThrough = tf;
+	}
+
+	@Override public void run() {
+		if (!messageSent) {
+			MiscUtil.sendPlayerMessage(player, ChatColor.GRAY + "You will respawn at the beginning of the next level.");
+			messageSent = true;
+		}
+		if (data.playerExists(player)) {
+			if (zap.getGame().getLevel() > level) {
+				if (time == 0) {
+					ZAPlayer zap = data.players.get(player);
+					if (zap.getGame() == null)
+						remove();
+					zap.sendToMainframe("Respawn");
+					zap.setLimbo(false);
+					remove();
 				} else
-					cancel();
+					player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
+				--time;
 			}
-		}, 20, 20);
+		} else
+			remove();
+	}
+
+	@Override public void remove() {
+		data.thread.remove(this);
 	}
 }

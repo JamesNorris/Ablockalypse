@@ -21,6 +21,7 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.PerGameDataStorage;
 import com.github.JamesNorris.Data.PerPlayerDataStorage;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
@@ -29,6 +30,7 @@ import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class External {
 	public static Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
@@ -231,7 +233,7 @@ public class External {
 		try {
 			getConfig(f, path).save(f);
 		} catch (IOException ex) {
-			System.err.println("Could not save " + path + "!");
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_ERROR, "Could not save " + path + "!"));
 		}
 	}
 
@@ -250,7 +252,7 @@ public class External {
 					pgds.add(new PerGameDataStorage(zag));
 					namecheck.add(zag.getName());
 				} else
-					System.out.println("Duplicate data storage of " + zag.getName());
+					MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_ERROR, "Duplicate data storage of " + zag.getName()));
 			}
 			External.save(pgds, filelocation + gameData);
 		} catch (Exception e) {

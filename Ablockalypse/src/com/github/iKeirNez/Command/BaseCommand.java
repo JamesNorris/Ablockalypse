@@ -16,6 +16,7 @@ import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Util.MiscUtil;
 import com.github.iKeirNez.Util.CommandUtil;
 
 public class BaseCommand extends CommandUtil implements CommandExecutor {
@@ -43,24 +44,24 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 								zap.loadPlayerToGame(gameName);
 								return true;
 							} else {
-								sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+								replyToSender(sender, ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
 								return true;
 							}
 						} else {
-							sender.sendMessage(notPlayer);
+							replyToSender(sender, notPlayer);
 							return true;
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "You do not have permission to join games!");
+						replyToSender(sender, ChatColor.RED + "You do not have permission to join games!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+					replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("info")) {
-				sender.sendMessage(ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + data.version);
-				sender.sendMessage(ChatColor.GOLD + "Developed by: " + ChatColor.RED + implode(data.authors.toArray(), ", ", " and "));
+				replyToSender(sender, ChatColor.GOLD + "Zombie Ablockalypse version: " + ChatColor.RED + data.version);
+				replyToSender(sender, ChatColor.GOLD + "Developed by: " + ChatColor.RED + implode(data.authors.toArray(), ", ", " and "));
 				return true;
 			} else if (args[0].equalsIgnoreCase("quit")) {
 				if (sender instanceof Player) {
@@ -71,17 +72,17 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
 						Bukkit.getPluginManager().callEvent(GPLE);
 						if (!GPLE.isCancelled()) {
-							sender.sendMessage(ChatColor.AQUA + "Successfully quit the Ablockalypse game: " + ChatColor.GOLD + zag.getName());
+							replyToSender(sender, ChatColor.AQUA + "Successfully quit the Ablockalypse game: " + ChatColor.GOLD + zag.getName());
 							zag.removePlayer(player);
 							return true;
 						}
 						return true;
 					} else {
-						sender.sendMessage(ChatColor.RED + "You must be in a game to do that!");
+						replyToSender(sender, ChatColor.RED + "You must be in a game to do that!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("create")) {
@@ -89,24 +90,24 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 					String gameName = args[1];
 					if (!data.gameExists(gameName)) {
 						if (!sender.hasPermission("za.create")) {
-							sender.sendMessage(noMaintainPerms);
+							replyToSender(sender, noMaintainPerms);
 							return true;
 						} else {
 							ZAGame zag = new ZAGameBase(gameName);
 							GameCreateEvent gce = new GameCreateEvent(zag, sender, null);
 							Bukkit.getServer().getPluginManager().callEvent(gce);
 							if (!gce.isCancelled())
-								sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
+								replyToSender(sender, ChatColor.GRAY + "You have created a new ZA game called " + gameName);
 							else
 								zag.remove();
 							return true;
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "That game already exists!");
+						replyToSender(sender, ChatColor.RED + "That game already exists!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+					replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("barrier")) {
@@ -119,15 +120,15 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							player.sendMessage(ChatColor.GRAY + "Click the center of a 3x3 section of fence to make a barrier.");
 							return true;
 						} else {
-							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(noMaintainPerms);
+						replyToSender(sender, noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("mainframe")) {
@@ -139,22 +140,22 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							if (sender.hasPermission("za.create")) {
 								ZAGame zag = data.findGame(gameName);
 								zag.setMainframe(p.getLocation());
-								sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
+								replyToSender(sender, ChatColor.GRAY + "You have set the mainframe for " + gameName);
 								return true;
 							} else {
-								sender.sendMessage(noMaintainPerms);
+								replyToSender(sender, noMaintainPerms);
 								return true;
 							}
 						} else {
-							sender.sendMessage(ChatColor.RED + "That game does not exist!");
+							replyToSender(sender, ChatColor.RED + "That game does not exist!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+						replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("remove")) {
@@ -164,19 +165,19 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						if (data.gameExists(gameName)) {
 							ZAGame zag = data.findGame(gameName);
 							zag.remove();
-							sender.sendMessage(ChatColor.GRAY + "You have removed the game " + gameName);
+							replyToSender(sender, ChatColor.GRAY + "You have removed the game " + gameName);
 							return true;
 						} else {
-							sender.sendMessage(ChatColor.RED + "That game does not exist!");
+							replyToSender(sender, ChatColor.RED + "That game does not exist!");
 							return true;
 						}
 					} else if (args.length == 1) {
 						Player p = (Player) sender;
-						p.sendMessage(ChatColor.GRAY + "Click a ZA object to remove it.");
+						replyToSender(sender, ChatColor.GRAY + "Click a ZA object to remove it.");
 						PlayerInteract.removers.add(p.getName());
 					}
 				} else {
-					sender.sendMessage(noMaintainPerms);
+					replyToSender(sender, noMaintainPerms);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("spawner")) {
@@ -186,18 +187,18 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							String gameName = args[1];
 							Player player = (Player) sender;
 							PlayerInteract.spawnerPlayers.put(player.getName(), (ZAGameBase) data.findGame(gameName));
-							player.sendMessage(ChatColor.GRAY + "Click a block to create a spawner.");
+							replyToSender(sender, ChatColor.GRAY + "Click a block to create a spawner.");
 							return true;
 						} else {
-							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(noMaintainPerms);
+						replyToSender(sender, noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("area")) {
@@ -207,18 +208,18 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							String gameName = args[1];
 							Player player = (Player) sender;
 							PlayerInteract.areaPlayers.put(player.getName(), (ZAGameBase) data.findGame(gameName));
-							player.sendMessage(ChatColor.GRAY + "Click a block to select point 1.");
+							replyToSender(sender, ChatColor.GRAY + "Click a block to select point 1.");
 							return true;
 						} else {
-							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(noMaintainPerms);
+						replyToSender(sender, noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("chest")) {
@@ -228,18 +229,18 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 							String gameName = args[1];
 							Player player = (Player) sender;
 							PlayerInteract.chestPlayers.put(player.getName(), (ZAGameBase) data.findGame(gameName));
-							player.sendMessage(ChatColor.GRAY + "Click a chest to turn it into a mystery chest.");
+							replyToSender(sender, ChatColor.GRAY + "Click a chest to turn it into a mystery chest.");
 							return true;
 						} else {
-							sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
+							replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game!");
 							return true;
 						}
 					} else {
-						sender.sendMessage(noMaintainPerms);
+						replyToSender(sender, noMaintainPerms);
 						return true;
 					}
 				} else {
-					sender.sendMessage(notPlayer);
+					replyToSender(sender, notPlayer);
 					return true;
 				}
 			} else if (args[0].equalsIgnoreCase("settings")) {
@@ -249,22 +250,26 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
 						boolean setting = Boolean.parseBoolean(args[3]);
 						if (args[2].equalsIgnoreCase("FF")) {// Friendly fire
 							data.findGame(gameName).setFriendlyFire(setting);
-							sender.sendMessage(settingChanged);
+							replyToSender(sender, settingChanged);
 						} else {
-							sender.sendMessage(invalidSetting);
+							replyToSender(sender, invalidSetting);
 						}
 						return true;
 					} else {
-						sender.sendMessage(ChatColor.RED + "Incorrect syntax! You must provide the name of a game, a setting, and a boolean!");
+						replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game, a setting, and a boolean!");
 						return true;
 					}
 				} else {
-					sender.sendMessage(noMaintainPerms);
+					replyToSender(sender, noMaintainPerms);
 					return true;
 				}
 			}
 			return true;
 		}
 		return true;
+	}
+	
+	private void replyToSender(CommandSender sender, String message) {
+		MiscUtil.replyToSender(sender, message);
 	}
 }

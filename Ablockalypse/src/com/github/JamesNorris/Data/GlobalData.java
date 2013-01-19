@@ -28,6 +28,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZALocation;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Interface.ZAThread;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Util.Square;
 
@@ -53,6 +54,7 @@ public class GlobalData {
 	public HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
 	public HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
+	public ArrayList<ZAThread> thread = new ArrayList<ZAThread>();
 	public String version;
 
 	/**

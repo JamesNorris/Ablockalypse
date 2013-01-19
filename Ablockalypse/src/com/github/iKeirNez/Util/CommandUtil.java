@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Local;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class CommandUtil extends DataManipulator {
 	public static String invalidSetting = ChatColor.RED + "That setting does not exist!";
@@ -43,7 +44,7 @@ public class CommandUtil extends DataManipulator {
 	 * @param s CommandSender
 	 */
 	public void list(CommandSender s) {
-		s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
+		MiscUtil.replyToSender(s, ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
 	}
 
 	// Note: Max lines per view is 10
@@ -55,46 +56,48 @@ public class CommandUtil extends DataManipulator {
 	 */
 	public void showHelp(CommandSender s, String[] args, String alias) {
 		String a = "/" + alias;
+		StringBuilder sb = new StringBuilder();
 		ChatColor res = ChatColor.RESET;
 		ChatColor g = ChatColor.GOLD;
 		ChatColor b = ChatColor.BOLD;
 		ChatColor gr = ChatColor.GRAY;
 		ChatColor r = ChatColor.RED;
 		if (args.length == 2 && args[1].equalsIgnoreCase("sign") && s.hasPermission("za.create")) {
-			s.sendMessage(r + "----- Ablockalypse Sign Lines -----");
-			s.sendMessage(r + Local.BASESTRING.getSetting() + " " + gr + "This must be at the top of any ZA command sign");// TODO ix when LD is changed to new form
-			s.sendMessage(r + Local.BASEJOINSTRING.getSetting() + " " + gr + "When clicked adds a player to a ZA game");
-			s.sendMessage(r + Local.BASEAREASTRING.getSetting() + " " + gr + "When clicked unlocks a ZA area");
-			s.sendMessage(r + Local.BASEPERKSTRING.getSetting() + " " + gr + "When clicked gives a perk");
-			s.sendMessage(r + Local.BASEENCHANTMENTSTRING.getSetting() + " " + gr + "When clicked enchants an item in your hand");
-			s.sendMessage(r + Local.BASEWEAPONSTRING.getSetting() + " " + gr + "When clicked gives a weapon");
+			sb.append(r + "----- Ablockalypse Sign Lines -----");
+			sb.append(r + Local.BASESTRING.getSetting() + " " + gr + "This must be at the top of any ZA command sign");// TODO ix when LD is changed to new form
+			sb.append(r + Local.BASEJOINSTRING.getSetting() + " " + gr + "When clicked adds a player to a ZA game");
+			sb.append(r + Local.BASEAREASTRING.getSetting() + " " + gr + "When clicked unlocks a ZA area");
+			sb.append(r + Local.BASEPERKSTRING.getSetting() + " " + gr + "When clicked gives a perk");
+			sb.append(r + Local.BASEENCHANTMENTSTRING.getSetting() + " " + gr + "When clicked enchants an item in your hand");
+			sb.append(r + Local.BASEWEAPONSTRING.getSetting() + " " + gr + "When clicked gives a weapon");
 			return;
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("setup") && s.hasPermission("za.create")) {
-			s.sendMessage(r + "----- Ablockalypse Setup Help -----");
-			s.sendMessage(g + a + b + " create <game> - " + res + gr + "Creates a new game");
-			s.sendMessage(g + a + b + " barrier <game> - " + res + gr + "Creates a barrier for the game");
-			s.sendMessage(g + a + b + " area <game> - " + res + gr + "Creates an area for the game");
-			s.sendMessage(g + a + b + " spawner <game> - " + res + gr + "Creates a spawner for the game");
-			s.sendMessage(g + a + b + " mainframe <game> - " + res + gr + "Sets the mainframe for the game");
-			s.sendMessage(g + a + b + " chest <game> - " + res + gr + "Adds a mystery chest to the game");
-			s.sendMessage(g + a + b + " remove <game> - " + res + gr + "Removes an entire game");
-			s.sendMessage(g + a + b + " remove - " + res + gr + "Removes a barrier, area, or spawner");
+			sb.append(r + "----- Ablockalypse Setup Help -----");
+			sb.append(g + a + b + " create <game> - " + res + gr + "Creates a new game");
+			sb.append(g + a + b + " barrier <game> - " + res + gr + "Creates a barrier for the game");
+			sb.append(g + a + b + " area <game> - " + res + gr + "Creates an area for the game");
+			sb.append(g + a + b + " spawner <game> - " + res + gr + "Creates a spawner for the game");
+			sb.append(g + a + b + " mainframe <game> - " + res + gr + "Sets the mainframe for the game");
+			sb.append(g + a + b + " chest <game> - " + res + gr + "Adds a mystery chest to the game");
+			sb.append(g + a + b + " remove <game> - " + res + gr + "Removes an entire game");
+			sb.append(g + a + b + " remove - " + res + gr + "Removes a barrier, area, or spawner");
 		} else if (args.length == 2 && args[1].equalsIgnoreCase("settings") && s.hasPermission("za.create")) {
-			s.sendMessage(r + "----- Ablockalypse Settings Help -----");
-			s.sendMessage(g + a + b + " settings <game> - " + res + gr + "Shows the settings of a game");
-			s.sendMessage(g + a + b + " settings <game> <setting> <boolean> - " + res + gr + "Changes a setting of a game");
-			s.sendMessage(g + "" + b + "Settings: " + res + g + " FF (Friendly Fire)");
+			sb.append(r + "----- Ablockalypse Settings Help -----");
+			sb.append(g + a + b + " settings <game> - " + res + gr + "Shows the settings of a game");
+			sb.append(g + a + b + " settings <game> <setting> <boolean> - " + res + gr + "Changes a setting of a game");
+			sb.append(g + "" + b + "Settings: " + res + g + " FF (Friendly Fire)");
 		} else {
-			s.sendMessage(r + "----- Ablockalypse Help -----");
-			s.sendMessage(g + a + b + " info - " + res + gr + "Shows info about Ablockalypse");
-			s.sendMessage(g + a + b + " list - " + res + gr + "List all available arenas");
-			s.sendMessage(g + a + b + " join <game> - " + res + gr + "Join a game of Zombie Ablockalypse");
-			s.sendMessage(g + a + b + " quit - " + res + gr + "Quits a game of Zombie Ablockalypse");
+			sb.append(r + "----- Ablockalypse Help -----");
+			sb.append(g + a + b + " info - " + res + gr + "Shows info about Ablockalypse");
+			sb.append(g + a + b + " list - " + res + gr + "List all available arenas");
+			sb.append(g + a + b + " join <game> - " + res + gr + "Join a game of Zombie Ablockalypse");
+			sb.append(g + a + b + " quit - " + res + gr + "Quits a game of Zombie Ablockalypse");
 			if (s.hasPermission("za.create")) {
-				s.sendMessage(g + a + b + " help sign - " + res + gr + "Shows sign commandline requirements");
-				s.sendMessage(g + a + b + " help setup - " + res + gr + "Shows how to setup games");
-				s.sendMessage(g + a + b + " help settings - " + res + gr + "Shows changeable game settings");
+				sb.append(g + a + b + " help sign - " + res + gr + "Shows sign commandline requirements");
+				sb.append(g + a + b + " help setup - " + res + gr + "Shows how to setup games");
+				sb.append(g + a + b + " help settings - " + res + gr + "Shows changeable game settings");
 			}
 		}
+		MiscUtil.replyToSender(s, sb.toString());
 	}
 }

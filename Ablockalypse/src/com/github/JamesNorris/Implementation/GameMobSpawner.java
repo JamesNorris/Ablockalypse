@@ -42,10 +42,14 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 		z = loc.getBlockZ();
 		data.objects.add(this);
 		blinkers = (Boolean) Setting.BLINKERS.getSetting();
+		initBlinker();
+		game.addMobSpawner(this);
+	}
+	
+	private void initBlinker() {
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		blocks.add(block);
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
-		game.addMobSpawner(this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
 	}
 
 	@Override public ZALocation add(double x, double y, double z) {
@@ -105,7 +109,7 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 
 	@Override public void remove() {
 		setBlinking(false);
-		bt.cancel();
+		bt.remove();
 		game.removeMobSpawner(this);
 		data.blinkers.remove(bt);
 		data.objects.remove(this);
@@ -119,9 +123,12 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
 	 */
 	@Override public void setBlinking(boolean tf) {
 		if (bt.isRunning())
-			bt.cancel();
-		if (tf)
-			bt.blink();
+			bt.remove();
+		if (tf) {
+			if (!data.thread.contains(bt))
+				initBlinker();
+			bt.setRunThrough(true);
+		}
 	}
 
 	@Override public void setBlock(Material m) {

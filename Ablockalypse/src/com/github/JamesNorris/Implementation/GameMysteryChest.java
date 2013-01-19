@@ -57,9 +57,12 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
 		game.addMysteryChest(this);
 		this.active = active;
 		uses = rand.nextInt(8) + 2;
+	}
+	
+	private void initBlinker() {
 		ArrayList<Block> blocks = getDefiningBlocks();
 		boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
 	}
 
 	/**
@@ -164,7 +167,7 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
 					game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(game.getMysteryChests().size())));
 				}
 		} else
-			p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
+			MiscUtil.sendPlayerMessage(p, ChatColor.RED + "This chest is currently inactive!");
 	}
 
 	/**
@@ -189,7 +192,7 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
 		if (size >= 1)
 			game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(size)));
 		setBlinking(false);
-		bt.cancel();
+		bt.remove();
 		data.blinkers.remove(bt);
 		game = null;
 	}
@@ -220,8 +223,11 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
 
 	@Override public void setBlinking(boolean tf) {
 		if (bt.isRunning())
-			bt.cancel();
-		if (tf)
-			bt.blink();
+			bt.remove();
+		if (tf) {
+			if (!data.thread.contains(bt))
+				initBlinker();
+			bt.setRunThrough(true);
+		}
 	}
 }

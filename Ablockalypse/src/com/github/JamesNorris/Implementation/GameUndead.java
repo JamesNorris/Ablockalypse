@@ -40,7 +40,7 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
 		fireproof = true;
 		Player p = game.getRandomLivingPlayer();
 		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
-		mt = (targetbarrier != null) ? new MobTargettingThread(Ablockalypse.instance, zombie, targetbarrier.getCenter()) : new MobTargettingThread(Ablockalypse.instance, zombie, p);
+		mt = (targetbarrier != null) ? new MobTargettingThread(Ablockalypse.instance, zombie, targetbarrier.getCenter(), true, 20) : new MobTargettingThread(Ablockalypse.instance, zombie, p, true, 20);
 		zombie.setHealth(10);
 		game.setMobCount(game.getMobCount() + 1);
 		if (!data.undead.contains(this))

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -191,4 +192,14 @@ public interface ZAPlayer extends ZALiving {
 	 * Toggles sitting for the player.
 	 */
 	public void toggleLastStand();
+	
+	/**
+	 * Gets the block that the player is looking at, within the given distance.
+	 * If the player is looking at a block farther than the given distance, this will return null.
+	 * The higher the distance, the slower the method will be.
+	 * 
+	 * @param distance The maximum distance to check for the block
+	 * @return The block that the player is looking at
+	 */
+	public Block getAim(int distance);
 }

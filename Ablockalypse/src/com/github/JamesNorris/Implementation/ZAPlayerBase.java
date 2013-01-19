@@ -20,6 +20,8 @@ import org.bukkit.potion.PotionEffectType;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.MessageTransfer;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.PlayerStatus;
 import com.github.JamesNorris.Enumerated.PowerupType;
 import com.github.JamesNorris.Enumerated.Setting;
@@ -37,6 +39,7 @@ import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObject {
 	private int absorption = 0;// less than mobs, used to add juggernaut
@@ -579,7 +582,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	@Override public void teleport(Location location, String reason) {
 		player.teleport(location);
 		if ((Boolean) Setting.DEBUG.getSetting())
-			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason));
 	}
 
 	/**
@@ -593,9 +596,7 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 	 * @param reason The reason for teleportation
 	 */
 	@Override public void teleport(World world, int x, int y, int z, String reason) {
-		player.teleport(world.getBlockAt(x, y, z).getLocation());
-		if ((Boolean) Setting.DEBUG.getSetting())
-			System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
+		teleport(world.getBlockAt(x, y, z).getLocation(), reason);
 	}
 
 	/**
@@ -607,5 +608,37 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
 		} else {
 			pickUp();
 		}
+	}
+
+	/**
+	 * Gets the block that the player is looking at, within the given distance.
+	 * If the player is looking at a block farther than the given distance, this will return null.
+	 * The higher the distance, the slower the method will be.
+	 * 
+	 * @param distance The maximum distance to check for the block
+	 * @return The block that the player is looking at
+	 */
+	@Override public Block getAim(int distance) {//TODO test
+		Location loc = player.getLocation(); 
+		World world = loc.getWorld();
+		int x = loc.getBlockX();
+		int y = loc.getBlockY();
+		int z = loc.getBlockZ();
+		float pitch = loc.getPitch();
+		float yaw = loc.getYaw();
+		Block returned = null;
+		double XZslope = Math.tan(Math.toRadians(yaw));
+		double Yslope = Math.tan(Math.toRadians(pitch));	
+		long runThrough = distance * (1 + (Math.round(XZslope) + Math.round(Yslope)) / 2);
+		for (int i = 0; (i <= runThrough && (returned == null || returned.getLocation().distance(loc) <= distance)); ++i) {
+			x += XZslope;
+			y += Yslope;
+			z += XZslope;
+			Block b = world.getBlockAt(Math.round(x), Math.round(y), Math.round(z));
+			returned = b;
+			if (!returned.isEmpty())
+				return returned;
+		}	
+		return null;
 	}
 }

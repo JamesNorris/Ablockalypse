@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
+import org.bukkit.command.CommandSender;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -17,6 +18,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.MessageTransfer;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.PowerupType;
 import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Interface.ZAPlayer;
@@ -138,5 +141,24 @@ public class MiscUtil {
 			if (ptype != null)
 				zap.givePowerup(ptype, cause);
 		}
+	}
+	
+	public static void replyToSender(CommandSender sender, String message) {
+		if (sender instanceof Player) {
+			Player player = (Player) sender;
+			SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, message);
+			sm.setExceptionBased(false);
+			sm.addTarget(player.getName());
+			MessageTransfer.sendMessage(sm);
+		} else {
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, message));
+		}
+	}
+	
+	public static void sendPlayerMessage(Player player, String message) {
+		SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, message);
+		sm.setExceptionBased(false);
+		sm.addTarget(player.getName());
+		MessageTransfer.sendMessage(sm);
 	}
 }

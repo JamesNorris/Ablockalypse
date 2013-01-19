@@ -3,26 +3,25 @@ package com.github.JamesNorris.Threading;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.ZAColor;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.GameObject;
+import com.github.JamesNorris.Interface.ZAThread;
 
-public class BlinkerThread extends DataManipulator {
+public class BlinkerThread extends DataManipulator implements ZAThread {
 	private HashMap<Block, Byte> blockdata = new HashMap<Block, Byte>();
 	private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
 	private ZAColor color;
-	private boolean colored, running;
+	private boolean colored, running, runThrough;
 	private ZAGameBase game = null;
 	private GameObject gameObj;
-	private boolean gameSupport = game != null && gameObj.getGame() != null && game.hasStarted() && !game.isPaused() && data.blinkers.contains(this) && data.objects.contains(this);
-	private int id, delay;
+	private boolean noGameSupport = game != null && gameObj.getGame() != null && game.hasStarted() && !game.isPaused() && data.blinkers.contains(this) && data.objects.contains(this);
 	private Object type;
+	private int interval, count = 0;
 
 	/**
 	 * Creates a new thread that makes a block blink a colored wool.
@@ -30,61 +29,41 @@ public class BlinkerThread extends DataManipulator {
 	 * @param b The blocks to flicker
 	 * @param color The color to blink
 	 * @param autorun Whether or not to automatically run the thread
-	 * @param delay The delay between blinks
+	 * @param interval The delay between blinks
 	 */
-	public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, boolean synchronize, int delay, Object type) {
+	public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, int interval, Object type) {
 		data.blinkers.add(this);
 		for (Block b : blocks) {
 			this.blocks.put(b, b.getType());
 			this.blockdata.put(b, b.getData());
 		}
-		this.delay = delay;
+		this.interval = interval;
 		this.color = color;
 		this.type = type;
+		count = 0;
 		if (type instanceof GameObject) {
 			gameObj = ((GameObject) type);
 			game = (ZAGameBase) gameObj.getGame();
 		}
 		colored = false;
-		id = -1;
-		if (synchronize && autorun)
-			synchronize();
-		else if (autorun)
-			blink();
+		data.thread.add(this);
 	}
 
 	/**
 	 * Makes the blinker blink in an alternating way.
 	 */
-	public void blink() {
-		if (id == -1) {
-			id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-				@Override public void run() {
-					running = true;
-					if (gameSupport)
-						cancel();
-					else {
-						if (colored) {
-							revertBlocks();
-						} else {
-							setBlocks(Material.WOOL);
-							setBlocksData(color.getData());
-						}
-					}
+	@Override public void run() {
+			running = true;
+			if (noGameSupport)
+				remove();
+			else {
+				if (colored) {
+					revertBlocks();
+				} else {
+					setBlocks(Material.WOOL);
+					setBlocksData(color.getData());
 				}
-			}, delay, delay);
-		} else
-			Ablockalypse.crash("A BlinkerThread has been told to run over the same repeating task, therefore this action has been cancelled to maintain safety.", false);
-	}
-
-	/**
-	 * Cancels the thread.
-	 */
-	public void cancel() {
-		running = false;
-		revertBlocks();
-		Bukkit.getScheduler().cancelTask(id);
-		id = -1;
+			}
 	}
 
 	/**
@@ -151,24 +130,35 @@ public class BlinkerThread extends DataManipulator {
 		this.color = color;
 	}
 
-	/**
-	 * Sets the delay of the blinker.
-	 * 
-	 * @param delay The delay between blinks
-	 */
-	public void setDelay(int delay) {
-		this.delay = delay;
+	@Override public boolean runThrough() {
+		return runThrough;
 	}
 
-	/**
-	 * Synchronizes with all of the other BlinkerThreads, so that blinkers with equal waits will blink at the same time.
-	 */
-	public void synchronize() {
-		for (BlinkerThread bt : data.blinkers) {
-			if (!(gameSupport)) {
-				bt.cancel();
-				bt.blink();
-			}
-		}
+	@Override public void setRunThrough(boolean tf) {
+		this.runThrough = tf;
 	}
+
+	@Override public void remove() {
+		runThrough = false;
+		running = false;
+		count = 0;
+		revertBlocks();
+	    data.thread.remove(this);
+    }
+
+	@Override public int getCount() {
+	    return count;
+    }
+
+	@Override public int getInterval() {
+	    return interval;
+    }
+
+	@Override public void setCount(int i) {
+	    count = i;
+    }
+
+	@Override public void setInterval(int i) {
+	    interval = i;
+    }
 }

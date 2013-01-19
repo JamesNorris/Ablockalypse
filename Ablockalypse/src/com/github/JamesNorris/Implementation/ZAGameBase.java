@@ -12,6 +12,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.MessageTransfer;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Enumerated.ZASound;
 import com.github.JamesNorris.Event.GameEndEvent;
@@ -22,7 +24,9 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
 import com.github.JamesNorris.Threading.NextLevelThread;
+import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class ZAGameBase extends DataManipulator implements ZAGame {
 	private MysteryChest active;
@@ -123,12 +127,10 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 	 * @param exception A player to be excluded from the broadcast
 	 */
 	@Override public void broadcast(String message, Player exception) {
-		for (String s : players.keySet())
-			if (exception != null) {
-				if (exception.getName() != s)
-					Bukkit.getPlayer(s).sendMessage(message);
-			} else
-				Bukkit.getPlayer(s).sendMessage(message);
+		SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_BROADCAST, message);
+		sm.setExceptionBased(true);
+		sm.addException(exception.getName());
+		MessageTransfer.sendMessage(sm);
 	}
 
 	/**
@@ -140,7 +142,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 			for (String s2 : getPlayers()) {
 				Player p2 = Bukkit.getPlayer(s2);
 				ZAPlayer zap = data.getZAPlayer(p2);
-				p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
+				MiscUtil.sendPlayerMessage(p, ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
 			}
 		}
 	}
@@ -160,9 +162,9 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 				started = false;
 				mobcount = 0;
 				if (nlt != null && nlt.isRunning())
-					nlt.cancel();
+					nlt.remove();
 				for (Blinkable b : blinkable)
-					b.getBlinkerThread().synchronize();
+					b.getBlinkerThread().setRunThrough(true);
 				for (GameUndead gu : data.undead)
 					if (gu.getGame() == this)
 						gu.kill();
@@ -172,7 +174,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
 				for (String name : getPlayers()) {
 					Player player = Bukkit.getServer().getPlayer(name);
 					ZAPlayerBase zap = data.players.get(player);
-					player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
+					MiscUtil.sendPlayerMessage(player, ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
 					SoundUtil.generateSound(zap.getPlayer(), ZASound.END);
 					removePlayer(player);
 				}

@@ -21,6 +21,7 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Local;
 import com.github.JamesNorris.Enumerated.Setting;
@@ -59,13 +60,18 @@ public class PlayerInteract extends DataManipulator implements Listener {
 	public PlayerInteract() {
 		im = new ItemManager();
 	}
+	
+	private void sendPlayerMessage(Player player, String message) {
+		MiscUtil.sendPlayerMessage(player, message);
+	}
 
 	private void buyArea(Sign sign, Player player, ZAPlayerBase zap, String l3, int points) {
 		int cost = 1500;
 		try {
 			cost = Integer.parseInt(l3);
 		} catch (Exception e) {
-			e.printStackTrace();
+			Location l = sign.getLocation();
+			Ablockalypse.crash("The sign at " + l.getBlockX() + ", " + l.getBlockY() + ", " + l.getBlockZ() +  " is incorrectly formatted!", false);
 		}
 		sign.setLine(3, " " + cost + " ");
 		if (zap.getPoints() >= cost) {
@@ -75,15 +81,15 @@ public class PlayerInteract extends DataManipulator implements Listener {
 					a.open();
 					EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 					zap.subtractPoints(cost);
-					player.sendMessage(ChatColor.BOLD + "You have bought an area for " + cost + " points.");
+					sendPlayerMessage(player, ChatColor.BOLD + "You have bought an area for " + cost + " points.");
 					return;
 				} else
-					player.sendMessage(ChatColor.RED + "This area has already been purchased!");
+					sendPlayerMessage(player, ChatColor.RED + "This area has already been purchased!");
 			} else
-				player.sendMessage(ChatColor.RED + "There is no area close to this sign!");
+				sendPlayerMessage(player, ChatColor.RED + "There is no area close to this sign!");
 			return;
 		} else {
-			player.sendMessage(ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
+			sendPlayerMessage(player, ChatColor.RED + "You have " + zap.getPoints() + " / " + cost + " points to buy this.");
 			return;
 		}
 	}
@@ -113,14 +119,14 @@ public class PlayerInteract extends DataManipulator implements Listener {
 		for (ZAEnchantment ench : ZAEnchantment.values()) {
 			if (l3.equalsIgnoreCase(ench.getLabel())) {
 				if (zap.getPoints() < ench.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + ench.getCost() + " points to buy this.");
+					sendPlayerMessage(player, ChatColor.RED + "You have " + points + " / " + ench.getCost() + " points to buy this.");
 					return;
 				}
 				ItemStack hand = player.getItemInHand();
 				player.getInventory().remove(hand);
 				im.addEnchantment(hand, ench.getEnchantment(), 3);
 				zap.subtractPoints(ench.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
+				sendPlayerMessage(player, ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
 				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 				MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player);
 				return;
@@ -132,12 +138,12 @@ public class PlayerInteract extends DataManipulator implements Listener {
 		for (ZAPerk perk : ZAPerk.values()) {
 			if (l3.equalsIgnoreCase(perk.getLabel()) && zap.getGame().getLevel() >= perk.getLevel()) {
 				if (zap.getPoints() < perk.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + perk.getCost() + " points to buy this.");
+					sendPlayerMessage(player, ChatColor.RED + "You have " + points + " / " + perk.getCost() + " points to buy this.");
 					return;
 				}
 				zap.addPerk(perk, perk.getDuration(), 1);
 				zap.subtractPoints(perk.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + perk.getCost() + " points!");
+				sendPlayerMessage(player, ChatColor.BOLD + "You have bought " + l3 + " for " + perk.getCost() + " points!");
 				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 				return;
 			}
@@ -148,7 +154,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 		for (ZAWeapon wep : ZAWeapon.values()) {
 			if (l3.equalsIgnoreCase(wep.getLabel()) && zap.getPoints() >= wep.getCost() && zap.getGame().getLevel() >= wep.getLevel()) {
 				if (zap.getPoints() < wep.getCost()) {
-					player.sendMessage(ChatColor.RED + "You have " + points + " / " + wep.getCost() + " points to buy this.");
+					sendPlayerMessage(player, ChatColor.RED + "You have " + points + " / " + wep.getCost() + " points to buy this.");
 					return;
 				}
 				Material type = wep.getMaterial();
@@ -157,7 +163,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				else
 					MiscUtil.dropItemAtPlayer(sign.getLocation(), new ItemStack(type, 5), player);
 				zap.subtractPoints(wep.getCost());
-				player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + wep.getCost() + " points!");
+				sendPlayerMessage(player, ChatColor.BOLD + "You have bought " + l3 + " for " + wep.getCost() + " points!");
 				EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 				return;
 			}
@@ -167,14 +173,14 @@ public class PlayerInteract extends DataManipulator implements Listener {
 	private void joinGame(Sign sign, Player player, String l3) {
 		if (player.hasPermission("za.create") && !data.games.containsKey(l3)) {
 			setupPlayerWithGame(l3, player);
-			player.sendMessage(ChatColor.RED + "This game does not have any barriers. Ignoring...");
+			sendPlayerMessage(player, ChatColor.RED + "This game does not have any barriers. Ignoring...");
 			return;
 		} else if (data.games.containsKey(l3)) {
 			setupPlayerWithGame(l3, player);
 			EffectUtil.generateEffect(player, sign.getLocation(), ZAEffect.POTION_BREAK);
 			return;
 		} else {
-			player.sendMessage(ChatColor.RED + "That game does not exist!");
+			sendPlayerMessage(player, ChatColor.RED + "That game does not exist!");
 			return;
 		}
 	}
@@ -248,7 +254,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
 				if (b.getType() == Material.ENDER_PORTAL_FRAME && a == Action.RIGHT_CLICK_BLOCK) {
 					if (!zap.isTeleporting()) {
 						p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
-						new TeleportThread(zap, (Integer) Setting.TELEPORTTIME.getSetting(), true);
+						new TeleportThread(zap, (Integer) Setting.TELEPORTTIME.getSetting(), true, 20);
 						return;
 					} else {
 						p.sendMessage(ChatColor.GRAY + "You are already teleporting!");

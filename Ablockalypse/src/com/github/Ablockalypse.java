@@ -14,7 +14,9 @@ import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.BlinkerThread;
-import com.github.JamesNorris.Threading.MainThreading;
+import com.github.JamesNorris.Threading.BarrierBreakThread;
+import com.github.JamesNorris.Threading.MobClearingThread;
+import com.github.JamesNorris.Threading.MobFlamesThread;
 import com.github.JamesNorris.Util.SpecificMessage;
 
 public class Ablockalypse extends JavaPlugin {
@@ -22,7 +24,7 @@ public class Ablockalypse extends JavaPlugin {
 	protected static DataManipulator dm;
 	public static Ablockalypse instance;
 	private static String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
-	private static MainThreading mt;
+	private static BarrierBreakThread mt;
 	private static String path = "plugins" + File.separator + "Ablockalypse.jar";
 	private static Update upd;
 	/**
@@ -49,8 +51,8 @@ public class Ablockalypse extends JavaPlugin {
 			sb2.append("The error was FATAL, therefore Ablockalypse will shut down.");
 			Ablockalypse.kill();
 		}
-		MessageTransfer.sendMessage(MessageDirection.CONSOLE_ERROR, new SpecificMessage(sb.toString()));
-		MessageTransfer.sendMessage(MessageDirection.XMPP, new SpecificMessage("An error occurred! " + sb2.toString()));
+		MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_ERROR, sb.toString()));
+		MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.XMPP, "An error occurred! " + sb2.toString()));
 	}
 
 	public static DataManipulator getData() {
@@ -89,7 +91,7 @@ public class Ablockalypse extends JavaPlugin {
 	 * 
 	 * @return The primary MainThreading instance
 	 */
-	public static MainThreading getMainThreading() {
+	public static BarrierBreakThread getMainThreading() {
 		return mt;
 	}
 
@@ -118,7 +120,7 @@ public class Ablockalypse extends JavaPlugin {
 	@Override public void onDisable() {
 		External.saveData();
 		for (BlinkerThread bt : data.blinkers)
-			bt.cancel();
+			bt.remove();
 		if (data.games != null)
 			for (ZAGameBase gb : data.games.values())
 				gb.remove();
@@ -133,15 +135,17 @@ public class Ablockalypse extends JavaPlugin {
 		upd = new Update(this);
 		data = new GlobalData(this);
 		dm = new DataManipulator();
-		MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] Checking for updates..."));
+		MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] Checking for updates..."));
 		if (!(Boolean) Setting.ENABLEAUTOUPDATE.getSetting() && upd.check()) {
 			this.getServer().getPluginManager().disablePlugin(this);
-			MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] An update has occurred, please restart the server to enable it!"));
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] An update has occurred, please restart the server to enable it!"));
 		} else {
-			MessageTransfer.sendMessage(MessageDirection.CONSOLE_OUTPUT, new SpecificMessage("[Ablockalypse] No updates found."));
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] No updates found."));
 			RegistrationManager.register(this);
 			External.loadData();
-			new MainThreading(this, true, true, true);
+			new BarrierBreakThread(true, 20);
+			new MobClearingThread((Boolean) Setting.CLEARMOBS.getSetting(), 360);
+			new MobFlamesThread(true, 20);
 		}
 	}
 }

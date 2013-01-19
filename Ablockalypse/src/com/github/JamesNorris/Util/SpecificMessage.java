@@ -3,20 +3,33 @@ package com.github.JamesNorris.Util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.github.JamesNorris.Enumerated.MessageDirection;
+
 public class SpecificMessage {
 	private final String message;
 	private List<String> exceptions = new ArrayList<String>();
 	private List<String> targets = new ArrayList<String>();
 	private boolean exceptionBased = true;
+	private MessageDirection direction;
 
-	public SpecificMessage(String message) {
+	public SpecificMessage(MessageDirection direction, String message) {
 		this.message = message;
+		this.direction = direction;
 	}
 
-	public SpecificMessage(String message, List<String> exceptions, List<String> targets) {
+	public SpecificMessage(MessageDirection direction, String message, List<String> exceptions, List<String> targets) {
 		this.message = message;
 		this.exceptions = exceptions;
 		this.targets = targets;
+		this.direction = direction;
+	}
+	
+	public MessageDirection getDirection() {
+		return direction;
+	}
+	
+	public void setDirection(MessageDirection direction) {
+		this.direction = direction;
 	}
 
 	public void addException(String exception) {

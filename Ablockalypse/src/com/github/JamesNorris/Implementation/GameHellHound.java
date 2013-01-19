@@ -2,7 +2,6 @@ package com.github.JamesNorris.Implementation;
 
 import java.util.ArrayList;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -19,13 +18,13 @@ import com.github.JamesNorris.Interface.Barrier;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.HellHound;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Threading.MobReRandomTeleportThread;
 import com.github.JamesNorris.Threading.MobTargettingThread;
 import com.github.JamesNorris.Util.EffectUtil;
 
 public class GameHellHound extends DataManipulator implements HellHound, GameObject {
 	private int absorption = 0;
 	private ZAGame game;
-	private int id;
 	private MobTargettingThread mt;
 	private boolean subtracted = false;
 	private Object target;
@@ -46,11 +45,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 		wolf.setHealth(8);
 		Player p = game.getRandomLivingPlayer();
 		Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
-		if (targetbarrier != null) {
-			Location gbloc = targetbarrier.getCenter();
-			mt = new MobTargettingThread(Ablockalypse.instance, wolf, gbloc);
-		} else
-			mt = new MobTargettingThread(Ablockalypse.instance, wolf, p);
+		mt = (targetbarrier != null) ? new MobTargettingThread(Ablockalypse.instance, wolf, targetbarrier.getCenter(), true, 20) : new MobTargettingThread(Ablockalypse.instance, wolf, p, true, 20);
 		game.setMobCount(game.getMobCount() + 1);
 		setAggressive(true);
 		if (!data.hellhounds.contains(this))
@@ -58,18 +53,7 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 		setSpeed(0.28F);
 		if (game.getLevel() >= (Integer) Setting.DOUBLESPEEDLEVEL.getSetting())
 			setSpeed(0.32F);
-		final Wolf finalwolf = wolf;
-		id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			@Override public void run() {
-				if (!getCreature().isDead() && data.isZAMob(getEntity())) {
-					Location target = getGame().getRandomLivingPlayer().getLocation();
-					Location strike = getGame().getSpawnManager().findSpawnLocation(target, 5, 3);
-					finalwolf.teleport(strike);
-					EffectUtil.generateEffect(strike.getWorld(), strike, ZAEffect.LIGHTNING);
-				} else
-					cancel();
-			}
-		}, 200, 200);
+		new MobReRandomTeleportThread(wolf, game, true, 400);
 	}
 
 	/**
@@ -77,13 +61,6 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
 	 */
 	@Override public void addFlames() {
 		EffectUtil.generateEffect(game.getRandomLivingPlayer(), wolf.getLocation(), ZAEffect.FLAMES);
-	}
-
-	/*
-	 * Cancels the position changing task started when the wolf is instantiated.
-	 */
-	private void cancel() {
-		Bukkit.getScheduler().cancelTask(id);
 	}
 
 	/**

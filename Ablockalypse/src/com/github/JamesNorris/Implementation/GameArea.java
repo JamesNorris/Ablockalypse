@@ -34,7 +34,7 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 * 
 	 * @param block The sign directly facing the area door
 	 */
-	@SuppressWarnings("deprecation") public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
+	public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
 		data.objects.add(this);
 		this.loc1 = loc1;
 		this.loc2 = loc2;
@@ -47,11 +47,15 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 			locdata.put(l, l.getBlock().getData());
 		}
 		zag.addArea(this);
+		initBlinker();
+	}
+	
+	@SuppressWarnings("deprecation") private void initBlinker() {
 		ArrayList<Block> blocks = new ArrayList<Block>();
 		for (Location l : rectangle.get3DBorder())
 			blocks.add(l.getBlock());
 		this.blinkers = (Boolean) Setting.BLINKERS.getSetting();
-		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, blinkers, 30, this);
+		bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
 	}
 
 	/**
@@ -170,9 +174,12 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
 	 */
 	@Override public void setBlinking(boolean tf) {
 		if (bt.isRunning())
-			bt.cancel();
-		if (tf)
-			bt.blink();
+			bt.remove();
+		if (tf) {
+			if (!data.thread.contains(bt))
+				initBlinker();
+			bt.setRunThrough(true);
+		}
 	}
 
 	/**

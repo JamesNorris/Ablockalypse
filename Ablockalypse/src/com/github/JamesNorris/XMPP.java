@@ -78,7 +78,7 @@ public class XMPP implements Listener {
 				case MESSAGETRANSFEREVENT:
 					break;//To prevent looping
 			}
-			MessageTransfer.sendMessage(MessageDirection.XMPP, new SpecificMessage(base));
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.XMPP, base));
 		}
 	}
 }

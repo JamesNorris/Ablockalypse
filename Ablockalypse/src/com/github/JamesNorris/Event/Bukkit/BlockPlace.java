@@ -10,9 +10,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.MessageTransfer;
 import com.github.JamesNorris.Enumerated.Local;
+import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.ZAEffect;
 import com.github.JamesNorris.Util.EffectUtil;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class BlockPlace extends DataManipulator implements Listener {
 	/*
@@ -27,7 +30,10 @@ public class BlockPlace extends DataManipulator implements Listener {
 			if (data.players.containsKey(p) && !p.hasPermission("za.sign") && s.getLine(1).equalsIgnoreCase(Local.BASESTRING.getSetting())) {
 				event.setCancelled(true);
 				EffectUtil.generateEffect(p, ZAEffect.FLAMES);
-				p.sendMessage(ChatColor.RED + "You do not have permissions to place ZA signs!");
+				SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, ChatColor.RED + "You do not have permissions to place ZA signs!");
+				sm.setExceptionBased(false);
+				sm.addTarget(p.getName());
+				MessageTransfer.sendMessage(sm);
 				return;
 			}
 		}

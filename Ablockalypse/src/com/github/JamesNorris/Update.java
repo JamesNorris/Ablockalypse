@@ -11,6 +11,8 @@ import java.net.URLConnection;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
+import com.github.JamesNorris.Enumerated.MessageDirection;
+import com.github.JamesNorris.Util.SpecificMessage;
 
 public class Update {
 	private String finished = "[Ablockalypse] Update completed, please restart the server!";
@@ -42,7 +44,7 @@ public class Update {
 			long lastmodURL = connection.getLastModified();
 			long lastmodFile = local.lastModified();
 			if (lastmodURL > lastmodFile) {
-				System.out.println(started);
+				MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, started));
 				download();
 				return true;
 			} else
@@ -69,7 +71,7 @@ public class Update {
 			int read;
 			while ((read = in.read(buffer)) != -1)
 				out.write(buffer, 0, read);
-			System.out.println(finished);
+			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, finished));
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {

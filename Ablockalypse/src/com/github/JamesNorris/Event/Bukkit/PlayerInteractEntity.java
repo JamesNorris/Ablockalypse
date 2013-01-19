@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Setting;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
+import com.github.JamesNorris.Util.MiscUtil;
 
 public class PlayerInteractEntity extends DataManipulator implements Listener {
 	/*
@@ -27,7 +28,7 @@ public class PlayerInteractEntity extends DataManipulator implements Listener {
 			if (zap.isInLastStand()) {
 				zap.toggleLastStand();
 				zap2.addPoints((Integer) Setting.LASTSTANDHELPPOINTS.getSetting());
-				p.sendMessage(ChatColor.GRAY + "You helped up " + zap.getName() + "!");
+				MiscUtil.sendPlayerMessage(p, ChatColor.GRAY + "You helped up " + zap.getName() + "!");
 			}
 		}
 	}

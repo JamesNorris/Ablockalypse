@@ -45,4 +45,16 @@ public class MathAssist {
 	public static double line(double m, double x, double b) {
 		return (m * x) + b;
 	}
+	
+	/**
+	 * The method for getting the hypotenuse of a triangle.
+	 * The general equation is a^2 + b^2 = c^2.
+	 * 
+	 * @param a The first side of the triangle
+	 * @param b The second side of the triangle
+	 * @return The hypotenuse
+	 */
+	public static double pythagorean(double a, double b) {
+		return Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+	}
 }

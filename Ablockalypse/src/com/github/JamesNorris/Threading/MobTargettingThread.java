@@ -1,6 +1,5 @@
 package com.github.JamesNorris.Threading;
 
-/* Breakable Packages */
 import net.minecraft.server.v1_4_6.EntityCreature;
 import net.minecraft.server.v1_4_6.PathEntity;
 import net.minecraft.server.v1_4_6.PathPoint;
@@ -11,22 +10,20 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
+import com.github.JamesNorris.Interface.ZAThread;
 import com.github.JamesNorris.Util.MathAssist;
-/* End Breakable Packages */
 
-public class MobTargettingThread extends DataManipulator {
+public class MobTargettingThread extends DataManipulator implements ZAThread {
 	private Creature c;
-	private boolean hasTarget = false;
-	private int id, wait = 0;
+	private boolean hasTarget = false, runThrough = false;
+	private int wait = 0, count = 0, interval;
 	private Location last;
 	private Location location;
 	private Player p;
-	private final Plugin plugin;
 	private float radius = 16.0F;// the radius of the path (if set above 16, will cause weird behavior)
 	private float speed = 0.18F;// The default speed of the mob
 	private int standStill = (int) MathAssist.line(28, 0.18F, 5);// TODO test - time in ticks before the mob should rethink the path (if it is standing still)
@@ -39,12 +36,15 @@ public class MobTargettingThread extends DataManipulator {
 	 * @param c The creature instance to move
 	 * @param loc The location to start targetting
 	 */
-	public MobTargettingThread(Plugin plugin, Creature c, Location loc) {
-		this.plugin = plugin;
+	public MobTargettingThread(Plugin plugin, Creature c, Location loc, boolean autorun, int interval) {
 		this.c = c;
 		zam = (data.isZAMob(c)) ? (ZAMob) c : null;
 		location = loc;
 		setTarget(loc);
+		this.interval = interval;
+		if (autorun)
+			setRunThrough(true);	
+		data.thread.add(this);
 	}
 
 	/**
@@ -54,20 +54,15 @@ public class MobTargettingThread extends DataManipulator {
 	 * @param c The creature instance to move
 	 * @param p The player to start targetting
 	 */
-	public MobTargettingThread(Plugin plugin, Creature c, Player p) {
-		this.plugin = plugin;
+	public MobTargettingThread(Plugin plugin, Creature c, Player p, boolean autorun, int interval) {
 		this.c = c;
 		zam = (data.isZAMob(c)) ? (ZAMob) c : null;
 		this.p = p;
 		setTarget(p);
-	}
-
-	/**
-	 * Cancels the thread.
-	 */
-	protected void cancel() {
-		hasTarget = false;
-		plugin.getServer().getScheduler().cancelTask(id);
+		this.interval = interval;
+		if (autorun)
+			setRunThrough(true);
+		data.thread.add(this);
 	}
 
 	/*
@@ -117,7 +112,7 @@ public class MobTargettingThread extends DataManipulator {
 				zam.setTargetPlayer(zam.getGame().getRandomLivingPlayer());
 		}
 		if (p != null && !data.players.containsKey(p))
-			cancel();
+			remove();
 	}
 
 	/*
@@ -188,9 +183,9 @@ public class MobTargettingThread extends DataManipulator {
 	 * @param l The new target
 	 */
 	public void setTarget(Location l) {
-		cancel();
+		setRunThrough(false);
 		location = l;
-		target();
+		setRunThrough(true);
 	}
 
 	/**
@@ -199,43 +194,65 @@ public class MobTargettingThread extends DataManipulator {
 	 * @param l The new target
 	 */
 	public void setTarget(Player p) {
-		cancel();
+		setRunThrough(false);
 		if (p != null)
 			this.p = p;
-		target();
+		setRunThrough(true);
 	}
 
-	/*
-	 * Begins the targetting thread.
-	 */
-	private void target() {
-		hasTarget = true;
-		id = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(Ablockalypse.instance, new Runnable() {
-			@Override public void run() {
-				if (!c.isDead() && (p == null || !p.isDead())) {
-					Location target = refreshTarget();
-					last = c.getLocation();
-					if (requiresCheckpoint(last, target))
-						checkpoint(target);
-					else
-						moveMob(target);
-					PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
-					Location newloc = c.getLocation();
-					if (zam != null && p != null) {
-						if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())
-							++wait;
-						else
-							wait = 0;
-						if (wait >= standStill) {// respawn and recalculate the target
-							wait = 0;
-							ZAGame zag = zam.getGame();
-							c.teleport(zag.getSpawnManager().findSpawnLocation(target, 16, 8));
-							setTarget(zag.getSpawnManager().getClosestBarrier(p).getCenter());
-						}
-					}
-				} else
-					cancel();
+	@Override public boolean runThrough() {
+	    return runThrough;
+    }
+
+	@Override public void setRunThrough(boolean tf) {
+	    runThrough = tf;
+    }
+
+	@Override public void run() {
+		if (!c.isDead() && (p == null || !p.isDead())) {
+			hasTarget = true;
+			Location target = refreshTarget();
+			last = c.getLocation();
+			if (requiresCheckpoint(last, target))
+				checkpoint(target);
+			else
+				moveMob(target);
+			PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
+			Location newloc = c.getLocation();
+			if (zam != null && p != null) {
+				if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())
+					++wait;
+				else
+					wait = 0;
+				if (wait >= standStill) {// respawn and recalculate the target
+					wait = 0;
+					ZAGame zag = zam.getGame();
+					c.teleport(zag.getSpawnManager().findSpawnLocation(target, 16, 8));
+					setTarget(zag.getSpawnManager().getClosestBarrier(p).getCenter());
+				}
 			}
-		}, 1, 1);
-	}
+		} else
+			remove();
+    }
+
+	@Override public void remove() {
+		hasTarget = false;
+	    data.thread.remove(this);
+    }
+	
+	@Override public int getCount() {
+	    return count;
+    }
+
+	@Override public int getInterval() {
+	    return interval;
+    }
+
+	@Override public void setCount(int i) {
+	    count = i;
+    }
+
+	@Override public void setInterval(int i) {
+	    interval = i;
+    }
 }

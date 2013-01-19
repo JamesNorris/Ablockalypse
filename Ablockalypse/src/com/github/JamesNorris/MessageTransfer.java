@@ -12,7 +12,8 @@ import com.github.JamesNorris.Util.SpecificMessage;
 import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 
 public class MessageTransfer {
-	public static void sendMessage(MessageDirection direction, SpecificMessage message) {
+	public static void sendMessage(SpecificMessage message) {
+		MessageDirection direction = message.getDirection();
 		MessageTransferEvent mte = new MessageTransferEvent(message, direction);
 		Bukkit.getPluginManager().callEvent(mte);
 		if (!mte.isCancelled()) {
