@@ -15,6 +15,7 @@ import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Manager.RegistrationManager;
 import com.github.JamesNorris.Threading.BlinkerThread;
 import com.github.JamesNorris.Threading.BarrierBreakThread;
+import com.github.JamesNorris.Threading.MainThread;
 import com.github.JamesNorris.Threading.MobClearingThread;
 import com.github.JamesNorris.Threading.MobFlamesThread;
 import com.github.JamesNorris.Util.SpecificMessage;
@@ -24,9 +25,9 @@ public class Ablockalypse extends JavaPlugin {
 	protected static DataManipulator dm;
 	public static Ablockalypse instance;
 	private static String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
-	private static BarrierBreakThread mt;
 	private static String path = "plugins" + File.separator + "Ablockalypse.jar";
 	private static Update upd;
+	private static MainThread mt;
 	/**
 	 * Called when something is not working, and the plugin needs to be monitored.
 	 * 
@@ -67,6 +68,10 @@ public class Ablockalypse extends JavaPlugin {
 	public static Ablockalypse getInstance() {
 		return Ablockalypse.instance;
 	}
+	
+	public static MainThread getMainThread() {
+		return mt;
+	}
 
 	/**
 	 * Gets the URL for issues to be sent to github.
@@ -84,15 +89,6 @@ public class Ablockalypse extends JavaPlugin {
 	 */
 	public static String getJARPath() {
 		return path;
-	}
-
-	/**
-	 * Gets the primary MainThreading instance
-	 * 
-	 * @return The primary MainThreading instance
-	 */
-	public static BarrierBreakThread getMainThreading() {
-		return mt;
 	}
 
 	public static Update getUpdater() {
@@ -143,6 +139,7 @@ public class Ablockalypse extends JavaPlugin {
 			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] No updates found."));
 			RegistrationManager.register(this);
 			External.loadData();
+			mt = new MainThread();
 			new BarrierBreakThread(true, 20);
 			new MobClearingThread((Boolean) Setting.CLEARMOBS.getSetting(), 360);
 			new MobFlamesThread(true, 20);
