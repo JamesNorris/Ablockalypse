@@ -159,11 +159,7 @@ public class SpawnManager {
 					hp = gb;
 			}
 		}
-		if (hp != null)
-			return hp;
-		else if (lp != null)
-			return lp;
-		return null;
+		return (hp != null) ? hp : lp;
 	}
 
 	/**
@@ -196,8 +192,7 @@ public class SpawnManager {
 					hp = l1;
 			}
 		}
-		ZALocation priority = (hp != null) ? hp : lp;
-		return priority;
+		return (hp != null) ? hp : lp;
 	}
 
 	/**
@@ -312,15 +307,12 @@ public class SpawnManager {
 	 * @param closespawn Whether or not to spawn right next to the target
 	 */
 	public void spawn(Location l, boolean closespawn) {
-		if (game.isWolfRound()) {
-			if (!closespawn)
-				l = findSpawnLocation(l, 7, 4);
+		if (!closespawn)
+			l = findSpawnLocation(l, 7, 4);
+		if (game.isWolfRound())
 			gameSpawn(l, EntityType.WOLF);
-		} else {
-			if (!closespawn)
-				l = findSpawnLocation(l, 16, 10);
+		else
 			gameSpawn(l, EntityType.ZOMBIE);
-		}
 	}
 
 	/**

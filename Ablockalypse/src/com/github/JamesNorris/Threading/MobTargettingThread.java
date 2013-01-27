@@ -1,11 +1,11 @@
 package com.github.JamesNorris.Threading;
 
-import net.minecraft.server.v1_4_6.EntityCreature;
-import net.minecraft.server.v1_4_6.PathEntity;
-import net.minecraft.server.v1_4_6.PathPoint;
+import net.minecraft.server.v1_4_R1.EntityCreature;
+import net.minecraft.server.v1_4_R1.PathEntity;
+import net.minecraft.server.v1_4_R1.PathPoint;
 
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftCreature;
+import org.bukkit.craftbukkit.v1_4_R1.entity.CraftCreature;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;

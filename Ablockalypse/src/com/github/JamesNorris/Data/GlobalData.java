@@ -5,15 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftWolf;
-import org.bukkit.craftbukkit.v1_4_6.entity.CraftZombie;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 import org.bukkit.plugin.Plugin;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
 import com.github.JamesNorris.Implementation.GameHellHound;
@@ -30,7 +27,6 @@ import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Interface.ZAThread;
 import com.github.JamesNorris.Threading.BlinkerThread;
-import com.github.JamesNorris.Util.Square;
 
 public class GlobalData {
 	public ArrayList<GameArea> areas = new ArrayList<GameArea>();
@@ -39,7 +35,6 @@ public class GlobalData {
 	public HashMap<Location, String> barriers = new HashMap<Location, String>();
 	public ArrayList<BlinkerThread> blinkers = new ArrayList<BlinkerThread>();
 	public HashMap<Location, MysteryChest> chests = new HashMap<Location, MysteryChest>();
-	public String description;
 	public ArrayList<GameBarrier> gamebarriers = new ArrayList<GameBarrier>();
 	public HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
 	public HashMap<String, ZAGameBase> games = new HashMap<String, ZAGameBase>();
@@ -47,12 +42,10 @@ public class GlobalData {
 	public HashMap<String, Location> mainframes = new HashMap<String, Location>();
 	public ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
 	public ArrayList<GameObject> objects = new ArrayList<GameObject>();
-	public HashMap<String, String> playergames = new HashMap<String, String>();
+	private HashMap<String, String> playergames = new HashMap<String, String>();
 	public HashMap<String, HashMap<String, Integer>> playerPoints = new HashMap<String, HashMap<String, Integer>>();
 	public HashMap<Player, ZAPlayerBase> players = new HashMap<Player, ZAPlayerBase>();
-	public Ablockalypse plugin;
 	public HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
-	public HashMap<GameBarrier, Square> squares = new HashMap<GameBarrier, Square>();
 	public ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
 	public ArrayList<ZAThread> thread = new ArrayList<ZAThread>();
 	public String version;
@@ -63,9 +56,7 @@ public class GlobalData {
 	 * @param plugin The instance of the Ablockalypse plugin
 	 */
 	public GlobalData(Plugin plugin) {
-		this.plugin = (Ablockalypse) plugin;
 		this.authors = plugin.getDescription().getAuthors();
-		this.description = plugin.getDescription().getDescription();
 		this.version = plugin.getDescription().getVersion();
 	}
 
@@ -208,11 +199,11 @@ public class GlobalData {
 	 */
 	public boolean isZAMob(Entity e) {
 		if (e != null)
-			if ((e instanceof Wolf || e instanceof CraftWolf) && hellhounds != null) {
+			if (e instanceof Wolf && hellhounds != null) {
 				for (GameHellHound gh : hellhounds)
 					if (gh.getWolf().getEntityId() == e.getEntityId())
 						return true;
-			} else if ((e instanceof Zombie || e instanceof CraftZombie) && undead != null)
+			} else if (e instanceof Zombie && undead != null)
 				for (GameUndead gu : undead)
 					if (gu.getZombie().getEntityId() == e.getEntityId())
 						return true;

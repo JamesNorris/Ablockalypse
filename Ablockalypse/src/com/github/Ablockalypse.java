@@ -28,6 +28,7 @@ public class Ablockalypse extends JavaPlugin {
 	private static String path = "plugins" + File.separator + "Ablockalypse.jar";
 	private static Update upd;
 	private static MainThread mt;
+	
 	/**
 	 * Called when something is not working, and the plugin needs to be monitored.
 	 * 
@@ -126,7 +127,7 @@ public class Ablockalypse extends JavaPlugin {
 	}
 
 	@Override public void onEnable() {
-		Ablockalypse.instance = this;
+		Ablockalypse.instance = this;	
 		External.loadExternalFiles(this);
 		upd = new Update(this);
 		data = new GlobalData(this);
@@ -139,7 +140,7 @@ public class Ablockalypse extends JavaPlugin {
 			MessageTransfer.sendMessage(new SpecificMessage(MessageDirection.CONSOLE_OUTPUT, "[Ablockalypse] No updates found."));
 			RegistrationManager.register(this);
 			External.loadData();
-			mt = new MainThread();
+			mt = new MainThread(true);
 			new BarrierBreakThread(true, 20);
 			new MobClearingThread((Boolean) Setting.CLEARMOBS.getSetting(), 360);
 			new MobFlamesThread(true, 20);
