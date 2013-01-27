@@ -3,10 +3,11 @@ package com.github.JamesNorris.Event;
 import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class GameSignClickEvent extends Event {
+public class GameSignClickEvent extends Event implements Cancellable {
 	private static HandlerList handlers = new HandlerList();
 
 	/**

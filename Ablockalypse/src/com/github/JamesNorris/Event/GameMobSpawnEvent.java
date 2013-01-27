@@ -1,13 +1,14 @@
 package com.github.JamesNorris.Event;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import com.github.JamesNorris.Enumerated.GameEntityType;
 import com.github.JamesNorris.Interface.ZAGame;
 
-public class GameMobSpawnEvent extends Event {
+public class GameMobSpawnEvent extends Event implements Cancellable {
 	private static final HandlerList handlers = new HandlerList();
 
 	/**
