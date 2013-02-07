@@ -2,13 +2,11 @@ package com.github.JamesNorris.Enumerated;
 
 import java.util.Map;
 
-import org.bukkit.configuration.file.FileConfiguration;
-
 import com.github.Ablockalypse;
 import com.google.common.collect.Maps;
 
 public enum Setting {
-	//@formatter:off
+    //@formatter:off
 	ATOMPOINTS(1, "pointsGivenOnAtomBomb"), BARRIERFULLFIX(2, "barrierCompleteFixIncrease"), BARRIERPARTFIX(3, "barrierPerFixIncrease"), BEACONS(4, "chestBeacons"), 
 	BLINKERS(5, "blinkers"), CHESTCOST(41, "mysteryChestCost"), CLEARMOBS(11, "clearNearbyMobs"), DAMAGELEVEL(12, "damageLevel"), 
 	DAMAGEPOINTS(13, "damagePoints"), DEBUG(14, "DEBUG"), DEFAULTFRIENDLYFIREMODE(23, "defaultFriendlyFireMode"), DIAMONDSWORDCOST(15, "diamondSword"), 
@@ -24,48 +22,45 @@ public enum Setting {
 	WOODSWORDCOST(55, "woodSword"), WOODSWORDLEVEL(56, "woodSwordLevel"), XMPPGAMEEND(7, "xmppAnnounceGameEnd"), XMPPGAMESTART(6, "xmppAnnounceGameStart"), XMPPLASTSTAND(10, "xmppAnnounceLastStand"), 
 	XMPPPLAYERJOIN(8, "xmppAnnouncePlayerJoinGame"), XMPPPLAYERLEAVE(9, "xmppAnnouncePlayerLeaveGame");
 	//@formatter:on
-	//
-	private final static Map<Integer, Setting> BY_ID = Maps.newHashMap();
+    //
+    private final static Map<Integer, Setting> BY_ID = Maps.newHashMap();
 
-	public static Setting getById(final int id) {
-		return BY_ID.get(id);
-	}
-	public static int getHighestId() {
-		return BY_ID.size();
-	}
+    public static Setting getById(final int id) {
+        return BY_ID.get(id);
+    }
 
-	private int id;
+    public static int getHighestId() {
+        return BY_ID.size();
+    }
 
-	private Object object;
+    private int id;
+    private Object object;
+    private String setting;
 
-	private String setting;
+    Setting(int id, String name) {
+        this.id = id;
+        this.setting = name;
+        object = Ablockalypse.instance.getConfig().get(name);
+    }
 
-	Setting(int id, String name) {
-		this.id = id;
-		this.setting = name;
-	}
+    public int getId() {
+        return id;
+    }
 
-	public int getId() {
-		return id;
-	}
+    public String getName() {
+        return setting;
+    }
 
-	public String getName() {
-		return setting;
-	}
+    public Object getSetting() {
+        return object;
+    }
 
-	public Object getSetting() {
-		return object;
-	}
+    public void set(Object object) {
+        this.object = object;
+    }
 
-	public void set(Object object) {
-		this.object = object;
-	}
-	
-	static {
-		FileConfiguration config = Ablockalypse.instance.getConfig();
-		for (Setting setting : values()) {
-			setting.set(config.get(setting.getName()));
-			BY_ID.put(setting.id, setting);
-		}
-	}
+    static {
+        for (Setting setting : values())
+            BY_ID.put(setting.id, setting);
+    }
 }

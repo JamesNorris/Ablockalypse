@@ -14,7 +14,7 @@ import com.github.JamesNorris.Event.MessageTransferEvent;
 import com.google.common.collect.Maps;
 
 public enum ZAEventType {
-	//@formatter:off
+    //@formatter:off
 	GAMECREATEEVENT(1, "A new Ablockalypse game @game@ has been created by player @player@.", GameCreateEvent.class),
 	GAMEENDEVENT(2, "The Ablockalypse game @game@ has ended.", GameEndEvent.class),
 	GAMEMOBDEATHEVENT(3, "A mob in the Ablockalypse game @game@ has been killed. There are @mobcount@ mobs left in level @level@.", GameMobDeathEvent.class),
@@ -25,36 +25,33 @@ public enum ZAEventType {
 	LASTSTANDEVENT(8, "Player @player@ in game @game@ has been @laststandstatus@.", LastStandEvent.class),
 	MESSAGETRANSFEREVENT(9, "<SHOULD NOT BE SENT DUE TO LOOPING>", MessageTransferEvent.class);
 	//@formatter:on
-	//
-	private final static Map<Integer, ZAEventType> BY_ID = Maps.newHashMap();
+    //
+    private final static Map<Integer, ZAEventType> BY_ID = Maps.newHashMap();
+    private final Class<?> clazz;
+    private final int id;
+    private final String xmppmessage;
 
-	private final Class<?> clazz;
+    ZAEventType(int id, String xmppmessage, Class<?> clazz) {
+        this.id = id;
+        this.xmppmessage = xmppmessage;
+        this.clazz = clazz;
+    }
 
-	private final int id;
+    public Class<?> getAttachedClass() {
+        return clazz;
+    }
 
-	private final String xmppmessage;
+    public int getId() {
+        return id;
+    }
 
-	ZAEventType(int id, String xmppmessage, Class<?> clazz) {
-		this.id = id;
-		this.xmppmessage = xmppmessage;
-		this.clazz = clazz;
-	}
+    public String getXMPPMessage() {
+        return xmppmessage;
+    }
 
-	public Class<?> getAttachedClass() {
-		return clazz;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public String getXMPPMessage() {
-		return xmppmessage;
-	}
-	
-	static {
-		for (ZAEventType type : values()) {
-			BY_ID.put(type.id, type);
-		}
-	}
+    static {
+        for (ZAEventType type : values()) {
+            BY_ID.put(type.id, type);
+        }
+    }
 }

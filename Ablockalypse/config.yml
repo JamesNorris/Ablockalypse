@@ -92,7 +92,6 @@ powerupChance: 5
 
 blinkers: true
 # Makes areas and barriers blink to reveal position and correctness of placement.
-# GREEN = correct, RED = incorrect, BLUE = normal
 
 addedEffects: true
 # Adds extra visual effects to Ablockalypse.

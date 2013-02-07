@@ -12,7 +12,7 @@ commands:
 permissions:
   za.base:
     description: Allows players to use the base command.
-    default: true
+    default: op
   za.create:
     description: Allows players to create/end/maintain ZA games.
     default: op
@@ -21,4 +21,4 @@ permissions:
     default: op
   za.join:
     description: Allows players to join games.
-    default: true
+    default: op

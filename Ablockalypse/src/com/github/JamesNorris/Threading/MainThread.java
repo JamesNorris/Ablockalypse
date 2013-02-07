@@ -27,7 +27,8 @@ public class MainThread extends DataManipulator {
     }
 
     public synchronized void tick() {
-        for (ZAThread thread : data.thread) {
+        for (int i = 0; i < data.threads.size(); i++) {// gets around cmodexception
+            ZAThread thread = data.threads.get(i);
             thread.setCount(thread.getCount() + 1);
             if (thread.runThrough() && (thread.getCount() >= thread.getInterval())) {
                 thread.run();

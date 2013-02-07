@@ -10,13 +10,13 @@ import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Threading.RespawnThread;
 
 public class PlayerRespawn extends DataManipulator implements Listener {
-	/*
-	 * Called when a player respawns.
-	 * Mainly used for sending the player back to the mainframe.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void PRE(PlayerRespawnEvent event) {
-		Player p = event.getPlayer();
-		if (data.players.containsKey(p))
-			new RespawnThread(p, 5, true);
-	}
+    /*
+     * Called when a player respawns.
+     * Mainly used for sending the player back to the mainframe.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST) public void PRE(PlayerRespawnEvent event) {
+        Player p = event.getPlayer();
+        if (data.players.containsKey(p))
+            new RespawnThread(p, 5, true);
+    }
 }

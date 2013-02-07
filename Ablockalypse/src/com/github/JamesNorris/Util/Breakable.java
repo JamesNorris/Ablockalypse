@@ -67,7 +67,7 @@ public class Breakable {
             display.setString("name", name);
         }
     }
-    
+
     public class ByteData extends DataWatcher {
         private byte data;
 

@@ -11,13 +11,13 @@ import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Implementation.GameUndead;
 
 public class EntityBreakDoor extends DataManipulator implements Listener {
-	@EventHandler(priority = EventPriority.HIGHEST) public void EBDE(EntityBreakDoorEvent event) {
-		LivingEntity e = event.getEntity();
-		if (e instanceof Zombie) {
-			Zombie z = (Zombie) e;
-			for (GameUndead gz : data.undead)
-				if (gz.getZombie() == z)
-					event.setCancelled(true);
-		}
-	}
+    @EventHandler(priority = EventPriority.HIGHEST) public void EBDE(EntityBreakDoorEvent event) {
+        LivingEntity e = event.getEntity();
+        if (e instanceof Zombie) {
+            Zombie z = (Zombie) e;
+            for (GameUndead gz : data.undead)
+                if (gz.getZombie() == z)
+                    event.setCancelled(true);
+        }
+    }
 }

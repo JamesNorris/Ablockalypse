@@ -13,19 +13,19 @@ import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 
 public class PlayerQuit extends DataManipulator implements Listener {
-	/*
-	 * Called when a player leaves the server.
-	 * Used for removing a player from the ZAGame when they leave.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void PQE(PlayerQuitEvent event) {
-		Player p = event.getPlayer();
-		if (data.players.containsKey(p)) {
-			ZAPlayerBase zap = data.players.get(p);
-			ZAGame zag = zap.getGame();
-			GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
-			Bukkit.getPluginManager().callEvent(GPLE);
-			if (!GPLE.isCancelled())
-				zag.removePlayer(p);
-		}
-	}
+    /*
+     * Called when a player leaves the server.
+     * Used for removing a player from the ZAGame when they leave.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST) public void PQE(PlayerQuitEvent event) {
+        Player p = event.getPlayer();
+        if (data.players.containsKey(p)) {
+            ZAPlayerBase zap = data.players.get(p);
+            ZAGame zag = zap.getGame();
+            GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
+            Bukkit.getPluginManager().callEvent(GPLE);
+            if (!GPLE.isCancelled())
+                zag.removePlayer(p);
+        }
+    }
 }

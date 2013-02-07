@@ -7,31 +7,31 @@ import org.bukkit.block.Block;
 import com.github.JamesNorris.Enumerated.ZAEffect;
 
 public interface ZALocation {
-	public ZALocation add(double x, double y, double z);
+    public ZALocation add(double x, double y, double z);
 
-	public int getBlockX();
+    public int getBlockX();
 
-	public int getBlockY();
+    public int getBlockY();
 
-	public int getBlockZ();
+    public int getBlockZ();
 
-	public Block getBukkitBlock();
+    public Block getBukkitBlock();
 
-	public Location getBukkitLocation();
+    public Location getBukkitLocation();
 
-	public double getX();
+    public double getX();
 
-	public double getY();
+    public double getY();
 
-	public double getZ();
+    public double getZ();
 
-	public void playEffect(ZAEffect effect);
+    public void playEffect(ZAEffect effect);
 
-	public void remove();
+    public void remove();
 
-	public void setBlock(Material m);
+    public void setBlock(Material m);
 
-	public void spawn(ZAMob mob);
+    public void spawn(ZAMob mob);
 
-	public ZALocation subtract(double x, double y, double z);
+    public ZALocation subtract(double x, double y, double z);
 }

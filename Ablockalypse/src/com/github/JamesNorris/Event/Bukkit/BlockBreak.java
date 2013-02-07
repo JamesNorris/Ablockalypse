@@ -10,14 +10,14 @@ import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
 
 public class BlockBreak implements Listener {
-	/*
-	 * Called when a player breaks a block.
-	 * Mainly used for preventing ZA Players from breaking blocks while in-game.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void BBE(BlockBreakEvent event) {
-		Player p = event.getPlayer();
-		Ablockalypse.getData();
-		if (DataManipulator.data.playerExists(p))
-			event.setCancelled(true);
-	}
+    /*
+     * Called when a player breaks a block.
+     * Mainly used for preventing ZA Players from breaking blocks while in-game.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST) public void BBE(BlockBreakEvent event) {
+        Player p = event.getPlayer();
+        Ablockalypse.getData();
+        if (DataManipulator.data.playerExists(p))
+            event.setCancelled(true);
+    }
 }

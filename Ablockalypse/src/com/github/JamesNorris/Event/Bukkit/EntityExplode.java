@@ -13,18 +13,18 @@ import com.github.JamesNorris.DataManipulator;
 import com.github.JamesNorris.Enumerated.Setting;
 
 public class EntityExplode extends DataManipulator implements Listener {
-	/*
-	 * Called when an entity explodes.
-	 * Used mainly to prevent grenades from doing damage to land.
-	 */
-	@EventHandler(priority = EventPriority.HIGHEST) public void EEE(EntityExplodeEvent event) {
-		Entity e = event.getEntity();
-		if (e.getType() == EntityType.FIREBALL && ProjectileHit.uuids.containsKey(e.getUniqueId())) {
-			event.blockList().clear();
-			Player p = (Bukkit.getPlayer(ProjectileHit.uuids.get(e.getUniqueId())));
-			if (data.playerExists(p))
-				data.getZAPlayer(p).addPoints((Integer) Setting.KILLPOINTINCREASE.getSetting());
-			ProjectileHit.uuids.remove(e.getUniqueId());
-		}
-	}
+    /*
+     * Called when an entity explodes.
+     * Used mainly to prevent grenades from doing damage to land.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST) public void EEE(EntityExplodeEvent event) {
+        Entity e = event.getEntity();
+        if (e.getType() == EntityType.FIREBALL && ProjectileHit.uuids.containsKey(e.getUniqueId())) {
+            event.blockList().clear();
+            Player p = (Bukkit.getPlayer(ProjectileHit.uuids.get(e.getUniqueId())));
+            if (data.playerExists(p))
+                data.getZAPlayer(p).addPoints((Integer) Setting.KILLPOINTINCREASE.getSetting());
+            ProjectileHit.uuids.remove(e.getUniqueId());
+        }
+    }
 }
