@@ -1,11 +1,6 @@
 package com.github.JamesNorris.Threading;
 
-import net.minecraft.server.v1_4_R1.EntityCreature;
-import net.minecraft.server.v1_4_R1.PathEntity;
-import net.minecraft.server.v1_4_R1.PathPoint;
-
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_4_R1.entity.CraftCreature;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -15,6 +10,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Interface.ZAThread;
+import com.github.JamesNorris.Util.Breakable;
 import com.github.JamesNorris.Util.MathAssist;
 
 public class MobTargettingThread extends DataManipulator implements ZAThread {
@@ -66,7 +62,7 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
         this.interval = interval;
         if (autorun)
             setRunThrough(true);
-        data.threads.add(this);
+        addToThreads();
     }
 
     /*
@@ -78,8 +74,7 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
         int Z = l.getBlockZ();
         double modX = (X < loc.getBlockX()) ? speed : -speed;
         double modZ = (Z < loc.getBlockZ()) ? speed : -speed;
-        EntityCreature mob = ((CraftCreature) c).getHandle();
-        mob.setPosition(l.getX() + modX, l.getY(), l.getZ() + modZ);
+        Breakable.getNMSEntityCreature(c).setPosition(l.getX() + modX, l.getY(), l.getZ() + modZ);
     }
 
     /**
@@ -105,10 +100,7 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
      */
     private void moveMob(Location loc) {
         if (p != null || location != null) {
-            EntityCreature mob = ((CraftCreature) c).getHandle();
-            PathEntity path = mob.world.a(mob, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true);
-            mob.setPathEntity(path);
-            mob.getNavigation().a(path, speed);
+            Breakable.setPathEntity(Breakable.getNMSEntityCreature(c), Breakable.getNMSEntityCreature(c).world.a(Breakable.getNMSEntityCreature(c), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), radius, true, false, false, true), speed);
         }
         if (data.barriers.containsKey(location) && location.getBlock().isEmpty() && data.isZAMob(c)) {
             ZAMob zam = data.getZAMob(c);
@@ -119,17 +111,17 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
             remove();
     }
 
-    /*
-     * Checks if all pathpoints to the player are clear.
-     */
-    private boolean pathIsClear(PathEntity pe) {// TODO test
-        for (int i = 0; i < 16; i++) {
-            PathPoint pt = pe.a(i);
-            if (pt != null && !c.getWorld().getBlockAt(pt.a, pt.b, pt.c).isEmpty())
-                return false;
-        }
-        return true;
-    }
+//    /*//TODO fix, not working
+//     * Checks if all pathpoints to the player are clear.
+//     */
+//    private boolean pathIsClear(PathEntity pe) {// TODO test
+//        for (int i = 0; i < 16; i++) {
+//            PathPoint pt = pe.a(i);
+//            if (pt != null && !c.getWorld().getBlockAt(pt.a, pt.b, pt.c).isEmpty())
+//                return false;
+//        }
+//        return true;
+//    }
 
     /*
      * Refreshes the target of the mob.
@@ -221,10 +213,10 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
                 checkpoint(target);
             else
                 moveMob(target);
-            PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
+            //PathEntity pe = ((CraftCreature) c).getHandle().pathEntity;
             Location newloc = c.getLocation();
             if (zam != null && p != null) {
-                if (last.distance(newloc) <= 3 || (pe != null && !pathIsClear(pe)) || target.getWorld() != c.getWorld())
+                if (last.distance(newloc) <= 3 /*|| (pe != null && !pathIsClear(pe))*/ || target.getWorld() != c.getWorld())
                     ++wait;
                 else
                     wait = 0;
