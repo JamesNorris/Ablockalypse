@@ -57,9 +57,10 @@ public class BlinkerThread extends DataManipulator implements ZAThread {
      */
     @Override public void run() {
         running = true;
-        if (game.hasStarted())
+        if (game.hasStarted() && colored) {
+            revertBlocks();
             setRunThrough(false);
-        else {
+        } else {
             if (colored) {
                 revertBlocks();
             } else {
