@@ -263,12 +263,12 @@ public class External {
             External.save(pgds, filelocation + gameData);
             /* map data files */
             for (Location loc : data.mapDataSigns.keySet()) {
-                String[] lines = data.mapDataSigns.get(loc);
-                String newFile = lines[2] + "_mapdata.bin";
+                String gameName = data.mapDataSigns.get(loc);
+                String newFile = gameName + "_mapdata.bin";
                 File saveFile = new File(instance.getDataFolder(), File.separatorChar + mapdatafolderlocation + File.separatorChar + newFile);
                 if (!saveFile.exists())
                     saveFile.createNewFile();
-                External.save(new MapDataStorage(loc, lines), saveFile);
+                External.save(new MapDataStorage(loc, gameName), saveFile);
             }
         } catch (Exception e) {
             e.printStackTrace();

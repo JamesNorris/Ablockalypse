@@ -94,7 +94,7 @@ public class CommandUtil extends DataManipulator {
             		"\nMapdata is a solution to that, and loads physical game objects to the new server/game." +
             		res + "\n---------------------------------------------------------------------------------------");
             //@formatter:on
-            sb.append(r + Local.MAPDATASTORAGESTRING.getSetting() + " " + gr + "When placed, queues a mapdata file");
+            sb.append(g + a + b + " mapdata <game> save - " + res + gr + "Saves a mapdata file for the game given");
             sb.append(g + a + b + " mapdata <game> load - " + res + gr + "Loads a mapdata file to a game map");
         } else {
             sb.append(r + "----- Ablockalypse Help -----");

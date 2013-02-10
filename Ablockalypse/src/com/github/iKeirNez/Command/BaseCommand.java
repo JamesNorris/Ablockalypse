@@ -281,8 +281,18 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
+                        } else if (args[2].equalsIgnoreCase("save")) {
+                            if (sender instanceof Player) {
+                                Player player = (Player) sender;
+                                data.mapDataSigns.put(player.getLocation(), gameName);
+                                replyToSender(sender, ChatColor.GRAY + "Map data queued, all data will be saved to a file on stop. \nPlease note that this data is only a snapshot, and never updates automatically.");
+                            } else {
+                                replyToSender(sender, ChatColor.RED + "You must be a player to save mapdata! (A location on the map is needed)");
+                            }
+                            return true;
                         } else {
-                            replyToSender(sender, ChatColor.RED + "You must provide the final argument 'load'!");
+                            replyToSender(sender, ChatColor.RED + "You must provide the final argument 'load/save'!");
+                            return true;
                         }
                         return true;
                     } else {

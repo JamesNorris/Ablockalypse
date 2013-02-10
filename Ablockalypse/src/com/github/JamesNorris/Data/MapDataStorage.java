@@ -28,8 +28,8 @@ public class MapDataStorage implements Serializable {
      */
     public final Object[/*rows*/][/*columns*/] locDifs;
 
-    public MapDataStorage(Location signLoc, String[] lines) {
-        this.gameName = lines[2];
+    public MapDataStorage(Location baseKey, String gameName) {
+        this.gameName = gameName;
         GlobalData data = DataManipulator.data;
         // get game orientators
         int j = 0;
@@ -39,21 +39,21 @@ public class MapDataStorage implements Serializable {
             GameObject object = game.getAllPhysicalObjects().get(i);
             Location key = object.getDefiningBlocks().get(0).getLocation();
             orientators[i][0] = new SerializableLocation(key);
-            orientators[i][1] = signLoc.getBlockX() - key.getBlockX();
-            orientators[i][2] = signLoc.getBlockY() - key.getBlockY();
-            orientators[i][3] = signLoc.getBlockZ() - key.getBlockZ();
+            orientators[i][1] = baseKey.getBlockX() - key.getBlockX();
+            orientators[i][2] = baseKey.getBlockY() - key.getBlockY();
+            orientators[i][3] = baseKey.getBlockZ() - key.getBlockZ();
             orientators[i][4] = object.getType();
             if (object.getType().equalsIgnoreCase("GameArea"))
                 orientators[i][5] = ((GameArea) object).getPoint(2);
         }
         Location mainframe = game.getMainframe();// mainframe
         orientators[j][0] = new SerializableLocation(mainframe);
-        orientators[j][1] = signLoc.getBlockX() - mainframe.getBlockX();
-        orientators[j][2] = signLoc.getBlockY() - mainframe.getBlockY();
-        orientators[j][3] = signLoc.getBlockZ() - mainframe.getBlockZ();
+        orientators[j][1] = baseKey.getBlockX() - mainframe.getBlockX();
+        orientators[j][2] = baseKey.getBlockY() - mainframe.getBlockY();
+        orientators[j][3] = baseKey.getBlockZ() - mainframe.getBlockZ();
         orientators[j][4] = "Mainframe";
         // done
-        keyLoc = new SerializableLocation(signLoc);
+        keyLoc = new SerializableLocation(baseKey);
         locDifs = orientators;
     }
 
