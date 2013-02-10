@@ -14,7 +14,7 @@ public enum Local {
 	ENCHANTMENTRANDOMSTRING(1, "enchantmentRandomString"), NAMEDBOW(21, "bow"), NAMEDDIAMONDSWORD(19, "diamondSword"), NAMEDGOLDSWORD(20, "goldSword"),
 	NAMEDIRONSWORD(18, "ironSword"), NAMEDSTONESWORD(17, "stoneSword"), NAMEDWOODSWORD(16, "woodSword"), PERKDAMAGESTRING(11, "perkDamageString"), PERKHEALSTRING(9, "perkHealString"), PERKJUGGERNAUTSTRING(24, "perkJuggernautString"),
 	PERKREGENERATIONSTRING(11, "perkRegenerationString"), PERKSPEEDSTRING(10, "perkSpeedString"), WEAPONDIAMONDSTRING(6, "weaponDiamondSwordString"), WEAPONGOLDSTRING(12, "weaponGoldSwordString"), WEAPONGRENADESTRING(13, "weaponGrenadeString"), WEAPONIRONSTRING(5, "weaponIronSwordString"),
-	WEAPONSTONESTRING(4, "weaponStoneSwordString"), WEAPONWOODSTRING(3, "weaponWoodSwordString"), MAPDATASTORAGESTRING(25, "mapDataStorageString"), MAPDATALOADSTRING(26, "mapDataLoadString");
+	WEAPONSTONESTRING(4, "weaponStoneSwordString"), WEAPONWOODSTRING(3, "weaponWoodSwordString");//on 25
 	//@formatter:on
     //
     private final static Map<Integer, Local> BY_ID = Maps.newHashMap();

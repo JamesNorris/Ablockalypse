@@ -18,7 +18,6 @@ areaString: [AREA]
 perkString: [PERK]
 enchantmentString: [ENCHANT]
 weaponString: [WEAPON]
-mapDataStorageString: [MDSTORAGE]
 
 ### Line 3:
 
@@ -37,8 +36,6 @@ weaponIronSwordString: [IRON_SWORD]
 weaponDiamondSwordString: [DIAMOND_SWORD]
 weaponGoldSwordString: [GOLD_SWORD]
 weaponGrenadeString: [GRENADE]
-
-# Map data storage line 3 is the game name.
 
 # A max of 15 characters may be used per string.
 # NOTE: You can find a guide to specific signs here:
