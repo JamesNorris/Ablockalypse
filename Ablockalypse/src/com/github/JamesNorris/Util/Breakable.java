@@ -2,6 +2,8 @@ package com.github.JamesNorris.Util;
 
 import java.util.ArrayList;
 
+//@formatter:off
+//BREAKABLE IMPORTS
 import net.minecraft.server.v1_4_R1.DataWatcher;
 import net.minecraft.server.v1_4_R1.EntityCreature;
 import net.minecraft.server.v1_4_R1.EntityPlayer;
@@ -12,14 +14,16 @@ import net.minecraft.server.v1_4_R1.PathEntity;
 import net.minecraft.server.v1_4_R1.WatchableObject;
 import net.minecraft.server.v1_4_R1.WorldServer;
 
-import org.bukkit.Bukkit;
-import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_4_R1.CraftWorld;
 import org.bukkit.craftbukkit.v1_4_R1.entity.CraftCreature;
 import org.bukkit.craftbukkit.v1_4_R1.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_4_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_4_R1.entity.CraftWolf;
 import org.bukkit.craftbukkit.v1_4_R1.inventory.CraftItemStack;
+//@formatter:on
+
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -65,10 +69,7 @@ public class Breakable {
         public void setName(String name) {
             if (hasDisplay() == false)
                 this.addDisplay();
-            NBTTagCompound display = this.getDisplay();
-            // if (name == null)
-            // display.remove("name");
-            display.setString("name", name);
+            this.getDisplay().setString("name", name);
         }
     }
 
@@ -85,12 +86,12 @@ public class Breakable {
             return list;
         }
     }
-    
+
     public static void setPathEntity(EntityCreature creature, PathEntity path, float speed) {
         creature.setPathEntity(path);
         creature.getNavigation().a(path, speed);
     }
-    
+
     public static EntityCreature getNMSEntityCreature(Creature creature) {
         return ((CraftCreature) creature).getHandle();
     }

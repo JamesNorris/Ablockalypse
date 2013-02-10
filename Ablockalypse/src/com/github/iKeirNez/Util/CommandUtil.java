@@ -86,6 +86,16 @@ public class CommandUtil extends DataManipulator {
             sb.append(g + a + b + " settings <game> - " + res + gr + "Shows the settings of a game");
             sb.append(g + a + b + " settings <game> <setting> <boolean> - " + res + gr + "Changes a setting of a game");
             sb.append(g + "" + b + "Settings: " + res + g + " FF (Friendly Fire)");
+        } else if (args.length == 2 && args[1].equalsIgnoreCase("mapdata") && s.hasPermission("za.create")) {
+            //@formatter:off
+            sb.append(gr + "Mapdata is an innovative new way to deliver maps from one server to another. " +
+            		"\nWhen Ablockalypse was first created so that map packs would be released, but we ran into a problem. " +
+            		"\nThe problem was that physical game objects (barriers, etc) could not be moved to other games. " +
+            		"\nMapdata is a solution to that, and loads physical game objects to the new server/game." +
+            		res + "\n---------------------------------------------------------------------------------------");
+            //@formatter:on
+            sb.append(r + Local.MAPDATASTORAGESTRING.getSetting() + " " + gr + "When placed, queues a mapdata file");
+            sb.append(g + a + b + " mapdata <game> load - " + res + gr + "Loads a mapdata file to a game map");
         } else {
             sb.append(r + "----- Ablockalypse Help -----");
             sb.append(g + a + b + " info - " + res + gr + "Shows info about Ablockalypse");
@@ -96,6 +106,7 @@ public class CommandUtil extends DataManipulator {
                 sb.append(g + a + b + " help sign - " + res + gr + "Shows sign commandline requirements");
                 sb.append(g + a + b + " help setup - " + res + gr + "Shows how to setup games");
                 sb.append(g + a + b + " help settings - " + res + gr + "Shows changeable game settings");
+                sb.append(g + a + b + " help mapdata - " + res + gr + "Shows advanced map creation help");
             }
         }
         MiscUtil.replyToSender(s, sb.toString());

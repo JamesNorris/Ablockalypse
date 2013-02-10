@@ -1,5 +1,7 @@
 package com.github.iKeirNez.Command;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -9,6 +11,8 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.External;
+import com.github.JamesNorris.Data.MapDataStorage;
 import com.github.JamesNorris.Event.GameCreateEvent;
 import com.github.JamesNorris.Event.GamePlayerLeaveEvent;
 import com.github.JamesNorris.Event.Bukkit.PlayerInteract;
@@ -257,6 +261,32 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                         return true;
                     } else {
                         replyToSender(sender, ChatColor.RED + "Incorrect syntax! You must provide the name of a game, a setting, and a boolean!");
+                        return true;
+                    }
+                } else {
+                    replyToSender(sender, noMaintainPerms);
+                    return true;
+                }
+            } else if (args[0].equalsIgnoreCase("mapdata")) {
+                if (sender.hasPermission("za.create")) {
+                    if (args.length == 3) {
+                        String gameName = args[1];
+                        if (args[2].equalsIgnoreCase("load")) {
+                            String oldFile = gameName + "_mapdata.bin";
+                            File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + "map_data" + File.separatorChar + oldFile);
+                            try {
+                                MapDataStorage mds = (MapDataStorage) External.load(saveFile.getPath());
+                                mds.loadToGame(data.findGame(gameName));
+                                replyToSender(sender, ChatColor.GRAY + "Map data loaded! \nPlease note that this is a single event, and is not constantly updated/loaded.");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        } else {
+                            replyToSender(sender, ChatColor.RED + "You must provide the final argument 'load'!");
+                        }
+                        return true;
+                    } else {
+                        replyToSender(sender, ChatColor.RED + "Incorrect syntax! /za mapdata <game> load - is correct!");
                         return true;
                     }
                 } else {

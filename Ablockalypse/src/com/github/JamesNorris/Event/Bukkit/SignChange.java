@@ -1,7 +1,5 @@
 package com.github.JamesNorris.Event.Bukkit;
 
-import java.io.File;
-
 import org.bukkit.ChatColor;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -10,11 +8,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 
-import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
-import com.github.JamesNorris.External;
 import com.github.JamesNorris.MessageTransfer;
-import com.github.JamesNorris.Data.MapDataStorage;
 import com.github.JamesNorris.Enumerated.Local;
 import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Enumerated.ZAEffect;
@@ -41,26 +36,12 @@ public class SignChange extends DataManipulator implements Listener {
                 MessageTransfer.sendMessage(sm);
                 return;
             }
-        } else if (lines[1].equalsIgnoreCase(Local.MAPDATASTORAGESTRING.getSetting())) {
+        } else if (lines[1].equalsIgnoreCase(Local.MAPDATASTORAGESTRING.getSetting()) && player.hasPermission("za.create")) {
             data.mapDataSigns.put(sign.getLocation(), lines);
-            SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, ChatColor.GRAY + "Map data created, all data will be saved to a file on stop. \nPlease note that this data is only current, and never updates.");
+            SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, ChatColor.GRAY + "Map data queued, all data will be saved to a file on stop. \nPlease note that this data is only a snapshot, and never updates automatically.");
             sm.setExceptionBased(false);
             sm.addTarget(player.getName());
             MessageTransfer.sendMessage(sm);
-            return;
-        } else if (lines[1].equalsIgnoreCase(Local.MAPDATALOADSTRING.getSetting())) {
-            String oldFile = lines[2] + "_mapdata.bin";
-            File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + "map_data" + File.separatorChar + oldFile);
-            try {
-                MapDataStorage mds = (MapDataStorage) External.load(saveFile.getPath());
-                mds.loadToGame(data.findGame(lines[2]), sign.getLocation());
-                SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_PRIVATE, ChatColor.GRAY + "Map data loaded! \nPlease note that this is a single event, and is not constantly updated/loaded.");
-                sm.setExceptionBased(false);
-                sm.addTarget(player.getName());
-                MessageTransfer.sendMessage(sm);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
             return;
         }
     }

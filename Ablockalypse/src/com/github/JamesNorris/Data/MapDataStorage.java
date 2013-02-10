@@ -57,7 +57,8 @@ public class MapDataStorage implements Serializable {
         locDifs = orientators;
     }
 
-    public void loadToGame(ZAGame game, Location key) {
+    public void loadToGame(ZAGame game) {
+        Location key = SerializableLocation.returnLocation(keyLoc);
         for (int i = 0; i < locDifs.length; i++) {
             Location loc = SerializableLocation.returnLocation((SerializableLocation) locDifs[i][0]);
             int Xdif = (Integer) locDifs[i][1];
