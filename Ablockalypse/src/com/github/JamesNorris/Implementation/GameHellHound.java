@@ -247,4 +247,8 @@ public class GameHellHound extends DataManipulator implements HellHound, GameObj
     @Override public String getType() {
         return "GameHellHound";
     }
+
+    @Override public Block getDefiningBlock() {
+        return wolf.getLocation().getBlock();
+    }
 }

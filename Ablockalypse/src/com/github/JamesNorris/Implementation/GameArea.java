@@ -201,4 +201,8 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
     @Override public String getType() {
         return "GameArea";
     }
+
+    @Override public Block getDefiningBlock() {
+        return loc1.getBlock();
+    }
 }

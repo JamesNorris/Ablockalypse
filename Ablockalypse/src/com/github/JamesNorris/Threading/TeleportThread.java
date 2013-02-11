@@ -17,6 +17,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
     private int time, count = 0, interval;
     private ZAPlayer zaplayer;
     private boolean runThrough = false;
+    private EntitySpinThread spinner;
 
     /**
      * Creates an instance of the thread for teleporting a player.
@@ -31,6 +32,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
         this.interval = interval;
         player = zaplayer.getPlayer();
         loc = zaplayer.getPlayer().getLocation();
+        spinner = new EntitySpinThread(player, 100, 10, false, 1);
         if (autorun)
             setRunThrough(true);
         addToThreads();
@@ -79,6 +81,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
 
     @Override public void run() {
         zaplayer.setTeleporting(true);
+        spinner.setRunThrough(true);
         if (time != 0) {
             if (!sameLocation()) {
                 remove();
@@ -94,6 +97,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
             zaplayer.sendToMainframe("Teleport");
             EffectUtil.generateEffect(player, player.getLocation(), ZAEffect.SMOKE);
             zaplayer.setTeleporting(false);
+            spinner.setRunThrough(false);
             remove();
         }
     }

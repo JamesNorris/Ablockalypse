@@ -426,4 +426,8 @@ public class GameBarrier extends DataManipulator implements Barrier, GameObject,
     @Override public String getType() {
         return "GameBarrier";
     }
+
+    @Override public Block getDefiningBlock() {
+        return center.getBlock();
+    }
 }

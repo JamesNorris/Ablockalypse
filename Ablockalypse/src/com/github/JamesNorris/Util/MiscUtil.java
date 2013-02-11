@@ -54,6 +54,12 @@ public class MiscUtil {
         return i;
     }
 
+    public static boolean locationMatch(Location loc1, Location loc2) {
+        if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ())
+            return true;
+        return false;
+    }
+
     /**
      * Gets the second chest next to the location of the block given.
      * 

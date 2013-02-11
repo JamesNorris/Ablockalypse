@@ -147,4 +147,8 @@ public class GameMobSpawner extends DataManipulator implements ZALocation, Blink
     @Override public String getType() {
         return "GameMobSpawner";
     }
+
+    @Override public Block getDefiningBlock() {
+        return block;
+    }
 }

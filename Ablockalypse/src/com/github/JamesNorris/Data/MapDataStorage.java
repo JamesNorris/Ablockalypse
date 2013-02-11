@@ -12,6 +12,7 @@ import com.github.JamesNorris.Implementation.GameMysteryChest;
 import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Interface.GameObject;
 import com.github.JamesNorris.Interface.ZAGame;
+import com.github.JamesNorris.Util.GameObjectDifference;
 import com.github.JamesNorris.Util.SerializableLocation;
 
 public class MapDataStorage implements Serializable {
@@ -20,13 +21,10 @@ public class MapDataStorage implements Serializable {
     private final String gameName;
     /**
      * [i][0] = SerializableLocation of the orientator
-     * [i][1] = X int difference from key
-     * [i][2] = Y int difference from key
-     * [i][3] = Z int difference from key
-     * [i][4] = The string that matches the class name of object of the orientator
-     * [i][5] = Extra attachment that may return null
+     * [i][1] = The string that matches the class name of object of the orientator
+     * [i][2] = Extra attachment that may return null
      */
-    public final Object[/*rows*/][/*columns*/] locDifs;
+    public final GameObjectDifference[] locDifs;
 
     public MapDataStorage(Location baseKey, String gameName) {
         this.gameName = gameName;
@@ -34,48 +32,48 @@ public class MapDataStorage implements Serializable {
         // get game orientators
         int j = 0;
         ZAGame game = data.findGame(gameName);
-        Object[][] orientators = new Object[game.getAllPhysicalObjects().size() + 1][6];
+        GameObjectDifference[] orientators = new GameObjectDifference[game.getAllPhysicalObjects().size() + 2];
         for (int i = j; i < game.getAllPhysicalObjects().size(); i++) {
             GameObject object = game.getAllPhysicalObjects().get(i);
-            Location key = object.getDefiningBlocks().get(0).getLocation();
-            orientators[i][0] = new SerializableLocation(key);
-            orientators[i][1] = baseKey.getBlockX() - key.getBlockX();
-            orientators[i][2] = baseKey.getBlockY() - key.getBlockY();
-            orientators[i][3] = baseKey.getBlockZ() - key.getBlockZ();
-            orientators[i][4] = object.getType();
-            if (object.getType().equalsIgnoreCase("GameArea"))
-                orientators[i][5] = ((GameArea) object).getPoint(2);
+            Location key = object.getDefiningBlock().getLocation();
+            GameObjectDifference dif = new GameObjectDifference(key, baseKey, object.getType());
+            orientators[i] = dif;
+            if (object.getType() .equalsIgnoreCase("GameArea"))
+                dif.addSecondLocation(((GameArea) object).getPoint(2), baseKey);
         }
         Location mainframe = game.getMainframe();// mainframe
-        orientators[j][0] = new SerializableLocation(mainframe);
-        orientators[j][1] = baseKey.getBlockX() - mainframe.getBlockX();
-        orientators[j][2] = baseKey.getBlockY() - mainframe.getBlockY();
-        orientators[j][3] = baseKey.getBlockZ() - mainframe.getBlockZ();
-        orientators[j][4] = "Mainframe";
-        // done
+        orientators[orientators.length - 1] = new GameObjectDifference(mainframe, baseKey, "Mainframe");
         keyLoc = new SerializableLocation(baseKey);
         locDifs = orientators;
     }
+    
+    public boolean possibleKey(Location test) {
+        for (GameObjectDifference dif : locDifs) {
+            if (dif.typeid != test.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif).getBlock().getTypeId()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-    public void loadToGame(ZAGame game) {
-        Location key = SerializableLocation.returnLocation(keyLoc);
+    public void loadToGame(Location baseKey, ZAGame game) {
         for (int i = 0; i < locDifs.length; i++) {
-            Location loc = SerializableLocation.returnLocation((SerializableLocation) locDifs[i][0]);
-            int Xdif = (Integer) locDifs[i][1];
-            int Ydif = (Integer) locDifs[i][2];
-            int Zdif = (Integer) locDifs[i][3];
-            Location calculated = key.add(Xdif, Ydif, Zdif);
-            String type = (String) locDifs[i][4];
-            if (type.equalsIgnoreCase("GameBarrier"))
-                game.addBarrier(new GameBarrier(calculated.getBlock(), (ZAGameBase) game));
-            else if (type.equalsIgnoreCase("GameMobSpawner"))
-                game.addMobSpawner(new GameMobSpawner(calculated, game));
-            else if (type.equalsIgnoreCase("GameArea"))
-                game.addArea(new GameArea((ZAGameBase) game, loc, SerializableLocation.returnLocation((SerializableLocation) locDifs[i][5])));
-            else if (type.equalsIgnoreCase("GameMysteryChest"))
-                game.addMysteryChest(new GameMysteryChest(calculated.getBlock(), game, calculated, game.getActiveMysteryChest() == null));
-            else if (type.equalsIgnoreCase("Mainframe"))
-                game.setMainframe(calculated);
+            if (locDifs[i] != null) {
+                GameObjectDifference dif = locDifs[i];
+                Location calculated = baseKey.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif);
+                Location calculated2 = baseKey.clone().add(-dif.Xdif2, -dif.Ydif2, -dif.Zdif2);
+                String type = dif.type;
+                if (type.equalsIgnoreCase("GameBarrier"))
+                    game.addBarrier(new GameBarrier(calculated.getBlock(), (ZAGameBase) game));
+                else if (type.equalsIgnoreCase("GameMobSpawner"))
+                    game.addMobSpawner(new GameMobSpawner(calculated, game));
+                else if (type.equalsIgnoreCase("GameArea"))
+                    game.addArea(new GameArea((ZAGameBase) game, calculated, calculated2));
+                else if (type.equalsIgnoreCase("GameMysteryChest"))
+                    game.addMysteryChest(new GameMysteryChest(calculated.getBlock(), game, calculated, game.getActiveMysteryChest() == null));
+                else if (type.equalsIgnoreCase("Mainframe"))
+                    game.setMainframe(calculated);
+            }
         }
     }
 
@@ -83,7 +81,7 @@ public class MapDataStorage implements Serializable {
         return SerializableLocation.returnLocation(keyLoc);
     }
 
-    public Object[][] getData() {
+    public GameObjectDifference[] getData() {
         return locDifs;
     }
 

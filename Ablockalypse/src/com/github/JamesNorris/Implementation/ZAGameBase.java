@@ -9,6 +9,7 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.github.JamesNorris.DataManipulator;
@@ -68,16 +69,20 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
      * Attaches an area to this game.
      */
     @Override public void addArea(GameArea ga) {
-        areas.add(ga);
-        blinkable.add(ga);
+        if (!overlapsAnotherObject(ga.getPoint(1)) && !overlapsAnotherObject(ga.getPoint(2))) {
+            areas.add(ga);
+            blinkable.add(ga);
+        }
     }
 
     /**
      * Attaches a barrier to this game.
      */
     @Override public void addBarrier(GameBarrier gb) {
-        barriers.add(gb);
-        blinkable.add(gb);
+        if (!overlapsAnotherObject(gb.getCenter())) {
+            barriers.add(gb);
+            blinkable.add(gb);
+        }
     }
 
     /**
@@ -86,9 +91,11 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
      * @param l The location to put the spawner at
      */
     @Override public void addMobSpawner(GameMobSpawner l) {
-        spawners.add(l);
-        blinkable.add(l);
-        data.spawns.put(this, l);
+        if (!overlapsAnotherObject(l.getBukkitLocation())) {
+            spawners.add(l);
+            blinkable.add(l);
+            data.spawns.put(this, l);
+        }
     }
 
     /**
@@ -97,8 +104,27 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
      * @param mc The chest to add to the game
      */
     @Override public void addMysteryChest(MysteryChest mc) {
-        chests.add(mc);
-        blinkable.add(mc);
+        if (!overlapsAnotherObject(mc.getLocation())) {
+            chests.add(mc);
+            blinkable.add(mc);
+        }
+    }
+
+    private boolean overlapsAnotherObject(Location loc) {
+        for (GameObject object : getAllPhysicalObjects()) {
+            if (object instanceof GameArea) {
+                GameArea ga = (GameArea) object;
+                if (MiscUtil.locationMatch(loc, ga.getPoint(1)) || MiscUtil.locationMatch(loc, ga.getPoint(2)))
+                    return true;
+            } else {
+                for (Block block : object.getDefiningBlocks()) {
+                    Location bLoc = block.getLocation();
+                    if (MiscUtil.locationMatch(loc, bLoc))
+                        return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -113,12 +139,14 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
             zap.loadPlayerToGame(name);
             zap.addPoints(startpoints);
         }
-        players.put(player.getName(), startpoints);
-        broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
-        if (paused)
-            pause(false);
-        if (!started)
-            nextLevel();
+        if (!players.containsKey(player.getName())) {
+            players.put(player.getName(), startpoints);
+            broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
+            if (paused)
+                pause(false);
+            if (!started)
+                nextLevel();
+        }
     }
 
     /**
@@ -449,6 +477,8 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
      */
     @Override public void remove() {
         end();
+        for (GameObject object : getAllPhysicalObjects())
+            object.remove();
         data.games.remove(name);
     }
 

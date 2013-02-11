@@ -30,4 +30,6 @@ public interface GameObject {
      * @return The name of this type of object
      */
     public String getType();
+    
+    public Block getDefiningBlock();
 }

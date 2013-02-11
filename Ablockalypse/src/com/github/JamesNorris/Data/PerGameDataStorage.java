@@ -6,12 +6,17 @@ import java.util.HashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.DataManipulator;
+import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
 import com.github.JamesNorris.Implementation.GameArea;
 import com.github.JamesNorris.Implementation.GameBarrier;
+import com.github.JamesNorris.Implementation.GameMobSpawner;
+import com.github.JamesNorris.Implementation.GameMysteryChest;
+import com.github.JamesNorris.Implementation.ZAGameBase;
 import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.MysteryChest;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -62,6 +67,49 @@ public class PerGameDataStorage implements Serializable {// TODO annotations
         }
         for (ZALocation l : game.getMobSpawners())
             spawns.add(new SerializableLocation(l.getBukkitLocation()));
+    }
+    
+    public void load(GlobalData data) {
+        String name = getName();
+        ZAGame zag = data.findGame(name);
+        if (getMainframe() != null)
+            zag.setMainframe(getMainframe());
+        int level = getLevel();
+        int setLevel = (zag.getPlayers().size() > 0) ? level : 0;
+        zag.setLevel(setLevel);
+        for (PerPlayerDataStorage spds : getPlayerData()) {
+            Player p = Bukkit.getPlayer(spds.getName());
+            Ablockalypse.getData();
+            if (!DataManipulator.data.playerExists(p))
+                new ZAPlayerBase(p, data.findGame(spds.getGameName()));
+            if (p.isOnline() && data.playerExists(p)) {
+                ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
+                if (zag.getLevel() < spds.getGameLevel()) {
+                    zag.setLevel(spds.getGameLevel());
+                    spds.loadToPlayer(zap);
+                }
+            } else {
+                PlayerJoin.offlinePlayers.put(p.getName(), spds);
+            }
+        }
+        for (Location l : getBarrierLocations())
+            new GameBarrier(l.getBlock(), (ZAGameBase) data.findGame(name));
+        for (Location l : getAreaPoints().keySet()) {
+            Location l2 = getAreaPoints().get(l);
+            if (l2 != null) {
+                GameArea a = new GameArea((ZAGameBase) zag, l, l2);
+                if (isAreaOpen(l))
+                    a.open();
+            }
+        }
+        for (Location l : getMysteryChestLocations()) {
+            Block b = l.getBlock();
+            zag.addMysteryChest(new GameMysteryChest(b.getState(), zag, b.getLocation(), (getActiveChest() == l && zag.getActiveMysteryChest() == null)));
+        }
+        for (Location l : getMobSpawnerLocations()) {
+            GameMobSpawner zaloc = new GameMobSpawner(l, zag);
+            zag.addMobSpawner(zaloc);
+        }
     }
 
     public Location getActiveChest() {

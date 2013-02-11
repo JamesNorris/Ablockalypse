@@ -645,4 +645,8 @@ public class ZAPlayerBase extends DataManipulator implements ZAPlayer, GameObjec
     @Override public String getType() {
         return "ZAPlayerBase";
     }
+
+    @Override public Block getDefiningBlock() {
+        return player.getLocation().getBlock();
+    }
 }

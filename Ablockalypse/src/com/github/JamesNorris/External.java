@@ -1,5 +1,6 @@
 package com.github.JamesNorris;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,25 +12,15 @@ import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.GlobalData;
 import com.github.JamesNorris.Data.MapDataStorage;
 import com.github.JamesNorris.Data.PerGameDataStorage;
-import com.github.JamesNorris.Data.PerPlayerDataStorage;
 import com.github.JamesNorris.Enumerated.MessageDirection;
-import com.github.JamesNorris.Event.Bukkit.PlayerJoin;
-import com.github.JamesNorris.Implementation.GameArea;
-import com.github.JamesNorris.Implementation.GameBarrier;
-import com.github.JamesNorris.Implementation.GameMobSpawner;
-import com.github.JamesNorris.Implementation.GameMysteryChest;
-import com.github.JamesNorris.Implementation.ZAGameBase;
-import com.github.JamesNorris.Implementation.ZAPlayerBase;
 import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Util.SpecificMessage;
 
@@ -114,47 +105,10 @@ public class External {
             /* game_data.bin */
             ArrayList<PerGameDataStorage> saved_data = External.load(filelocation + gameData);
             for (PerGameDataStorage pgds : saved_data) {
-                String name = pgds.getName();
-                ZAGame zag = data.findGame(name);
-                if (pgds.getMainframe() != null)
-                    zag.setMainframe(pgds.getMainframe());
-                int level = pgds.getLevel();
-                int setLevel = (zag.getPlayers().size() > 0) ? level : 0;
-                zag.setLevel(setLevel);
-                for (PerPlayerDataStorage spds : pgds.getPlayerData()) {
-                    Player p = Bukkit.getPlayer(spds.getName());
-                    Ablockalypse.getData();
-                    if (!DataManipulator.data.playerExists(p))
-                        new ZAPlayerBase(p, data.findGame(spds.getGameName()));
-                    if (p.isOnline() && data.playerExists(p)) {
-                        ZAPlayerBase zap = (ZAPlayerBase) data.getZAPlayer(p);
-                        if (zag.getLevel() < spds.getGameLevel()) {
-                            zag.setLevel(spds.getGameLevel());
-                            spds.loadToPlayer(zap);
-                        }
-                    } else {
-                        PlayerJoin.offlinePlayers.put(p.getName(), spds);
-                    }
-                }
-                for (Location l : pgds.getBarrierLocations())
-                    new GameBarrier(l.getBlock(), (ZAGameBase) data.findGame(name));
-                for (Location l : pgds.getAreaPoints().keySet()) {
-                    Location l2 = pgds.getAreaPoints().get(l);
-                    if (l2 != null) {
-                        GameArea a = new GameArea((ZAGameBase) zag, l, l2);
-                        if (pgds.isAreaOpen(l))
-                            a.open();
-                    }
-                }
-                for (Location l : pgds.getMysteryChestLocations()) {
-                    Block b = l.getBlock();
-                    zag.addMysteryChest(new GameMysteryChest(b.getState(), zag, b.getLocation(), (pgds.getActiveChest() == l && zag.getActiveMysteryChest() == null)));
-                }
-                for (Location l : pgds.getMobSpawnerLocations()) {
-                    GameMobSpawner zaloc = new GameMobSpawner(l, zag);
-                    zag.addMobSpawner(zaloc);
-                }
+                pgds.load(data);
             }
+        } catch (EOFException e) {
+            System.err.println("The saved_data.bin file could not be found while loading!");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -223,17 +177,6 @@ public class External {
     }
 
     /**
-     * Save an object to a file
-     * 
-     * @param object The object to be saved to the file
-     * @param file The file to save to
-     * @throws Exception
-     */
-    public static <O extends Object> void save(O object, File file) throws Exception {
-        External.save(object, file.getPath());
-    }
-
-    /**
      * Saves the configuration specified.
      * 
      * @param f The File to save
@@ -265,11 +208,13 @@ public class External {
             for (Location loc : data.mapDataSigns.keySet()) {
                 String gameName = data.mapDataSigns.get(loc);
                 String newFile = gameName + "_mapdata.bin";
-                File saveFile = new File(instance.getDataFolder(), File.separatorChar + mapdatafolderlocation + File.separatorChar + newFile);
+                File saveFile = new File(instance.getDataFolder(), File.separatorChar + mapdatafolderlocation + newFile);
                 if (!saveFile.exists())
                     saveFile.createNewFile();
-                External.save(new MapDataStorage(loc, gameName), saveFile);
+                External.save(new MapDataStorage(loc, gameName), filelocation + mapdatafolderlocation + newFile);
             }
+        } catch  (EOFException e) {
+            System.err.println("The saved_data.bin file could not be found while saving!");
         } catch (Exception e) {
             e.printStackTrace();
         }

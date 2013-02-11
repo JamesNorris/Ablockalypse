@@ -238,4 +238,8 @@ public class GameUndead extends DataManipulator implements Undead, GameObject {
     @Override public String getType() {
         return "GameUndead";
     }
+
+    @Override public Block getDefiningBlock() {
+        return zombie.getLocation().getBlock();
+    }
 }

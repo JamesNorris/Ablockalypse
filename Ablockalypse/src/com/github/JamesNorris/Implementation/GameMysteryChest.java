@@ -38,6 +38,7 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
     private Location[] locs;
     private Random rand;
     private int uses;
+    private Location loc;
 
     /**
      * Creates a new instance of the GameMysteryChest.
@@ -45,6 +46,7 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
      * @param chest The chest to be made into this instance
      */
     public GameMysteryChest(Object chest, ZAGame game, Location loc, boolean active) {
+        this.loc = loc;
         data.objects.add(this);
         Block b2 = MiscUtil.getSecondChest(loc.getBlock());
         this.locs = (b2 != null) ? new Location[] {loc, b2.getLocation()} : new Location[] {loc};
@@ -122,7 +124,7 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
      * @return The location of the chest
      */
     @Override public Location getLocation() {
-        return locs[1];
+        return locs[0];
     }
 
     /**
@@ -234,5 +236,9 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
 
     @Override public String getType() {
         return "GameMysteryChest";
+    }
+
+    @Override public Block getDefiningBlock() {
+        return loc.getBlock();
     }
 }

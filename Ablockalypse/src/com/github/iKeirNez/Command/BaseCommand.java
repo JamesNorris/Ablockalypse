@@ -272,14 +272,24 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     if (args.length == 3) {
                         String gameName = args[1];
                         if (args[2].equalsIgnoreCase("load")) {
-                            String oldFile = gameName + "_mapdata.bin";
-                            File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + "map_data" + File.separatorChar + oldFile);
-                            try {
-                                MapDataStorage mds = (MapDataStorage) External.load(saveFile.getPath());
-                                mds.loadToGame(data.findGame(gameName));
-                                replyToSender(sender, ChatColor.GRAY + "Map data loaded! \nPlease note that this is a single event, and is not constantly updated/loaded.");
-                            } catch (Exception e) {
-                                e.printStackTrace();
+                            if (sender instanceof Player) {
+                                Player player = (Player) sender;
+                                String oldFile = gameName + "_mapdata.bin";
+                                File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + "map_data" + File.separatorChar + oldFile);
+                                try {
+                                    MapDataStorage mds = (MapDataStorage) External.load(saveFile.getPath());
+                                    if (mds.possibleKey(player.getLocation())) {
+                                        mds.loadToGame(player.getLocation(), data.findGame(gameName));
+                                        replyToSender(sender, ChatColor.GRAY + "Map data loaded! \nPlease note that this is a single event, and is not constantly updated/loaded.");
+                                    } else {
+                                        replyToSender(sender, ChatColor.RED + "That is not a valid key to load mapdata from! \nPlease move to the location relative to the objects at which the mapdata was saved!");
+                                        return true;
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                replyToSender(sender, ChatColor.RED + "You must be a player to load mapdata! (A location on the map is needed)");
                             }
                         } else if (args[2].equalsIgnoreCase("save")) {
                             if (sender instanceof Player) {

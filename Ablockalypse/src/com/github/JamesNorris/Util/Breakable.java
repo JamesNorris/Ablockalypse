@@ -143,9 +143,9 @@ public class Breakable {
      * @param tf Whether or not to make the player stand up or sit down
      */
     public static void setSitting(Player player, boolean tf) {
+        byte b1 = (tf) ? (byte) 0x04 : (byte) 0x00;
         for (Player p : Bukkit.getOnlinePlayers()) {
             EntityPlayer ep = Breakable.getNMSPlayer(p);
-            byte b1 = (tf) ? (byte) 0x04 : (byte) 0x00;
             ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), (new Breakable()).new ByteData(b1), true));
         }
         double modY = (tf) ? -.5 : .5;
