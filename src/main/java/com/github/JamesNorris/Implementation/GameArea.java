@@ -20,7 +20,6 @@ import com.github.JamesNorris.Util.EffectUtil;
 import com.github.JamesNorris.Util.Rectangle;
 import com.github.JamesNorris.Util.SoundUtil;
 
-
 public class GameArea extends DataManipulator implements Area, GameObject, Blinkable {
     private BlinkerThread bt;
     private Location loc1, loc2;
