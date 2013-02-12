@@ -1,0 +1,24 @@
+name: Ablockalypse
+authors: [JamesNorris, iKeirNez]
+version: 1.2.6
+main: com.github.Ablockalypse
+description: Extreme Zombie Ablockalypse plugin for bukkit servers.
+prefix: Ablockalypse
+commands:
+  za:
+    description: Base command for Zombie Ablockalypse
+    permission: za.base
+    usage: Incorrect Syntax, '/za' is correct usage.
+permissions:
+  za.base:
+    description: Allows players to use the base command.
+    default: op
+  za.create:
+    description: Allows players to create/end/maintain ZA games.
+    default: op
+  za.sign:
+    description: Allows players to place ZA signs.
+    default: op
+  za.join:
+    description: Allows players to join games.
+    default: op
