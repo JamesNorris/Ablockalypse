@@ -24,7 +24,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
      * 
      * @param zaplayer The player to countdown for, as a ZAPlayer instance
      * @param time The time before the countdown stops
-     * @param countdown Whether or not to run the thread automatically
+     * @param autorun Whether or not to run the thread automatically
      */
     public TeleportThread(ZAPlayer zaplayer, int time, boolean autorun, int interval) {
         this.zaplayer = zaplayer;

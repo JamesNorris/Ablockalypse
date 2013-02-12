@@ -62,7 +62,6 @@ public class External {
      * Gets the configuration specified
      * 
      * @param f The File to get
-     * @param fc The FileConfiguration to use
      * @param path The path of the file
      */
     public static FileConfiguration getConfig(File f, String path) {
@@ -150,7 +149,6 @@ public class External {
      * Reloads the configuration specified.
      * 
      * @param f The File to reload
-     * @param fc The FileConfiguration to use
      * @param path The path of the file
      */
     public static void reloadConfig(File f, String path) {

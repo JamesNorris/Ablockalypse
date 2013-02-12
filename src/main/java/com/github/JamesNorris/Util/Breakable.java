@@ -129,7 +129,7 @@ public class Breakable {
     /**
      * Gets the WorldServer from the NMS code for the specified world.
      * 
-     * @param wolf The world to get
+     * @param world The world to get
      * @return The NMS WorldServer
      */
     public static WorldServer getNMSWorld(World world) {

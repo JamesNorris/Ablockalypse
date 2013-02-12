@@ -25,7 +25,7 @@ public class BlinkerThread extends DataManipulator implements ZAThread {
     /**
      * Creates a new thread that makes a block blink a colored wool.
      * 
-     * @param b The blocks to flicker
+     * @param blocks The blocks to flicker
      * @param color The color to blink
      * @param autorun Whether or not to automatically run the thread
      * @param interval The delay between blinks

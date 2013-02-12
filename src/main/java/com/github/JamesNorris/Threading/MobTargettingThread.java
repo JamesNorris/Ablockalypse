@@ -187,7 +187,7 @@ public class MobTargettingThread extends DataManipulator implements ZAThread {
     /**
      * Changes the target of the mob.
      * 
-     * @param l The new target
+     * @param p The new target
      */
     public void setTarget(Player p) {
         setRunThrough(false);

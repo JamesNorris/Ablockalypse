@@ -51,8 +51,6 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
      * Creates a new instance of a game.
      * 
      * @param name The name of the ZAGame
-     * @param cd The ConfigurationData instance used
-     * @param spawners Whether or not spawners should be loaded automatically
      */
     @SuppressWarnings("unchecked") public ZAGameBase(String name) {
         this.name = name;
@@ -456,7 +454,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
         }
         if (wolfLevels != null && wolfLevels.contains(level))
             wolfRound = true;
-        if (paused == true)
+        if (paused)
             pause(false);
         nlt = new NextLevelThread(this, true, 40);
         if (getMobCount() <= 0)

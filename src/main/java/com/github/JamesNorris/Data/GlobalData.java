@@ -64,7 +64,6 @@ public class GlobalData {
      * Checks if the game exists, if not, creates a new game.
      * 
      * @param name The name of the ZAGame
-     * @param spawners Whether or not spawners should be immediately loaded
      * @return The ZAGame found from the name given
      */
     public ZAGame findGame(String name) {
@@ -113,7 +112,7 @@ public class GlobalData {
     /**
      * Gets the chest attached to this block.
      * 
-     * @param b The block to check for
+     * @param loc The location to check for
      * @return The MysteryChest that is at the same location as this block
      */
     public MysteryChest getMysteryChest(Location loc) {
@@ -184,7 +183,7 @@ public class GlobalData {
     /**
      * Checks if the block given is a MysteryChest instance.
      * 
-     * @param b The block to check for
+     * @param loc The location to check for
      * @return Whether or not this block is a mystery chest
      */
     public boolean isMysteryChest(Location loc) {

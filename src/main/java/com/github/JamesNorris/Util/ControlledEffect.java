@@ -52,7 +52,6 @@ public class ControlledEffect {
     /**
      * Creates a new controlled effect WITHOUT the scheduler.
      * 
-     * @param plugin The plugin to run this from
      * @param world The world to play the effect in
      * @param effect The type of effect to play
      * @param radius The radius of the effect
