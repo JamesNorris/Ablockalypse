@@ -25,6 +25,7 @@ import com.github.JamesNorris.Interface.ZAGame;
 import com.github.JamesNorris.Interface.ZAMob;
 import com.github.JamesNorris.Interface.ZAPlayer;
 import com.github.JamesNorris.Manager.SpawnManager;
+import com.github.JamesNorris.Threading.FakeBeaconThread;
 import com.github.JamesNorris.Threading.NextLevelThread;
 import com.github.JamesNorris.Util.MiscUtil;
 import com.github.JamesNorris.Util.SoundUtil;
@@ -46,6 +47,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
     private SpawnManager spawnManager;
     private List<Integer> wolfLevels = new ArrayList<Integer>();
     private boolean wolfRound, paused, started, friendlyFire;
+    private FakeBeaconThread beacons;
 
     /**
      * Creates a new instance of a game.
@@ -57,6 +59,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
         rand = new Random();
         paused = false;
         started = false;
+        beacons = new FakeBeaconThread(this, 40, (Boolean) Setting.BEACONS.getSetting());
         wolfLevels = (List<Integer>) Setting.WOLFLEVELS.getSetting();
         startpoints = (Integer) Setting.STARTINGPOINTS.getSetting();
         friendlyFire = (Boolean) Setting.DEFAULTFRIENDLYFIREMODE.getSetting();
@@ -478,6 +481,7 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
         end();
         for (GameObject object : getAllPhysicalObjects())
             object.remove();
+        beacons.remove();
         data.games.remove(name);
     }
 

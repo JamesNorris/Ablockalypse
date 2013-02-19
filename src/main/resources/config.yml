@@ -106,7 +106,7 @@ movingChests: true
 # Moves the active chest around, instead of all chests being active at once.
 
 chestBeacons: true
-# Adds beacons above chests to let players see where the active chest is.
+# Adds FIREWORKS (beacons are server-side) above chests to let players see where the active chest is.
 
 clearNearbyMobs: false
 # If enabled, clears all mobs near the player so they don't interfere.

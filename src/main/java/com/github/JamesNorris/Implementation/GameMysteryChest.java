@@ -209,8 +209,6 @@ public class GameMysteryChest extends DataManipulator implements MysteryChest, G
         if (tf) {
             if (uses == 0)
                 uses = rand.nextInt(8) + 2;
-            if ((Boolean) Setting.BEACONS.getSetting() && chest instanceof Chest)
-                EffectUtil.generateEffect(((Chest) chest).getWorld(), ((Chest) chest).getLocation(), ZAEffect.BEACON);
         }
         active = tf;
     }

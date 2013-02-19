@@ -86,7 +86,7 @@ public class Breakable {
             return list;
         }
     }
-
+    
     public static void setPathEntity(EntityCreature creature, PathEntity path, float speed) {
         creature.setPathEntity(path);
         creature.getNavigation().a(path, speed);

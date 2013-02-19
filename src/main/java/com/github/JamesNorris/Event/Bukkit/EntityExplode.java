@@ -25,6 +25,8 @@ public class EntityExplode extends DataManipulator implements Listener {
             if (data.playerExists(p))
                 data.getZAPlayer(p).addPoints((Integer) Setting.KILLPOINTINCREASE.getSetting());
             ProjectileHit.uuids.remove(e.getUniqueId());
+        } else if (e.getType() == EntityType.FIREWORK) {
+            event.setCancelled(true);
         }
     }
 }

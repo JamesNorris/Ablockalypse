@@ -51,9 +51,6 @@ public class EffectUtil {
                             w.strikeLightningEffect(loc);
                         }
                 break;
-                case BEACON:
-                // TODO
-                break;
             }
     }
 
@@ -113,11 +110,6 @@ public class EffectUtil {
                 break;
                 case LIGHTNING:
                     w.strikeLightningEffect(l);
-                break;
-                case BEACON:
-                    // TODO
-                    for (int i = 0; i < 10; i++)
-                        w.playEffect(l.add(0, i, 0), Effect.MOBSPAWNER_FLAMES, 1);
                 break;
             }
     }
