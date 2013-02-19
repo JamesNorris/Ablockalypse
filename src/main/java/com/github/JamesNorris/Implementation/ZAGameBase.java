@@ -156,7 +156,8 @@ public class ZAGameBase extends DataManipulator implements ZAGame {
     @Override public void broadcast(String message, Player exception) {
         SpecificMessage sm = new SpecificMessage(MessageDirection.PLAYER_BROADCAST, message);
         sm.setExceptionBased(true);
-        sm.addException(exception.getName());
+        if (exception != null)
+            sm.addException(exception.getName());
         MessageTransfer.sendMessage(sm);
     }
 

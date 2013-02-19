@@ -29,10 +29,13 @@ public class GameArea extends DataManipulator implements Area, GameObject, Blink
     private Rectangle rectangle;
     private ZAGameBase zag;
 
+
     /**
-     * Creates a new Area instance, that can be bought for a set price.
+     * Creates a new GameArea instance that is represented by a rectangular prism.
      * 
-     * @param block The sign directly facing the area door
+     * @param zag The game that should use this area
+     * @param loc1 The first corner of the rectangular prism
+     * @param loc2 The second corner of the rectangular prism
      */
     public GameArea(ZAGameBase zag, Location loc1, Location loc2) {
         data.objects.add(this);

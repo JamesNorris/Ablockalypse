@@ -25,6 +25,7 @@ public class TeleportThread extends DataManipulator implements ZAThread {
      * @param zaplayer The player to countdown for, as a ZAPlayer instance
      * @param time The time before the countdown stops
      * @param autorun Whether or not to run the thread automatically
+     * @param interval The time in ticks between phase changes of the blinker
      */
     public TeleportThread(ZAPlayer zaplayer, int time, boolean autorun, int interval) {
         this.zaplayer = zaplayer;
