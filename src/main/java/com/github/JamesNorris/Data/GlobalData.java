@@ -47,7 +47,6 @@ public class GlobalData {
     public HashMap<ZAGameBase, ZALocation> spawns = new HashMap<ZAGameBase, ZALocation>();
     public ArrayList<GameUndead> undead = new ArrayList<GameUndead>();
     public ArrayList<ZAThread> threads = new ArrayList<ZAThread>();
-    public HashMap<Location, String> mapDataSigns = new HashMap<Location, String>();
     public String version;
 
     /**

@@ -11,14 +11,12 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 import com.github.JamesNorris.Data.GlobalData;
-import com.github.JamesNorris.Data.MapDataStorage;
 import com.github.JamesNorris.Data.PerGameDataStorage;
 import com.github.JamesNorris.Enumerated.MessageDirection;
 import com.github.JamesNorris.Interface.ZAGame;
@@ -202,15 +200,6 @@ public class External {
             for (ZAGame zag : data.games.values())
                 pgds.add(new PerGameDataStorage(zag));
             External.save(pgds, filelocation + gameData);
-            /* map data files */
-            for (Location loc : data.mapDataSigns.keySet()) {
-                String gameName = data.mapDataSigns.get(loc);
-                String newFile = gameName + "_mapdata.bin";
-                File saveFile = new File(instance.getDataFolder(), File.separatorChar + mapdatafolderlocation + newFile);
-                if (!saveFile.exists())
-                    saveFile.createNewFile();
-                External.save(new MapDataStorage(loc, gameName), filelocation + mapdatafolderlocation + newFile);
-            }
         } catch  (EOFException e) {
             System.err.println("The saved_data.bin file could not be found while saving!");
         } catch (Exception e) {
