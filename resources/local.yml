@@ -1,0 +1,39 @@
+#####################################################################################################################
+#                                     Zombie Ablockalypse - Localization file                                       #
+#                                            Authors: Jnorr44, iKeirNez                                             #
+#####################################################################################################################
+
+#################################################### SIGN STRINGS ###################################################
+# We highly recommend you do not change these, because it will mess up all of your current signs.
+# This will also prevent signs from loaded map packs from working.
+
+### Line 1:
+
+baseString: [ZA]
+
+### Line 2:
+
+joinString: [JOIN]
+areaString: [AREA]
+perkString: [PERK]
+enchantmentString: [ENCHANT]
+weaponString: [WEAPON]
+
+### Line 3:
+
+perkDeadshotDaiquiriString: [DEADSHOT]
+perkStaminupString: [STAMINUP]
+perkJuggernogString: [JUGGERNOG]
+perkPHDFlopperString: [PHD FLOPPER]
+
+packapunchString: [PACKAPUNCH]
+
+# A max of 15 characters may be used per sign string.
+# NOTE: You can find a guide to specific signs here:
+# https://github.com/JamesNorris/Ablockalypse/wiki/Signs
+
+################################################### GENERAL STRINGS ##################################################
+# These are all strings that are used in the running of the game.
+# These will be added as the plugin progresses.
+
+wrongVersion: Your version of Ablockalypse does not correspond to your version of CraftBukkit. If you wish to continue, please switch one of the two.

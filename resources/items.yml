@@ -1,0 +1,74 @@
+#####################################################################################################################
+#                                     Zombie Ablockalypse - Items file                                              #
+#                                            Authors: Jnorr44, iKeirNez                                             #
+#####################################################################################################################
+
+# NOTES:
+#   * The ender pearl (grenade), bow, and flower pot (claymore) will always be renamed
+#   * The bow comes with 1 arrow, and is enchanted with infinite arrows
+
+#############STARTING ITEMS#############
+#  '268':                             The id number of the item
+#    amount: 5                        The amount of the item given
+
+gameStartItems:
+  '268':
+    amount: 1
+
+###############SIGN ITEMS###############
+#  '100':                             The id number of the item
+#    name: ITEM                       The sign line required to buy this item
+#    upgraded_name: BOOM              The name that this changes to when enchanted/packapunched
+#    cost: 200                        The amount of points required to buy this item
+#    amount: 1                        The amount of the item given per price paid
+#    level: 10                        The level required to buy/use this item/weapon
+
+signItems:
+  '268':
+    name: [WOOD_SWORD]
+    upgraded_name: Raid
+    cost: 500
+    amount: 1
+    level: 0
+  '283':
+    name: [GOLD_SWORD]
+    upgraded_name: The Afterburner
+    cost: 700
+    amount: 1
+    level: 0
+  '272':
+    name: [STONE_SWORD]
+    upgraded_name: Kollider
+    cost: 1000
+    amount: 1
+    level: 0
+  '267':
+    name: [IRON_SWORD]
+    upgraded_name: Skullcrusher
+    cost: 2000
+    amount: 1
+    level: 0
+  '276':
+    name: [DIAMOND_SWORD]
+    upgraded_name: Reaper
+    cost: 5000
+    amount: 1
+    level: 0
+  '368':
+    name: [GRENADE]
+    upgraded_name: Grenade
+    cost: 200
+    amount: 5
+    level: 0
+  '261':
+    name: [BOW]
+    upgraded_name: Deathstalker
+    cost: 10000
+    amount: 1
+    level: 0
+  '390':
+    name: [CLAYMORE]
+    upgraded_name: Claymore
+    cost: 500
+    amount: 3
+    level: 0
