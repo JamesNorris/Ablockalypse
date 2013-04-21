@@ -4,12 +4,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class TeleportThread extends DataManipulator implements ZARepeatingThread {
+public class TeleportThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private Location loc;
     private Player player;
     private int time, count = 0, interval;

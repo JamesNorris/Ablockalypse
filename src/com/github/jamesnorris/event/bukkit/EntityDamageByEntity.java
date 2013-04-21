@@ -13,15 +13,16 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.LastStandPickupThread;
 
-public class EntityDamageByEntity extends DataManipulator implements Listener {
+public class EntityDamageByEntity implements Listener {
     public static ArrayList<UUID> instakillids = new ArrayList<UUID>();
+    private DataContainer data = DataContainer.data;
 
     /*
      * Called when an entity damaged another entity.
@@ -99,12 +100,18 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
                         new LastStandPickupThread(hitter, zap, 20, 5, true);
                         event.setCancelled(true);
                     }
-                    if (!zag.friendlyFireEnabled())
+                    if (!zag.getTeam().allowFriendlyFire()) {
                         event.setCancelled(true);
-                    else if (zag.friendlyFireEnabled())
-                        event.setDamage(evtdmg - zap.getHitAbsorption());
-                } else
+                    } else {
+                        int dmg = evtdmg - zap.getHitAbsorption();
+                        if (dmg < 1) {
+                            dmg = 1;
+                        }
+                        event.setDamage(dmg);
+                    }
+                } else {
                     event.setCancelled(true);
+                }
             } else if (p.getHealth() <= (Integer) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting() && !zap.isInLastStand() && !zap.isInLimbo()) {
                 p.setHealth((Integer) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting());
                 zap.toggleLastStand();
@@ -112,10 +119,15 @@ public class EntityDamageByEntity extends DataManipulator implements Listener {
                 event.setCancelled(true);
             }
             if (damager instanceof Fireball) {
-                if (!zag.friendlyFireEnabled())
+                if (!zag.getTeam().allowFriendlyFire()) {
                     event.setCancelled(true);
-                else if (zag.friendlyFireEnabled())
-                    event.setDamage(evtdmg - zap.getHitAbsorption());
+                } else {
+                    int dmg = evtdmg - zap.getHitAbsorption();
+                    if (dmg < 1) {
+                        dmg = 1;
+                    }
+                    event.setDamage(dmg);
+                }
             }
         }
     }

@@ -4,15 +4,14 @@ import java.io.Serializable;
 
 import org.bukkit.Location;
 
-
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.GameObject;
-import com.github.jamesnorris.util.GameObjectDifference;
+import com.github.jamesnorris.util.GameObjectOrientation;
 import com.github.jamesnorris.util.SerializableLocation;
 
-public class MapDataStorage extends DataManipulator implements Serializable {
+public class MapDataStorage implements Serializable {
     private static final long serialVersionUID = -1279160560017448013L;
     private final SerializableLocation keyLoc;
     private final String gameName;
@@ -21,18 +20,18 @@ public class MapDataStorage extends DataManipulator implements Serializable {
      * [i][1] = The string that matches the class name of object of the orientator
      * [i][2] = Extra attachment that may return null
      */
-    public final GameObjectDifference[] locDifs;
+    public final GameObjectOrientation[] locDifs;
 
     public MapDataStorage(Location baseKey, String gameName) {
         this.gameName = gameName;
         // get game orientators
         int j = 0;
-        Game game = data.getGame(gameName, true);
-        GameObjectDifference[] orientators = new GameObjectDifference[game.getAllPermanentPhysicalObjects().size() + 2];
-        for (int i = j; i < game.getAllPermanentPhysicalObjects().size(); i++) {
-            GameObject object = game.getAllPermanentPhysicalObjects().get(i);
+        Game game = DataContainer.data.getGame(gameName, true);
+        GameObjectOrientation[] orientators = new GameObjectOrientation[game.getAllPhysicalObjects().size() + 2];
+        for (int i = j; i < game.getAllPhysicalObjects().size(); i++) {
+            GameObject object = game.getAllPhysicalObjects().get(i);
             Location key = object.getDefiningBlock().getLocation();
-            GameObjectDifference dif = new GameObjectDifference(key, baseKey, object.getObjectType().getSerialization());
+            GameObjectOrientation dif = new GameObjectOrientation(key, baseKey, object.getObjectType().getSerialization());
             orientators[i] = dif;
             if (object.getObjectType().requiresSecondLocation())
                 dif.addSecondLocation(object.getObjectType().getSecondLocationIfApplicable(object), baseKey);
@@ -42,7 +41,7 @@ public class MapDataStorage extends DataManipulator implements Serializable {
     }
     
     public boolean possibleKey(Location test) {
-        for (GameObjectDifference dif : locDifs) {
+        for (GameObjectOrientation dif : locDifs) {
             if (dif.typeid != test.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif).getBlock().getTypeId()) {
                 return false;
             }
@@ -51,10 +50,10 @@ public class MapDataStorage extends DataManipulator implements Serializable {
     }
 
     public void loadToGame(Location baseKey) {
-        Game game = data.getGame(gameName, true);
+        Game game = DataContainer.data.getGame(gameName, true);
         for (int i = 0; i < locDifs.length; i++) {
             if (locDifs[i] != null) {
-                GameObjectDifference dif = locDifs[i];
+                GameObjectOrientation dif = locDifs[i];
                 Location calculated = baseKey.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif);
                 Location calculated2 = baseKey.clone().add(-dif.Xdif2, -dif.Ydif2, -dif.Zdif2);
                 GameObjectType type = GameObjectType.bySerialization(dif.type);
@@ -67,7 +66,7 @@ public class MapDataStorage extends DataManipulator implements Serializable {
         return SerializableLocation.returnLocation(keyLoc);
     }
 
-    public GameObjectDifference[] getData() {
+    public GameObjectOrientation[] getData() {
         return locDifs;
     }
 

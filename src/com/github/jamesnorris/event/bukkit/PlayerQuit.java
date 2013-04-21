@@ -7,12 +7,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.event.GamePlayerLeaveEvent;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class PlayerQuit extends DataManipulator implements Listener {
+public class PlayerQuit implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player leaves the server.
      * Used for removing a player from the ZAGame when they leave.

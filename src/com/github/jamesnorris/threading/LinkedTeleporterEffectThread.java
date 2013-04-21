@@ -2,12 +2,13 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.Location;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class LinkedTeleporterEffectThread extends DataManipulator implements ZARepeatingThread {
+public class LinkedTeleporterEffectThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private Mainframe frame;
     private ZAEffect[] effects;
     private boolean runThrough = false;

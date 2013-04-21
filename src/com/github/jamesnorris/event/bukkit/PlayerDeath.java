@@ -6,11 +6,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class PlayerDeath extends DataManipulator implements Listener {
+public class PlayerDeath implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player is killed.
      * 

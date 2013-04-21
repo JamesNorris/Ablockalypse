@@ -20,7 +20,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.Local;
 import com.github.jamesnorris.enumerated.Setting;
@@ -29,7 +29,7 @@ import com.github.jamesnorris.enumerated.ZAEnchantment;
 import com.github.jamesnorris.enumerated.ZAPerk;
 import com.github.jamesnorris.event.GameCreateEvent;
 import com.github.jamesnorris.event.GameSignClickEvent;
-import com.github.jamesnorris.implementation.Area;
+import com.github.jamesnorris.implementation.Passage;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.implementation.MobSpawner;
@@ -40,11 +40,10 @@ import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.threading.TeleportThread;
 import com.github.jamesnorris.threading.TeleporterLinkageTimerThread;
 import com.github.jamesnorris.util.ItemInfoMap;
-import com.github.jamesnorris.util.MathAssist;
 import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.ShotResult;
 
-public class PlayerInteract extends DataManipulator implements Listener {
+public class PlayerInteract implements Listener {
     public static HashMap<String, Game> areaPlayers = new HashMap<String, Game>();
     public static HashMap<String, Game> barrierPlayers = new HashMap<String, Game>();
     public static HashMap<String, Game> chestPlayers = new HashMap<String, Game>();
@@ -55,7 +54,8 @@ public class PlayerInteract extends DataManipulator implements Listener {
     public static HashMap<String, Game> spawnerPlayers = new HashMap<String, Game>();
     public static HashMap<ZAPlayer, Location> mainframeLinkers = new HashMap<ZAPlayer, Location>();
     public static HashMap<ZAPlayer, TeleporterLinkageTimerThread> mainframeLinkers_Timers = new HashMap<ZAPlayer, TeleporterLinkageTimerThread>();
-
+    private DataContainer data = DataContainer.data;
+    
     private void buyArea(Sign sign, Player player, ZAPlayer zap, String l3, int points) {
         int cost = 1500;
         try {
@@ -66,7 +66,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
         }
         sign.setLine(3, " " + cost + " ");
         if (zap.getPoints() >= cost) {
-            Area a = getClosestArea(sign.getBlock(), (Game) zap.getGame());
+            Passage a = getClosestArea(sign.getBlock(), (Game) zap.getGame());
             if (a != null) {
                 if (!a.isOpened()) {
                     a.open();
@@ -88,14 +88,14 @@ public class PlayerInteract extends DataManipulator implements Listener {
     /*
      * Gets the closest game area to the given block.
      */
-    private Area getClosestArea(Block b, Game zag) {
+    private Passage getClosestArea(Block b, Game zag) {
         int distance = Integer.MAX_VALUE;
         Location loc = b.getLocation();
-        Area lp = null;
-        for (Area a : data.areas)
+        Passage lp = null;
+        for (Passage a : data.areas)
             if (a.getGame() == zag) {
                 Location l = a.getPoint(1);
-                int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+                int current = (int) l.distance(loc);
                 if (current < distance) {
                     distance = current;
                     lp = a;
@@ -180,7 +180,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
     }
 
     public boolean isArea(Block block) {
-        for (Area area : data.areas) {
+        for (Passage area : data.areas) {
             if (area.getBlocks().contains(block))
                 return true;
         }
@@ -211,14 +211,14 @@ public class PlayerInteract extends DataManipulator implements Listener {
                     p.sendMessage(ChatColor.RED + "That is already a mob spawner for this game!");
                     return;
                 }
-                spawnerPlayers.get(p.getName()).addMobSpawner(new MobSpawner(b.getLocation(), spawnerPlayers.get(p.getName())));
+                spawnerPlayers.get(p.getName()).addObject(new MobSpawner(b.getLocation(), spawnerPlayers.get(p.getName())));
                 p.sendMessage(ChatColor.GRAY + "Spawner created successfully!");
                 spawnerPlayers.remove(p.getName());
             } else if ((!data.playerExists(p) && chestPlayers.containsKey(p.getName())) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
                 event.setUseInteractedBlock(Result.DENY);
                 Game zag = chestPlayers.get(p.getName());
                 if (!data.isMysteryChest(b.getLocation())) {
-                    chestPlayers.get(p.getName()).addMysteryChest(new MysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
+                    chestPlayers.get(p.getName()).addObject(new MysteryChest(b.getState(), zag, b.getLocation(), zag.getActiveMysteryChest() == null));
                     p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
                 } else
                     p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
@@ -250,7 +250,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
                     locClickers.put(p.getName(), b.getLocation());
                     p.sendMessage(ChatColor.GRAY + "Click another block to select point 2.");
                 } else {
-                    new Area(areaPlayers.get(p.getName()), b.getLocation(), locClickers.get(p.getName()));
+                    new Passage(areaPlayers.get(p.getName()), b.getLocation(), locClickers.get(p.getName()));
                     locClickers.remove(p.getName());
                     areaPlayers.remove(p.getName());
                     p.sendMessage(ChatColor.GRAY + "Area created!");
@@ -373,7 +373,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
                         player.sendMessage(ChatColor.GRAY + "This sign can be used in-game to purchase the " + l3 + " enchantment for any weapon that behaves like a sword.");
                     } else if (l2.equalsIgnoreCase(Local.BASE_WEAPON_STRING.getSetting())) {
                         player.sendMessage(ChatColor.GRAY + "This sign can be used in-game to purchase the " + l3 + " weapon.");
-                    } else if (l2.equalsIgnoreCase(Local.BASE_AREA_STRING.getSetting())) {
+                    } else if (l2.equalsIgnoreCase(Local.BASE_PASSAGE_STRING.getSetting())) {
                         player.sendMessage(ChatColor.GRAY + "This sign can be used in-game to open the " + l3 + " area.");
                     }
                 } else if (data.players.containsKey(player)) {
@@ -385,7 +385,7 @@ public class PlayerInteract extends DataManipulator implements Listener {
                         giveEnchantment(sign, player, zap, l3, points);
                     else if (l2.equalsIgnoreCase(Local.BASE_WEAPON_STRING.getSetting()))// WEAPON
                         giveItem(sign, player, zap, l3, points);
-                    else if (l2.equalsIgnoreCase(Local.BASE_AREA_STRING.getSetting()))// AREA
+                    else if (l2.equalsIgnoreCase(Local.BASE_PASSAGE_STRING.getSetting()))// AREA
                         buyArea(sign, player, zap, l3, points);
                     player.updateInventory();
                 }

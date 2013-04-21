@@ -1,6 +1,8 @@
 package com.github.jamesnorris.threading;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
@@ -10,7 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.event.bukkit.EntityExplode;
 import com.github.jamesnorris.implementation.Game;
@@ -18,11 +20,13 @@ import com.github.jamesnorris.implementation.MysteryChest;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class ChestFakeBeaconThread extends DataManipulator implements ZARepeatingThread {
+public class ChestFakeBeaconThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private int count = 0, interval;
     private boolean runThrough = false;
     private Game game;
     private MysteryChest active;
+    private Random rand = new Random();
     private ArrayList<Location> fireLocations = new ArrayList<Location>();
 
     public ChestFakeBeaconThread(Game game, int interval, boolean autorun) {
@@ -51,7 +55,8 @@ public class ChestFakeBeaconThread extends DataManipulator implements ZARepeatin
                 remove();
             } else {
                 if (game.getActiveMysteryChest() == null) {
-                    game.setActiveMysteryChest(game.getRandomMysteryChest());
+                    List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
+                    game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
                 }
                 if (game.hasStarted() && game.getActiveMysteryChest() != null) {
                     if (active == null || !MiscUtil.locationMatch(game.getActiveMysteryChest().getLocation(), active.getLocation())) {

@@ -9,7 +9,6 @@ import net.minecraft.server.v1_5_R2.EntityPlayer;
 import net.minecraft.server.v1_5_R2.Packet40EntityMetadata;
 import net.minecraft.server.v1_5_R2.WatchableObject;
 
-import org.bukkit.block.Chest;
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_5_R2.entity.CraftPlayer;
 //@formatter:on
@@ -35,10 +34,6 @@ public class Breakable {
             list.add(new WatchableObject(0, 0, data));
             return list;
         }
-    }
-    
-    public static void holdOpenChest(Chest chest, int duration) {
-        
     }
 
     /**

@@ -12,7 +12,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZAColor;
@@ -23,10 +23,10 @@ import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.threading.BarrierBreakThread;
 import com.github.jamesnorris.threading.BarrierFixThread;
 import com.github.jamesnorris.threading.BlinkerThread;
-import com.github.jamesnorris.util.MathAssist;
 import com.github.jamesnorris.util.Square;
 
-public class Barrier extends DataManipulator implements GameObject, Blinkable {
+public class Barrier implements GameObject, Blinkable {
+    private DataContainer data = DataContainer.data;
     private CopyOnWriteArrayList<Block> blocks = new CopyOnWriteArrayList<Block>();
     private BlinkerThread bt;
     private Location center, spawnloc;
@@ -71,7 +71,7 @@ public class Barrier extends DataManipulator implements GameObject, Blinkable {
         if (spawnloc == null)
             Ablockalypse.crash("A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
         /* end finding spawnloc */
-        game.addBarrier(this);
+        game.addObject(this);
         Square s = new Square(center.getLocation(), 1);
         for (Location loc : s.getLocations()) {
             Block b = loc.getBlock();
@@ -222,11 +222,7 @@ public class Barrier extends DataManipulator implements GameObject, Blinkable {
      * @return Whether or not the entity is within the radius
      */
     public boolean isWithinRadius(Entity e) {
-        Location el = e.getLocation();
-        int x = el.getBlockX(), x2 = center.getBlockX();
-        int y = el.getBlockY(), y2 = center.getBlockY();
-        int z = el.getBlockZ(), z2 = center.getBlockZ();
-        int distance = (int) MathAssist.distance(x, y, z, x2, y2, z2);
+        int distance = (int) e.getLocation().distance(center);
         if (distance <= radius)
             return true;
         return false;
@@ -238,7 +234,7 @@ public class Barrier extends DataManipulator implements GameObject, Blinkable {
     @Override public void remove() {
         replacePanels();
         setBlinking(false);
-        game.removeBarrier(this);
+        game.removeObject(this);
         data.barriers.remove(this);
         data.gameObjects.remove(this);
         data.threads.remove(bt);

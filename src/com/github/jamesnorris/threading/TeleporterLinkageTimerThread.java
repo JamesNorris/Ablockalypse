@@ -2,13 +2,14 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.ChatColor;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.event.bukkit.PlayerInteract;
 import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZADelayedThread;
 
-public class TeleporterLinkageTimerThread extends DataManipulator implements ZADelayedThread {
+public class TeleporterLinkageTimerThread implements ZADelayedThread {
+    private DataContainer data = DataContainer.data;
     private int delay, countup = 0;
     private Mainframe frame;
     private ZAPlayer zap;

@@ -5,12 +5,12 @@ import java.io.Serializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
-public class GameObjectDifference implements Serializable {
+public class GameObjectOrientation implements Serializable {
     private static final long serialVersionUID = -3122300037618945597L;
     public int x, y, z, x2 = 0, y2 = 0, z2 = 0, Xdif, Ydif, Zdif, Xdif2 = 0, Ydif2 = 0, Zdif2 = 0, typeid, typeid2;
     public String type, worldName;
     
-    public GameObjectDifference(Location self, Location key, String type) {
+    public GameObjectOrientation(Location self, Location key, String type) {
         this.worldName = self.getWorld().getName();
         this.type = type;
         this.x = self.getBlockX();

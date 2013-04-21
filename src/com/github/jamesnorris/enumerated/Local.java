@@ -10,7 +10,7 @@ import com.google.common.collect.Maps;
 public enum Local {
     //@formatter:off
     BASE_STRING("baseString"),
-    BASE_AREA_STRING("areaString"), 
+    BASE_PASSAGE_STRING("passageString"), 
     BASE_ENCHANTMENT_STRING("enchantmentString"), 
     BASE_JOIN_STRING("joinString"), 
     BASE_PERK_STRING("perkString"), 

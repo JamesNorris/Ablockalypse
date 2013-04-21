@@ -6,9 +6,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 
-public class PlayerTeleport extends DataManipulator implements Listener {
+public class PlayerTeleport implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player teleports from one location to the other.
      * Used mainly for preventing teleportation for ZAPlayers when an ender pearl is thrown.

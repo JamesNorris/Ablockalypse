@@ -10,14 +10,16 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDeathEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.event.GameMobDeathEvent;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class EntityDeath extends DataManipulator implements Listener {
+public class EntityDeath implements Listener {
+    private static DataContainer data = DataContainer.data;
+    
     /*
      * Called when an Entity is killed.
      * Used for adding points when a player kills an entity, while they are in-game.

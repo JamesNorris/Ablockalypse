@@ -7,12 +7,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerKickEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.event.GamePlayerLeaveEvent;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class PlayerKick extends DataManipulator implements Listener {
+public class PlayerKick implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player is kicked from the game.
      * Usedx mostly to prevent multiple level gains after a player is kicked.

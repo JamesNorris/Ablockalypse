@@ -14,13 +14,14 @@ import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.event.bukkit.EntityExplode;
 import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.threading.ClaymoreTriggerThread;
 
-public class Claymore extends DataManipulator implements GameObject {
+public class Claymore implements GameObject {
+    private DataContainer data = DataContainer.data;
     private Game game;
     private Block block;
     private ZAPlayer placer;
@@ -32,7 +33,7 @@ public class Claymore extends DataManipulator implements GameObject {
         this.block = block;
         this.placer = placer;
         data.claymores.add(this);
-        game.addClaymore(this);
+        game.addObject(this);
         if (placeBeam) {
             placeBeam();
         }
@@ -97,7 +98,7 @@ public class Claymore extends DataManipulator implements GameObject {
             if (trigger != null)
                 trigger.remove();
         }
-        game.removeClaymore(this);
+        game.removeObject(this);
         data.claymores.remove(this);
     }
 

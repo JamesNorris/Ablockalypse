@@ -1,11 +1,12 @@
 package com.github.jamesnorris.threading;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Claymore;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class ClaymoreTriggerThread extends DataManipulator implements ZARepeatingThread {
+public class ClaymoreTriggerThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false;
     private int count = 0, interval;
     private Claymore claymore;

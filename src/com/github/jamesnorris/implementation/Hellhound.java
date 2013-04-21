@@ -10,7 +10,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameEntityType;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -20,7 +20,8 @@ import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.MobReRandomTeleportThread;
 import com.github.jamesnorris.threading.MobTargettingThread;
 
-public class Hellhound extends DataManipulator implements ZAMob, GameObject {
+public class Hellhound implements ZAMob, GameObject {
+    private DataContainer data = DataContainer.data;
     private int absorption = 0;
     private Game game;
     private MobTargettingThread mtt;

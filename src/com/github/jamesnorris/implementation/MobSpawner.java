@@ -6,7 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZAColor;
@@ -16,7 +16,8 @@ import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.BlinkerThread;
 
-public class MobSpawner extends DataManipulator implements Blinkable, GameObject {// TODO annotations
+public class MobSpawner implements Blinkable, GameObject {// TODO annotations
+    private DataContainer data = DataContainer.data;
     private boolean blinkers;
     private Block block;
     private BlinkerThread bt;
@@ -38,7 +39,7 @@ public class MobSpawner extends DataManipulator implements Blinkable, GameObject
         data.gameObjects.add(this);
         blinkers = (Boolean) Setting.BLINKERS.getSetting();
         initBlinker();
-        game.addMobSpawner(this);
+        game.addObject(this);
     }
 
     private void initBlinker() {
@@ -100,7 +101,7 @@ public class MobSpawner extends DataManipulator implements Blinkable, GameObject
     @Override public void remove() {
         setBlinking(false);
         bt.remove();
-        game.removeMobSpawner(this);
+        game.removeObject(this);
         data.threads.remove(bt);
         data.gameObjects.remove(this);
         game = null;

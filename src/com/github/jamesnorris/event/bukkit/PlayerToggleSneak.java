@@ -6,11 +6,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class PlayerToggleSneak extends DataManipulator implements Listener {
+public class PlayerToggleSneak implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player changes from walking to sneaking.
      * Used mostly for repairing broken barriers.

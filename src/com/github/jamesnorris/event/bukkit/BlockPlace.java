@@ -9,11 +9,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Claymore;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class BlockPlace extends DataManipulator implements Listener {
+public class BlockPlace implements Listener {
+    private static DataContainer data = DataContainer.data;
     
     /*
      * Called when a player places a block.

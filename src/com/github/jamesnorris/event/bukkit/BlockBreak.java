@@ -11,11 +11,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.implementation.Claymore;
 
-public class BlockBreak extends DataManipulator implements Listener {
+public class BlockBreak implements Listener {
+    private static DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player breaks a block.
      * Mainly used for preventing ZA Players from breaking blocks while in-game.
@@ -24,7 +26,7 @@ public class BlockBreak extends DataManipulator implements Listener {
         Player p = event.getPlayer();
         Block b = event.getBlock();
         Location loc = b.getLocation();
-        if (DataManipulator.data.playerExists(p) && !BlockBreak.shouldBeBroken(b.getType())) {
+        if (data.playerExists(p) && !BlockBreak.shouldBeBroken(b.getType())) {
             event.setCancelled(true);
         } else if ((b.getType() == Material.FLOWER_POT || b.getType() == Material.FLOWER_POT_ITEM) && data.isClaymore(loc)) {
             Claymore more = data.getClaymore(loc);

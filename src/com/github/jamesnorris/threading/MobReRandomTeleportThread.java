@@ -4,11 +4,12 @@ import org.bukkit.Location;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class MobReRandomTeleportThread extends DataManipulator implements ZARepeatingThread {
+public class MobReRandomTeleportThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false;
     private int count = 0, interval;
     private Creature c;

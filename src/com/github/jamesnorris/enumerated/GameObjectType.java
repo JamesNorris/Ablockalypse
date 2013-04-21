@@ -7,7 +7,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Wolf;
 import org.bukkit.entity.Zombie;
 
-import com.github.jamesnorris.implementation.Area;
+import com.github.jamesnorris.implementation.Passage;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.Hellhound;
@@ -19,13 +19,13 @@ import com.github.jamesnorris.inter.GameObject;
 import com.google.common.collect.Maps;
 
 public enum GameObjectType {
-    AREA {
+    PASSAGE {
         @Override public String getSerialization() {
-            return "Area";
+            return "Passage";
         }
 
         @Override public void loadToGame(Game game, Location loc1, Location loc2) {
-            game.addArea(new Area((Game) game, loc1, loc2));
+            game.addObject(new Passage((Game) game, loc1, loc2));
         }
 
         @Override public boolean requiresSecondLocation() {
@@ -33,7 +33,7 @@ public enum GameObjectType {
         }
 
         @Override public Location getSecondLocationIfApplicable(GameObject obj) {
-            return ((Area) obj).getPoint(2);
+            return ((Passage) obj).getPoint(2);
         }
     },
     BARRIER {
@@ -42,7 +42,7 @@ public enum GameObjectType {
         }
 
         @Override public void loadToGame(Game game, Location loc1, Location loc2) {
-            game.addBarrier(new Barrier(loc1.getBlock(), (Game) game));
+            game.addObject(new Barrier(loc1.getBlock(), (Game) game));
         }
         
         @Override public boolean requiresSecondLocation() {
@@ -94,7 +94,7 @@ public enum GameObjectType {
         }
 
         @Override public void loadToGame(Game game, Location loc1, Location loc2) {
-            game.addMobSpawner(new MobSpawner(loc1, game));
+            game.addObject(new MobSpawner(loc1, game));
         }
         
         @Override public boolean requiresSecondLocation() {
@@ -111,7 +111,7 @@ public enum GameObjectType {
         }
 
         @Override public void loadToGame(Game game, Location loc1, Location loc2) {
-            game.addMysteryChest(new MysteryChest(loc1.getBlock(), game, loc1, game.getActiveMysteryChest() == null));
+            game.addObject(new MysteryChest(loc1.getBlock(), game, loc1, game.getActiveMysteryChest() == null));
         }
         
         @Override public boolean requiresSecondLocation() {

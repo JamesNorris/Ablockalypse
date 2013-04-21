@@ -14,7 +14,7 @@ baseString: [ZA]
 ### Line 2:
 
 joinString: [JOIN]
-areaString: [AREA]
+passageString: [AREA]
 perkString: [PERK]
 enchantmentString: [ENCHANT]
 weaponString: [WEAPON]

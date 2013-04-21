@@ -2,14 +2,16 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
+import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.MobSpawner;
 import com.github.jamesnorris.inter.ZADelayedThread;
 import com.github.jamesnorris.manager.SpawnManager;
 
-public class MobSpawningThread extends DataManipulator implements ZADelayedThread {
+public class MobSpawningThread implements ZADelayedThread {
+    private DataContainer data = DataContainer.data;
     private int delay, countup = 0;
     private Game game;
     private SpawnManager sm;
@@ -28,12 +30,12 @@ public class MobSpawningThread extends DataManipulator implements ZADelayedThrea
     @Override public void run() {
         if (game.getRemainingPlayers() >= 1 && !game.isPaused()) {
             Player p = game.getRandomLivingPlayer();
-            if (game.getMobSpawners().size() > 0) {
+            if (game.getObjectsOfType(MobSpawner.class).size() > 0) {
                 MobSpawner zaloc = sm.getClosestSpawner(p);
                 game.spawn(zaloc.getBukkitLocation().clone().add(0, 2, 0), true);
                 zaloc.playEffect(ZAEffect.FLAMES);
                 zaloc.getBukkitLocation().clone().subtract(0, 2, 0);
-            } else if (game.getBarriers().size() > 0) {
+            } else if (game.getObjectsOfType(Barrier.class).size() > 0) {
                 game.spawn(sm.getClosestBarrier(p).getSpawnLocation(), true);
             } else {
                 game.spawn(p.getLocation(), false);

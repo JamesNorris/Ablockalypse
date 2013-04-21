@@ -19,7 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.PlayerStatus;
@@ -34,8 +34,9 @@ import com.github.jamesnorris.threading.LastStandFallenThread;
 import com.github.jamesnorris.util.Breakable;
 import com.github.jamesnorris.util.ShotResult;
 
-public class ZAPlayer extends DataManipulator implements GameObject {
-    private int absorption = 0;// less than mobs, used to add juggernaut
+public class ZAPlayer implements GameObject {
+    private DataContainer data = DataContainer.data;
+    private int absorption = 0;// used to add juggernaut
     private Location before;
     private float exp, saturation, fall, exhaust;
     private Game game;
@@ -65,6 +66,7 @@ public class ZAPlayer extends DataManipulator implements GameObject {
         this.game = game;
         point = new HashMap<String, Integer>();
         data.players.put(player, this);
+        game.getTeam().addPlayer(player);
         player.setLevel(game.getLevel());
     }
 
@@ -91,6 +93,7 @@ public class ZAPlayer extends DataManipulator implements GameObject {
             point.remove(getName());
         point.put(getName(), points);
         rename(name, "" + points);
+        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
     }
 
     /**
@@ -316,6 +319,7 @@ public class ZAPlayer extends DataManipulator implements GameObject {
         restoreStatus();
         if (game.getPlayers().contains(player.getName()))
             game.removePlayer(player);
+        game.getTeam().removePlayer(player);
         data.gameObjects.remove(this);
     }
 
@@ -453,6 +457,7 @@ public class ZAPlayer extends DataManipulator implements GameObject {
             difference *= pointGainMod;
         }
         points += difference;
+        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
     }
 
     /**
@@ -504,6 +509,7 @@ public class ZAPlayer extends DataManipulator implements GameObject {
      */
     public void subtractPoints(int i) {
         points -= i;
+        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
     }
 
     /**

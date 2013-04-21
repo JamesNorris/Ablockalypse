@@ -12,8 +12,12 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.event.GameEndEvent;
@@ -25,24 +29,22 @@ import com.github.jamesnorris.threading.ChestFakeBeaconThread;
 import com.github.jamesnorris.threading.NextLevelThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class Game extends DataManipulator {
+public class Game {
     private MysteryChest active;
-    private ArrayList<Area> areas = new ArrayList<Area>();
-    private ArrayList<Barrier> barriers = new ArrayList<Barrier>();
-    private ArrayList<Blinkable> blinkable = new ArrayList<Blinkable>();
-    private ArrayList<MysteryChest> chests = new ArrayList<MysteryChest>();
-    private CopyOnWriteArrayList<Claymore> claymores = new CopyOnWriteArrayList<Claymore>();
+    private CopyOnWriteArrayList<GameObject> objects = new CopyOnWriteArrayList<GameObject>();
     private int level, mobcount, startpoints;
     private Mainframe mainframe;
     private String name;
     private NextLevelThread nlt;
     private HashMap<String, Integer> players = new HashMap<String, Integer>();
     private Random rand;
-    private ArrayList<MobSpawner> spawners = new ArrayList<MobSpawner>();
     private SpawnManager spawnManager;
     private List<Integer> wolfLevels = new ArrayList<Integer>();
-    private boolean wolfRound, paused, started, friendlyFire;
+    private boolean wolfRound, paused, started;
     private ChestFakeBeaconThread beacons;
+    private Scoreboard scoreBoard;
+    private Team team;
+    private DataContainer data = DataContainer.data;
 
     /**
      * Creates a new instance of a game.
@@ -57,8 +59,31 @@ public class Game extends DataManipulator {
         beacons = new ChestFakeBeaconThread(this, 200, (Boolean) Setting.BEACONS.getSetting());
         wolfLevels = (List<Integer>) Setting.WOLF_LEVELS.getSetting();
         startpoints = (Integer) Setting.STARTING_POINTS.getSetting();
-        friendlyFire = (Boolean) Setting.DEFAULT_FRIENDLY_FIRE_MODE.getSetting();
+        scoreBoard = Bukkit.getScoreboardManager().getNewScoreboard();
+        team = scoreBoard.registerNewTeam("Ablockalypse");
+        team.setCanSeeFriendlyInvisibles(true);
+        team.setAllowFriendlyFire((Boolean) Setting.DEFAULT_FRIENDLY_FIRE_MODE.getSetting());       
+        Objective objective = scoreBoard.registerNewObjective("showhealth", "health");
+        objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
+        objective.setDisplayName("/ 20");
+        scoreBoard.registerNewObjective("points", "dummy").setDisplaySlot(DisplaySlot.SIDEBAR);//getScoreboard().getObjective("points") - to modify player points
         data.games.put(name, this);
+    }
+    
+    public Scoreboard getScoreboard() {
+        return scoreBoard;
+    }
+    
+    public void setScoreboard(Scoreboard board) {
+        this.scoreBoard = board;
+    }
+    
+    public Team getTeam() {
+        return team;
+    }
+    
+    public void setTeam(Team team) {
+        this.team = team;
     }
 
     public ChestFakeBeaconThread getFakeBeaconThread() {
@@ -74,64 +99,18 @@ public class Game extends DataManipulator {
      * 
      * @param ga The area to load into this game
      */
-    public void addArea(Area ga) {
-        if (!overlapsAnotherObject(ga.getPoint(1)) && !overlapsAnotherObject(ga.getPoint(2))) {
-            areas.add(ga);
-            blinkable.add(ga);
+    public void addObject(GameObject obj) {
+        if (!overlapsAnotherObject(obj) && !objects.contains(obj)) {
+            objects.add(obj);
         }
     }
 
-    /**
-     * Attaches a barrier to this game.
-     * 
-     * @param gb The barrier to load into this game
-     */
-    public void addBarrier(Barrier gb) {
-        if (!overlapsAnotherObject(gb.getCenter())) {
-            barriers.add(gb);
-            blinkable.add(gb);
-        }
-    }
-
-    public void addClaymore(Claymore more) {
-        claymores.add(more);
-    }
-
-    /**
-     * Adds a spawner to the game
-     * 
-     * @param l The location to put the spawner at
-     */
-    public void addMobSpawner(MobSpawner l) {
-        if (!overlapsAnotherObject(l.getBukkitLocation())) {
-            spawners.add(l);
-            blinkable.add(l);
-            data.mobSpawners.put(this, l);
-        }
-    }
-
-    /**
-     * Adds a chest to the game.
-     * 
-     * @param mc The chest to add to the game
-     */
-    public void addMysteryChest(MysteryChest mc) {
-        if (!overlapsAnotherObject(mc.getLocation())) {
-            chests.add(mc);
-            blinkable.add(mc);
-        }
-    }
-
-    private boolean overlapsAnotherObject(Location loc) {
-        for (GameObject object : getAllPermanentPhysicalObjects()) {
-            if (object instanceof Area) {
-                Area ga = (Area) object;
-                if (MiscUtil.locationMatch(loc, ga.getPoint(1)) || MiscUtil.locationMatch(loc, ga.getPoint(2)))
-                    return true;
-            } else {
-                for (Block block : object.getDefiningBlocks()) {
-                    Location bLoc = block.getLocation();
-                    if (MiscUtil.locationMatch(loc, bLoc))
+    private boolean overlapsAnotherObject(GameObject obj) {
+        for (GameObject object : getAllPhysicalObjects()) {
+            for (Block block : object.getDefiningBlocks()) {
+                Location bLoc = block.getLocation();
+                for (Block otherBlock : obj.getDefiningBlocks()) {
+                    if (MiscUtil.locationMatch(otherBlock.getLocation(), bLoc))
                         return true;
                 }
             }
@@ -203,18 +182,20 @@ public class Game extends DataManipulator {
                 mainframe.clearLinks();
                 if (nlt != null && nlt.isRunning())
                     nlt.remove();
-                for (Blinkable b : blinkable)
-                    if (b.getBlinkerThread() != null)
+                for (Blinkable b : getObjectsOfType(Blinkable.class)) {
+                    if (b.getBlinkerThread() != null) {
                         b.getBlinkerThread().setRunThrough(true);
+                    }
+                }
                 for (Undead gu : data.undead)
                     if (gu.getGame() == this)
                         gu.kill();
                 for (Hellhound ghh : data.hellhounds)
                     if (ghh.getGame() == this)
                         ghh.kill();
-                for (Barrier barrier : barriers)
+                for (Barrier barrier : getObjectsOfType(Barrier.class))
                     barrier.replacePanels();
-                for (Claymore more : claymores) {
+                for (Claymore more : getObjectsOfType(Claymore.class)) {
                     more.remove();
                 }
                 for (String name : getPlayers()) {
@@ -230,48 +211,12 @@ public class Game extends DataManipulator {
     }
 
     /**
-     * Checks the friendly fire mode of this game.
-     * 
-     * @return Whether or not friendly fire is enabled
-     */
-    public boolean friendlyFireEnabled() {
-        return friendlyFire;
-    }
-
-    /**
      * Gets the currently active chest for this game.
      * 
      * @return The currently active chest for this game
      */
     public MysteryChest getActiveMysteryChest() {
         return active;
-    }
-
-    /**
-     * Gets a list of areas connected to this game.
-     * 
-     * @return A list of areas in this game
-     */
-    public ArrayList<Area> getAreas() {
-        return areas;
-    }
-
-    /**
-     * Gets a list of barriers connected to this game.
-     * 
-     * @return A list of barriers in this game
-     */
-    public ArrayList<Barrier> getBarriers() {
-        return barriers;
-    }
-
-    /**
-     * Gets a list of claymores connected to this game.
-     * 
-     * @return A list of claymores in this game
-     */
-    public CopyOnWriteArrayList<Claymore> getClaymores() {
-        return claymores;
     }
 
     /**
@@ -311,24 +256,6 @@ public class Game extends DataManipulator {
     }
 
     /**
-     * Gets all the spawners for this game.
-     * 
-     * @return The spawn locations as an arraylist for this game
-     */
-    public ArrayList<MobSpawner> getMobSpawners() {
-        return spawners;
-    }
-
-    /**
-     * Gets an arraylist of chests that are attached to this game.
-     * 
-     * @return The chests in this game
-     */
-    public ArrayList<MysteryChest> getMysteryChests() {
-        return chests;
-    }
-
-    /**
      * Gets the name of this game.
      * 
      * @return The name of the ZAGame
@@ -344,34 +271,6 @@ public class Game extends DataManipulator {
      */
     public Set<String> getPlayers() {
         return players.keySet();
-    }
-
-    /**
-     * Returns a random area from this game.
-     * 
-     * @return The random area from this game
-     */
-    public Area getRandomArea() {
-        if (areas != null && areas.size() >= 1)
-            return areas.get(rand.nextInt(areas.size()));
-        return null;
-    }
-
-    /**
-     * Returns a random barrier from this game.
-     * 
-     * @return The random barrier from this game
-     */
-    public Barrier getRandomBarrier() {
-        if (barriers != null && barriers.size() >= 1)
-            return barriers.get(rand.nextInt(barriers.size()));
-        return null;
-    }
-
-    public MysteryChest getRandomMysteryChest() {
-        if (chests != null && chests.size() >= 1)
-            return chests.get(rand.nextInt(chests.size()));
-        return null;
     }
 
     /**
@@ -480,6 +379,7 @@ public class Game extends DataManipulator {
         mobcount = 0;
         if (!started) {
             level = 0;
+            List<MysteryChest> chests = getObjectsOfType(MysteryChest.class);
             if (chests != null && chests.size() > 0) {
                 MysteryChest mc = chests.get(rand.nextInt(chests.size()));
                 setActiveMysteryChest(mc);
@@ -517,7 +417,7 @@ public class Game extends DataManipulator {
      */
     public void remove() {
         end();
-        for (GameObject object : getAllPermanentPhysicalObjects())
+        for (GameObject object : getAllPhysicalObjects())
             object.remove();
         if (beacons != null)
             beacons.remove();
@@ -529,44 +429,20 @@ public class Game extends DataManipulator {
      * 
      * @param ga The area to be unloaded from this game
      */
-    public void removeArea(Area ga) {
-        areas.remove(ga);
-        blinkable.remove(ga);
+    public void removeObject(GameObject obj) {
+        if (objects.contains(obj)) {
+            objects.remove(obj);
+        }
     }
 
-    /**
-     * Removes a barrier from this game.
-     * 
-     * @param gb The barrier to be unloaded from this game
-     */
-    public void removeBarrier(Barrier gb) {
-        barriers.remove(gb);
-        blinkable.remove(gb);
-    }
-
-    /**
-     * Removes a claymore from this game.
-     * 
-     * @param more The claymore to be unloaded from this game
-     */
-    public void removeClaymore(Claymore more) {
-        claymores.remove(more);
-    }
-
-    /**
-     * Removes a mob spawner from this game.
-     * 
-     * @param l The mob spawner to be unloaded from this game
-     */
-    public void removeMobSpawner(MobSpawner l) {
-        spawners.remove(l);
-        blinkable.remove(l);
-        data.mobSpawners.remove(this);
-    }
-
-    public void removeMysteryChest(MysteryChest mc) {
-        chests.remove(mc);
-        blinkable.remove(mc);
+    @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {
+        ArrayList<T> list = new ArrayList<T>();
+        for (Object obj : objects) {
+            if (obj.getClass().isInstance(type)) {
+                list.add((T) obj);
+            }
+        }
+        return list;
     }
 
     /**
@@ -597,22 +473,13 @@ public class Game extends DataManipulator {
     public void setActiveMysteryChest(MysteryChest mc) {
         if ((Boolean) Setting.MOVING_CHESTS.getSetting()) {
             active = mc;
-            for (MysteryChest chest : chests)
+            for (MysteryChest chest : getObjectsOfType(MysteryChest.class))
                 chest.setActive(false);
             if (!mc.isActive()) {
                 mc.setActive(true);
                 mc.setActiveUses(rand.nextInt(8) + 2);
             }
         }
-    }
-
-    /**
-     * Sets the friendly fire mode for this game.
-     * 
-     * @param tf The new setting of friendly fire
-     */
-    public void setFriendlyFire(boolean tf) {
-        friendlyFire = tf;
     }
 
     /**
@@ -630,14 +497,11 @@ public class Game extends DataManipulator {
      * @param mf The mainframe to be set for the game
      */
     public void setMainframe(Mainframe mf) {
-        if (!data.mainframes.containsKey(getName())) {
-            mainframe = mf;
-            data.mainframes.put(getName(), mf);
-        } else {
+        if (data.mainframes.containsKey(getName())) {
             data.mainframes.remove(getName());
-            mainframe = mf;
-            data.mainframes.put(getName(), mf);
         }
+        mainframe = mf;
+        data.mainframes.put(getName(), mf);
         if (spawnManager == null)
             spawnManager = new SpawnManager(this);
     }
@@ -687,22 +551,7 @@ public class Game extends DataManipulator {
         started = true;
     }
 
-    public ArrayList<GameObject> getAllPhysicalObjects() {
-        ArrayList<GameObject> all = new ArrayList<GameObject>();
-        all.addAll(areas);
-        all.addAll(chests);
-        all.addAll(barriers);
-        all.addAll(spawners);
-        all.addAll(claymores);
-        return all;
-    }
-
-    public ArrayList<GameObject> getAllPermanentPhysicalObjects() {
-        ArrayList<GameObject> all = new ArrayList<GameObject>();
-        all.addAll(areas);
-        all.addAll(chests);
-        all.addAll(barriers);
-        all.addAll(spawners);
-        return all;
+    public CopyOnWriteArrayList<GameObject> getAllPhysicalObjects() {
+        return objects;
     }
 }

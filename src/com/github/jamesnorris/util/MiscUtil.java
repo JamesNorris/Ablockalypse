@@ -3,7 +3,6 @@ package com.github.jamesnorris.util;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -11,7 +10,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +19,7 @@ import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.PowerupType;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.implementation.ZAPlayer;
+import com.github.jamesnorris.inter.ZAScheduledTask;
 
 /**
  * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
@@ -37,19 +36,19 @@ public class MiscUtil {
      * @param dropDelay The delay before the item is dropped at the player
      */
     public static void dropItemAtPlayer(final Location from, final ItemStack item, final Player player, int dropDelay) {
-        Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+        Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
             @Override public void run() {
                 Item i = from.getWorld().dropItem(from, item);
                 i.setPickupDelay(Integer.MAX_VALUE);
                 final ItemStack is = i.getItemStack();
                 final Item finali = i;
-                Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+                Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
                     @Override public void run() {
                         finali.remove();
                         External.itemManager.giveItem(player, is);
                     }
                 }, 10);
-            }
+            }           
         }, dropDelay);
     }
 
@@ -122,18 +121,8 @@ public class MiscUtil {
         return null;
     }
 
-    public static void printOutLocation(String locationTag, Location loc) {
-        System.out.println(locationTag + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ());
-    }
-
-    /**
-     * Checks if the entity is a mob accepted by Ablockalypse.
-     * 
-     * @param entity The entity to check for
-     * @return Whether or not the entity is accepted
-     */
-    public static boolean isAcceptedMob(Entity entity) {
-        return (entity.getType() == EntityType.ZOMBIE || entity.getType() == EntityType.WOLF);
+    public static String getLocationAsString(String prefix, Location loc) {
+        return prefix + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ();
     }
 
     public static int[] swords = new int[] {268, 283, 272, 267, 276};

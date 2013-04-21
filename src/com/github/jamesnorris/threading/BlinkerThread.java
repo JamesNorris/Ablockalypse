@@ -6,14 +6,15 @@ import java.util.HashMap;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class BlinkerThread extends DataManipulator implements ZARepeatingThread {
+public class BlinkerThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private HashMap<Block, Byte> blockdata = new HashMap<Block, Byte>();
     private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
     private ZAColor color;
@@ -146,10 +147,10 @@ public class BlinkerThread extends DataManipulator implements ZARepeatingThread 
     }
 
     @Override public void remove() {
+        revertBlocks();
         runThrough = false;
         running = false;
         count = 0;
-        revertBlocks();
         data.threads.remove(this);
     }
 

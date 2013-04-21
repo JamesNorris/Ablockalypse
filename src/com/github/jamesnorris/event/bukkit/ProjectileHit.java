@@ -21,12 +21,13 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.util.Vector;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZAMob;
 
-public class ProjectileHit extends DataManipulator implements Listener {
+public class ProjectileHit implements Listener {
+    private DataContainer data = DataContainer.data;
     public static HashMap<UUID, String> uuids;
     private int yield = 1;// Can be changed to make a larger explosion.
 

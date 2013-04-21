@@ -3,11 +3,12 @@ package com.github.jamesnorris.threading;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class MobClearingThread extends DataManipulator implements ZARepeatingThread {
+public class MobClearingThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false;
     private int count = 0, interval;
 

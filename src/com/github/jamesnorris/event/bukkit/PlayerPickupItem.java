@@ -5,9 +5,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 
-public class PlayerPickupItem extends DataManipulator implements Listener {
+public class PlayerPickupItem implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when an item is picked up by a player.
      * Used mainly for disabling pickups for players in games.

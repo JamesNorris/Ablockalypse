@@ -7,7 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 import com.github.jamesnorris.util.Breakable;
@@ -15,7 +15,8 @@ import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.Path;
 import com.github.jamesnorris.util.Pathfinder;
 
-public class MobTargettingThread extends DataManipulator implements ZARepeatingThread {
+public class MobTargettingThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false, recalculate = false;
     private int interval = 1, count = 0, nodeNum = 0, standStill = 0;
     private HashMap<Integer, double[]> locations = new HashMap<Integer, double[]>();

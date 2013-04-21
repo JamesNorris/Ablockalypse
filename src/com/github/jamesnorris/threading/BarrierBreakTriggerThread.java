@@ -2,12 +2,13 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.entity.LivingEntity;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class BarrierBreakTriggerThread extends DataManipulator implements ZARepeatingThread {
+public class BarrierBreakTriggerThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false;
     private int count = 0, interval;
 

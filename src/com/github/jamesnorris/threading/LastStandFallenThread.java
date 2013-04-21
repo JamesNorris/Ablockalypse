@@ -2,11 +2,12 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class LastStandFallenThread extends DataManipulator implements ZARepeatingThread {
+public class LastStandFallenThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private Player player;
     private ZAPlayer zap;
     private boolean runThrough;

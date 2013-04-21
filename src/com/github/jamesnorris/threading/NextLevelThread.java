@@ -4,13 +4,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class NextLevelThread extends DataManipulator implements ZARepeatingThread {
+public class NextLevelThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private Game game;
     private int counter, interval, count = 0;
     private String name;

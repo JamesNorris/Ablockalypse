@@ -18,7 +18,6 @@ import com.github.jamesnorris.implementation.MobSpawner;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.MobSpawningThread;
-import com.github.jamesnorris.util.MathAssist;
 
 public class SpawnManager {
     private Game game;
@@ -91,16 +90,16 @@ public class SpawnManager {
      * @return The closest barrier
      */
     public Barrier getClosestBarrier(Location loc) {
-        int distance = Integer.MAX_VALUE;
+        double distance = Integer.MAX_VALUE;
         Barrier lp = null;// low priority
         Barrier hp = null;// high priority
-        for (Barrier gb : game.getBarriers()) {
+        for (Barrier gb : game.getObjectsOfType(Barrier.class)) {
             Location l = gb.getCenter();
-            int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+            double current = loc.distance(l);
             if (current < distance) {
                 distance = current;
                 lp = gb;
-                if (pathIsClear(loc, l, current))
+                if (pathIsClear(loc, l))
                     hp = gb;
             }
         }
@@ -124,16 +123,16 @@ public class SpawnManager {
      * @return The closest spawner
      */
     public MobSpawner getClosestSpawner(Location loc) {
-        int distance = Integer.MAX_VALUE;
+        double distance = Double.MAX_VALUE;
         MobSpawner lp = null;// low priority
         MobSpawner hp = null;// high priority
-        for (MobSpawner l1 : game.getMobSpawners()) {
+        for (MobSpawner l1 : game.getObjectsOfType(MobSpawner.class)) {
             Location l = l1.getBukkitLocation();
-            int current = (int) MathAssist.distance(loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), l.getBlockX(), l.getBlockY(), l.getBlockZ());
+            double current = loc.distance(l);
             if (current < distance) {
                 distance = current;
                 lp = l1;
-                if (pathIsClear(loc, l, current))
+                if (pathIsClear(loc, l))
                     hp = l1;
             }
         }
@@ -156,13 +155,7 @@ public class SpawnManager {
      * @return The amount of spawns in the current level
      */
     public int getCurrentSpawnAmount() {
-        double m = 1.2;
-        double x = game.getLevel();
-        double b = game.getPlayers().size();
-        int amt = (int) Math.round(MathAssist.line(m, x, b));
-        if (game.isWolfRound())
-            amt = amt / 3;
-        return amt;
+        return getSpawnAmount(game.getLevel(), game.getPlayers().size(), game.isWolfRound());
     }
 
     /**
@@ -183,57 +176,22 @@ public class SpawnManager {
      * @return The amount of spawns in this hypathetical level
      */
     public int getSpawnAmount(int level, int playeramt, boolean wolfround) {
-        double m = 1.2;
-        double x = level;
-        double b = playeramt;
-        int amt = (int) Math.round(MathAssist.line(m, x, b));
+        int amt = (int) (Math.sqrt(40 * level) + (Math.sqrt(10 * level) * playeramt));
         if (wolfround)
             amt = amt / 3;
         return amt;
     }
 
     /**
-     * @deprecated Only checks for a direct path
+     * @deprecated No method body
      * 
      * Checks that the blocks from the one location to the next in the distance are empty.
      * 
      * @param start The starting location
      * @param end The ending location
-     * @param distance The distance from the start to end
      * @return Whether or not all blocks from start to end are empty
      */
-    @Deprecated public boolean pathIsClear(Location start, Location end, int distance) {// TODO get this working
-        // ArrayList<Block> blocks = new ArrayList<Block>();
-        // World w = start.getWorld();
-        // for (int i2 = 1; i2 <= distance; i2++) {
-        // int pX = start.getBlockX();
-        // int pY = start.getBlockY();
-        // int pZ = start.getBlockZ();
-        // int eX = end.getBlockX();
-        // int eY = end.getBlockY();
-        // int eZ = end.getBlockZ();
-        // int movX = eX - i2;
-        // int movY = eY;
-        // int movZ = eZ - i2;
-        // if ((eX - pX) < 0)
-        // movX = eX + i2;
-        // if ((eZ - pZ) < 0)
-        // movZ = eZ + i2;
-        // Block block = w.getBlockAt(movX, movY, movZ);
-        // Block block2 = block.getLocation().add(0, 1, 0).getBlock();
-        // Block block3 = block.getLocation().subtract(0, 1, 0).getBlock();
-        // if ((!block.isEmpty() && block2.isEmpty() && pY > eY))
-        // block = block2;
-        // if ((!block.isEmpty() && block3.isEmpty() && pY < eY))
-        // block = block3;
-        // blocks.add(block);
-        // }
-        // int size = blocks.size();
-        // int known = 0;
-        // for (Block b2 : blocks)
-        // if (b2.isEmpty())
-        // ++known;
-        // return known == size;
+    @Deprecated public boolean pathIsClear(Location start, Location end) {// TODO get this working
         return false;
     }
 

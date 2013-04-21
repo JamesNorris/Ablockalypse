@@ -9,7 +9,7 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameEntityType;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -17,7 +17,8 @@ import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.MobTargettingThread;
 
-public class Undead extends DataManipulator implements ZAMob, GameObject {
+public class Undead implements ZAMob, GameObject {
+    private DataContainer data = DataContainer.data;
     private int absorption = 0;
     private boolean fireproof;
     private Game game;

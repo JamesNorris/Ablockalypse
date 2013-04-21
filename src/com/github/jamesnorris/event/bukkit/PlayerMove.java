@@ -10,13 +10,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAPerk;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class PlayerMove extends DataManipulator implements Listener {
+public class PlayerMove implements Listener {
+    private DataContainer data = DataContainer.data;
     private HashMap<String, Double> PHDPlayers = new HashMap<String, Double>();
 
     /*
@@ -41,7 +42,7 @@ public class PlayerMove extends DataManipulator implements Listener {
             if (data.players.get(p).isInLastStand() && isMoving(event)) {
                 event.setCancelled(true);
             }
-            for (Barrier gb : zap.getGame().getBarriers()) {
+            for (Barrier gb : zap.getGame().getObjectsOfType(Barrier.class)) {
                 for (Block b : gb.getBlocks()) {
                     Location l = b.getLocation();
                     if (MiscUtil.locationMatch(l, to)) {

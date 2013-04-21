@@ -7,11 +7,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Local;
 import com.github.jamesnorris.enumerated.ZAEffect;
 
-public class SignChange extends DataManipulator implements Listener {
+public class SignChange implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player places a block.
      * Used mainly for avoiding unwanted players from placing ZASigns.

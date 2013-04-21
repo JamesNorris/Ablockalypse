@@ -9,12 +9,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Undead;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.util.Breakable;
 
-public class EntityDamage extends DataManipulator implements Listener {
+public class EntityDamage implements Listener {
+    private DataContainer data = DataContainer.data;
     protected DamageCause[] cancelCauses = new DamageCause[] {DamageCause.SUFFOCATION, DamageCause.LIGHTNING};
     /*
      * Called when an entity is damaged.

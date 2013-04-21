@@ -18,10 +18,11 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.util.Vector;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
-public class EntityExplode extends DataManipulator implements Listener {
+public class EntityExplode implements Listener {
+    private static DataContainer data = DataContainer.data;
     private static HashMap<UUID, Boolean> uuids = new HashMap<UUID, Boolean>();// UUID, whether or not to cancel the event entirely
 
     /**

@@ -7,7 +7,7 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.ikeirnez.command.BaseCommand;
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.Update;
 import com.github.jamesnorris.XMPP;
@@ -46,7 +46,7 @@ public class Ablockalypse extends JavaPlugin {
     private static String address = "http://api.bukget.org/api2/bukkit/plugin/Ablockalypse/latest";
     private static String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
     private static String path = "plugins" + File.separator + "Ablockalypse.jar";
-    private static DataManipulator data;
+    private static DataContainer data;
     public static Ablockalypse instance;
     private static Update upd;
     private static MainThread mt;
@@ -81,7 +81,7 @@ public class Ablockalypse extends JavaPlugin {
      * 
      * @return The DataManipulator used by Ablockalypse
      */
-    public static DataManipulator getData() {
+    public static DataContainer getData() {
         return data;
     }
 
@@ -148,8 +148,9 @@ public class Ablockalypse extends JavaPlugin {
 
     @Override public void onDisable() {
         External.saveData();
-        for (BlinkerThread bt : data.getThreadsOfType(BlinkerThread.class))
+        for (BlinkerThread bt : data.getThreadsOfType(BlinkerThread.class)) {
             bt.remove();
+        }
         if (data.games != null) {
             for (String name : data.games.keySet()) {
                 Game zag = data.games.get(name);
@@ -164,7 +165,7 @@ public class Ablockalypse extends JavaPlugin {
         Ablockalypse.instance = this;
         External.loadExternalFiles(this);
         upd = new Update(this);
-        data = new DataManipulator();
+        data = new DataContainer();
         System.out.println("[Ablockalypse] Checking for updates...");
         if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && upd.updateAvailable()) {
             upd.download();

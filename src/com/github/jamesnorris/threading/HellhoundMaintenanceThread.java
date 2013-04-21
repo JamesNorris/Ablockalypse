@@ -1,10 +1,11 @@
 package com.github.jamesnorris.threading;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Hellhound;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class HellhoundMaintenanceThread extends DataManipulator implements ZARepeatingThread {
+public class HellhoundMaintenanceThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private boolean runThrough = false;
     private int count = 0, interval;
 

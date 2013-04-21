@@ -5,9 +5,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 
-public class PlayerDropItem extends DataManipulator implements Listener {
+public class PlayerDropItem implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when an item is dropped by a player.
      * Used mainly for disabling drops for players in games.

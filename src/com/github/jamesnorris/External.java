@@ -19,20 +19,18 @@ import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.manager.ItemFileManager;
 import com.github.jamesnorris.storage.PerGameDataStorage;
 
-public class External extends DataManipulator {
+public class External {
     private static String config = "config.yml";
-    private static FileConfiguration fc;
     public static String filelocation = "plugins" + File.separatorChar + "Ablockalypse" + File.separatorChar;
-    private static String folderlocation = "saved_data" + File.separatorChar;
-    private static String gameData = folderlocation + "game_data.bin";
+    private static String savedDataFolderLocation = "saved_data" + File.separatorChar;
+    private static String gameData = savedDataFolderLocation + "game_data.bin";
     private static Ablockalypse instance;
     public static String local = "local.yml";
     public static String items = "items.yml";
     public static String mapdatafolderlocation = "map_data" + File.separatorChar;
-    public static File localizationFile;
-    private static File configFile;
-    private static File itemsFile;
+    public static File localizationFile, configFile, itemsFile;
     public static ItemFileManager itemManager;
+    private static DataContainer data = DataContainer.data;
     // start unused
     @SuppressWarnings("unused") private static File gameDataFile;
     // end unused
@@ -45,7 +43,7 @@ public class External extends DataManipulator {
      * @return The FileConfiguration of this file
      */
     public static FileConfiguration getConfig(File f, String path) {
-        fc = null;
+        FileConfiguration fc = null;
         reloadConfig(f, path);
         return fc;
     }
@@ -135,7 +133,7 @@ public class External extends DataManipulator {
      * @param path The path of the file
      */
     private static void reloadConfig(File f, String path) {
-        fc = YamlConfiguration.loadConfiguration(f);
+        FileConfiguration fc = YamlConfiguration.loadConfiguration(f);
         InputStream defStream = instance.getResource(path);
         if (defStream != null) {
             YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defStream);

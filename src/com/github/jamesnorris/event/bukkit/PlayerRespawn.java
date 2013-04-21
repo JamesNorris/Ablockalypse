@@ -6,10 +6,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRespawnEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.threading.RespawnThread;
 
-public class PlayerRespawn extends DataManipulator implements Listener {
+public class PlayerRespawn implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when a player respawns.
      * Mainly used for sending the player back to the mainframe.

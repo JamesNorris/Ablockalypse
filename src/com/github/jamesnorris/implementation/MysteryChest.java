@@ -2,6 +2,7 @@ package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 
 import org.bukkit.Bukkit;
@@ -14,7 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -23,12 +24,14 @@ import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.ZAScheduledTask;
 import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.util.ItemInfoMap;
 import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.Region;
 
-public class MysteryChest extends DataManipulator implements GameObject, Blinkable {
+public class MysteryChest implements GameObject, Blinkable {
+    private DataContainer data = DataContainer.data;
     private boolean active = true;
     private BlinkerThread bt;
     private Object chest;
@@ -56,7 +59,7 @@ public class MysteryChest extends DataManipulator implements GameObject, Blinkab
         this.chest = chest;
         rand = new Random();
         this.game = game;
-        game.addMysteryChest(this);
+        game.addObject(this);
         this.active = active;
         uses = rand.nextInt(8) + 2;
         initBlinker();
@@ -153,7 +156,7 @@ public class MysteryChest extends DataManipulator implements GameObject, Blinkab
                 players.add(Bukkit.getPlayer(name));
             }
             MiscUtil.setChestOpened(players, loc.getBlock(), true);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(Ablockalypse.instance, new Runnable() {
+            Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
                 @Override public void run() {
                     MiscUtil.setChestOpened(players, loc.getBlock(), false);
                 }
@@ -168,7 +171,8 @@ public class MysteryChest extends DataManipulator implements GameObject, Blinkab
             if (uses == 0)
                 if ((Boolean) Setting.MOVING_CHESTS.getSetting()) {
                     setActive(false);
-                    game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(game.getMysteryChests().size())));
+                    List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
+                    game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
                 }
         } else {
             p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
@@ -189,13 +193,15 @@ public class MysteryChest extends DataManipulator implements GameObject, Blinkab
      */
     public void remove() {
         setActive(false);
-        game.removeMysteryChest(this);
+        game.removeObject(this);
         data.gameObjects.remove(this);
         for (Location loc : locs)
             data.chests.remove(loc);
-        int size = game.getMysteryChests().size();
-        if (size >= 1)
-            game.setActiveMysteryChest(game.getMysteryChests().get(rand.nextInt(size)));
+        List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
+        int size = chests.size();
+        if (size >= 1) {
+            game.setActiveMysteryChest(chests.get(rand.nextInt(size)));
+        }
         setBlinking(false);
         bt.remove();
         data.threads.remove(bt);

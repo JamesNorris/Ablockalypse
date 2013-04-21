@@ -3,11 +3,12 @@ package com.github.jamesnorris.threading;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
-public class RespawnThread extends DataManipulator implements ZARepeatingThread {
+public class RespawnThread implements ZARepeatingThread {
+    private DataContainer data = DataContainer.data;
     private Player player;
     private int time, level, count = 0, interval;
     private ZAPlayer zap;

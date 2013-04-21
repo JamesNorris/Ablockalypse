@@ -7,11 +7,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.threading.LastStandPickupThread;
 
-public class PlayerInteractEntity extends DataManipulator implements Listener {
+public class PlayerInteractEntity implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * The event called when a player hits another entity.
      * 

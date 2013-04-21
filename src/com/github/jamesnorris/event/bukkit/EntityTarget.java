@@ -7,11 +7,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
-import com.github.jamesnorris.util.MiscUtil;
 
-public class EntityTarget extends DataManipulator implements Listener {
+public class EntityTarget implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     /*
      * Called when an entity targets another entity.
      * Mostly used for making sure non-supported entites do not attack ZA players.
@@ -23,7 +24,7 @@ public class EntityTarget extends DataManipulator implements Listener {
             Player p = (Player) target;
             if (data.players.containsKey(p)) {
                 ZAPlayer zap = data.players.get(p);
-                if (zap.isInLastStand() || !MiscUtil.isAcceptedMob(entity) || !data.isZAMob(entity)) {
+                if (zap.isInLastStand() || !data.isZAMob(entity)) {
                     event.setCancelled(true);
                 }
             }

@@ -12,7 +12,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.implementation.Area;
+import com.github.jamesnorris.implementation.Passage;
 import com.github.jamesnorris.implementation.Barrier;
 import com.github.jamesnorris.implementation.Claymore;
 import com.github.jamesnorris.implementation.Game;
@@ -27,15 +27,31 @@ import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.inter.ZAThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class DataManipulator {
-    public static DataManipulator data;
+public class DataContainer {
+    public static DataContainer data;
     public String version = Ablockalypse.instance.getDescription().getVersion();
     public List<String> authors = Ablockalypse.instance.getDescription().getAuthors();
+    
+    public static DataContainer fromObject(Object obj) {
+        try {
+            return (DataContainer) obj.getClass().getDeclaredField("data").get(obj);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
     // AREAS
-    public CopyOnWriteArrayList<Area> areas = new CopyOnWriteArrayList<Area>();
+    public CopyOnWriteArrayList<Passage> areas = new CopyOnWriteArrayList<Passage>();
 
-    public Area getArea(Location loc) {
-        for (Area area : areas) {
+    public Passage getArea(Location loc) {
+        for (Passage area : areas) {
             if (area.getBlocks().contains(loc.getBlock())) {
                 return area;
             }

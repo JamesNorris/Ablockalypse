@@ -7,10 +7,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Undead;
 
-public class EntityBreakDoor extends DataManipulator implements Listener {
+public class EntityBreakDoor implements Listener {
+    private DataContainer data = DataContainer.data;
+    
     @EventHandler(priority = EventPriority.HIGHEST) public void EBDE(EntityBreakDoorEvent event) {
         LivingEntity e = event.getEntity();
         if (e instanceof Zombie) {

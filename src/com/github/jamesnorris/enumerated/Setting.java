@@ -74,8 +74,11 @@ public enum Setting {
         this.setting = name;
         this.type = type;
         object = Ablockalypse.instance.getConfig().get(name);
+        if (object == null) {
+            Ablockalypse.crash("The value for <" + this.toString() + ">, which uses the value of <" + name + "> in the configuration is null or missing!", false);
+        }
     }
-    
+
     public Class<?> getType() {
         return type;
     }
@@ -94,7 +97,8 @@ public enum Setting {
 
     static {
         int id = 0;
-        for (Setting setting : values())
+        for (Setting setting : values()) {
             BY_ID.put(++id, setting);
+        }
     }
 }

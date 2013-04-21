@@ -8,12 +8,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import com.github.jamesnorris.DataManipulator;
+import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.storage.PerPlayerDataStorage;
 
-public class PlayerJoin extends DataManipulator implements Listener {
+public class PlayerJoin implements Listener {
+    private DataContainer data = DataContainer.data;
     public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
     public static HashMap<String, PerPlayerDataStorage> offlinePlayers = new HashMap<String, PerPlayerDataStorage>();
 
