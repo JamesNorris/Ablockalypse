@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ManagementHelpTopic;
 
 public class CommandUtil {
@@ -28,10 +27,11 @@ public class CommandUtil {
             final StringBuilder sb = new StringBuilder();
             sb.append(inputArray[0]);
             for (int i = 1; i < inputArray.length; i++) {
-                if (i != inputArray.length - 1)
+                if (i != inputArray.length - 1) {
                     sb.append(glueString);
-                else
+                } else {
                     sb.append(finalGlueString);
+                }
                 sb.append(inputArray[i]);
             }
             output = sb.toString();
@@ -46,7 +46,7 @@ public class CommandUtil {
      */
     public void list(CommandSender s) {
         Ablockalypse.getData();
-        s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(DataContainer.data.games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
+        s.sendMessage(ChatColor.GOLD + "Available Games: " + ChatColor.YELLOW + implode(Ablockalypse.getData().games.keySet().toArray(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
     }
 
     // Note: Max lines per view is 10

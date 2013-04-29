@@ -3,7 +3,21 @@ package com.github.jamesnorris.enumerated;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
 public enum PlayerStatus {
-    //@formatter:off
+    LAST_STAND {
+        @Override public void set(ZAPlayer zap) {
+            if (!zap.isInLastStand()) {
+                zap.toggleLastStand();
+            }
+        }	    
+	},
+	LIMBO {
+        @Override public void set(ZAPlayer zap) {
+            if (!zap.isInLimbo()) {
+                zap.setLimbo(true);
+            }
+        }	    
+	}, 
+	//@formatter:off
     NORMAL {
         @Override public void set(ZAPlayer zap) {
             if (zap.isInLastStand()) {
@@ -16,21 +30,7 @@ public enum PlayerStatus {
                 zap.setTeleporting(false);
             }
         }        
-    },
-	LAST_STAND {
-        @Override public void set(ZAPlayer zap) {
-            if (!zap.isInLastStand()) {
-                zap.toggleLastStand();
-            }
-        }	    
-	}, 
-	LIMBO {
-        @Override public void set(ZAPlayer zap) {
-            if (!zap.isInLimbo()) {
-                zap.setLimbo(true);
-            }
-        }	    
-	}, 
+    }, 
 	TELEPORTING {
         @Override public void set(ZAPlayer zap) {
             if (!zap.isTeleporting()) {

@@ -7,18 +7,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.threading.LastStandPickupThread;
 
 public class PlayerInteractEntity implements Listener {
-    private DataContainer data = DataContainer.data;
-    
-    /*
-     * The event called when a player hits another entity.
+    private DataContainer data = Ablockalypse.getData();
+
+    /* The event called when a player hits another entity.
      * 
-     * Used for picking a player up out of last stand.
-     */
+     * Used for picking a player up out of last stand. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PIEE(PlayerInteractEntityEvent event) {
         Player p = event.getPlayer();
         Entity e = event.getRightClicked();

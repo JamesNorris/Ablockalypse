@@ -20,12 +20,17 @@ public enum ZAEffect {
     //
     private final static Map<Integer, ZAEffect> BY_ID = Maps.newHashMap();
 
+    static {
+        for (ZAEffect setting : values()) {
+            BY_ID.put(setting.id, setting);
+        }
+    }
+
     public static ZAEffect getById(final int id) {
         return BY_ID.get(id);
     }
-
-    private int id, type;
     private Effect effect;
+    private int id, type;
 
     ZAEffect(int id, Effect effect, int type) {
         this.id = id;
@@ -40,12 +45,6 @@ public enum ZAEffect {
     public void play(Location loc) {
         if ((Boolean) Setting.EXTRA_EFFECTS.getSetting()) {
             loc.getWorld().playEffect(loc, effect, type);
-        }
-    }
-
-    static {
-        for (ZAEffect setting : values()) {
-            BY_ID.put(setting.id, setting);
         }
     }
 }

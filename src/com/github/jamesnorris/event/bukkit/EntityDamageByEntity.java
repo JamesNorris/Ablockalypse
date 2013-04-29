@@ -13,21 +13,19 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.LastStandPickupThread;
 
 public class EntityDamageByEntity implements Listener {
     public static ArrayList<UUID> instakillids = new ArrayList<UUID>();
-    private DataContainer data = DataContainer.data;
+    private DataContainer data = Ablockalypse.getData();
 
-    /*
-     * Called when an entity damaged another entity.
-     * Used mostly for picking someone out of last stand, changing damage, and cancelling damage.
-     */
+    /* Called when an entity damaged another entity.
+     * Used mostly for picking someone out of last stand, changing damage, and cancelling damage. */
     @EventHandler(priority = EventPriority.HIGHEST) public void EDBEE(EntityDamageByEntityEvent event) {
         Entity damager = event.getDamager();
         Entity e = event.getEntity();
@@ -39,68 +37,66 @@ public class EntityDamageByEntity implements Listener {
         }
     }
 
-    /*
-     * Used to separate mob damage from player damage.
-     * This is the mob version.
-     */
+    /* Used to separate mob damage from player damage.
+     * This is the mob version. */
     public void mobDamage(EntityDamageByEntityEvent event, Entity damager, Entity e, int evtdmg) {
         ZAMob zam = data.getZAMob(e);
         if (damager instanceof Fireball) {
             Fireball f = (Fireball) damager;
-            if (instakillids.contains(f.getUniqueId()))
+            if (instakillids.contains(f.getUniqueId())) {
                 event.setDamage(zam.getCreature().getHealth() * 10);
-            else {
+            } else {
                 int dmg = 40 - zam.getHitAbsorption();
-                if (dmg < 9)
+                if (dmg < 9) {
                     dmg = 9;
+                }
                 event.setDamage(dmg);
             }
         } else if (damager instanceof Arrow) {
             Arrow a = (Arrow) damager;
-            if (instakillids.contains(a.getUniqueId()))
+            if (instakillids.contains(a.getUniqueId())) {
                 event.setDamage(zam.getCreature().getHealth() * 10);
-            else {
+            } else {
                 int dmg = 25 - zam.getHitAbsorption();
-                if (dmg <= 8)
+                if (dmg <= 8) {
                     dmg = 8;
+                }
                 event.setDamage(dmg);
             }
         } else if (damager instanceof Player) {
             Player p = (Player) damager;
-            if (data.playerExists(p)) {
+            if (data.playerIsZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);
-                if (zap.hasInstaKill())
+                if (zap.hasInstaKill()) {
                     event.setDamage(zam.getCreature().getHealth() * 5);
-                else {
+                } else {
                     int dmg = evtdmg - zam.getHitAbsorption();
-                    if (dmg <= 4)
+                    if (dmg <= 4) {
                         dmg = 4;
+                    }
                     event.setDamage(dmg);
                 }
             }
         } else if (data.isZAMob(damager) && damager instanceof Wolf) {
-            event.setDamage(((evtdmg - zam.getHitAbsorption()) / 2));
+            event.setDamage((evtdmg - zam.getHitAbsorption()) / 2);
         }
     }
 
-    /*
-     * Used to separate mob damage from player damage.
-     * This is the player version.
-     */
+    /* Used to separate mob damage from player damage.
+     * This is the player version. */
     public void playerDamage(EntityDamageByEntityEvent event, Entity damager, Entity e, int evtdmg) {
         Player p = (Player) e;
         if (data.players.containsKey(p)) {
             ZAPlayer zap = data.players.get(p);
-            Game zag = zap.getGame();
             if (damager instanceof Player) {
                 Player p2 = (Player) damager;
-                if (data.playerExists(p2)) {
+                if (data.playerIsZAPlayer(p2)) {
                     ZAPlayer hitter = data.players.get(p2);
                     if (zap.isInLastStand()) {
                         new LastStandPickupThread(hitter, zap, 20, 5, true);
                         event.setCancelled(true);
                     }
-                    if (!zag.getTeam().allowFriendlyFire()) {
+                    if (!(Boolean) Setting.DEFAULT_FRIENDLY_FIRE_MODE.getSetting()) {
                         event.setCancelled(true);
                     } else {
                         int dmg = evtdmg - zap.getHitAbsorption();
@@ -119,7 +115,7 @@ public class EntityDamageByEntity implements Listener {
                 event.setCancelled(true);
             }
             if (damager instanceof Fireball) {
-                if (!zag.getTeam().allowFriendlyFire()) {
+                if (!(Boolean) Setting.DEFAULT_FRIENDLY_FIRE_MODE.getSetting()) {
                     event.setCancelled(true);
                 } else {
                     int dmg = evtdmg - zap.getHitAbsorption();

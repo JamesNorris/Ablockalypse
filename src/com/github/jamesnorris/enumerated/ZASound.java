@@ -20,10 +20,15 @@ public enum ZASound {
     //
     private final static Map<Integer, ZASound> BY_ID = Maps.newHashMap();
 
+    static {
+        for (ZASound setting : values()) {
+            BY_ID.put(setting.id, setting);
+        }
+    }
+
     public static ZASound getById(final int id) {
         return BY_ID.get(id);
     }
-
     private int id, type;
     private Sound[] sounds;
 
@@ -41,12 +46,6 @@ public enum ZASound {
             for (Sound sound : sounds) {
                 loc.getWorld().playSound(loc, sound, type, 1);
             }
-        }
-    }
-
-    static {
-        for (ZASound setting : values()) {
-            BY_ID.put(setting.id, setting);
         }
     }
 }

@@ -2,16 +2,17 @@ package com.github.jamesnorris.threading;
 
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
 public class LastStandFallenThread implements ZARepeatingThread {
-    private DataContainer data = DataContainer.data;
-    private Player player;
-    private ZAPlayer zap;
-    private boolean runThrough;
+    private DataContainer data = Ablockalypse.getData();
     private int interval, count = 0;
+    private Player player;
+    private boolean runThrough;
+    private ZAPlayer zap;
 
     /**
      * Creates a new LastStandThread instance.
@@ -24,32 +25,10 @@ public class LastStandFallenThread implements ZARepeatingThread {
         this.zap = zap;
         this.interval = interval;
         player = zap.getPlayer();
-        if (autorun)
+        if (autorun) {
             setRunThrough(true);
+        }
         addToThreads();
-    }
-
-    private synchronized void addToThreads() {
-        data.threads.add(this);
-    }
-
-    @Override public boolean runThrough() {
-        return runThrough;
-    }
-
-    @Override public void setRunThrough(boolean tf) {
-        this.runThrough = tf;
-    }
-
-    @Override public void run() {
-        if (zap.isInLastStand() && !player.isDead())
-            player.damage(1);
-        else
-            remove();
-    }
-
-    @Override public void remove() {
-        data.threads.remove(this);
     }
 
     @Override public int getCount() {
@@ -60,11 +39,35 @@ public class LastStandFallenThread implements ZARepeatingThread {
         return interval;
     }
 
+    @Override public void remove() {
+        data.threads.remove(this);
+    }
+
+    @Override public void run() {
+        if (zap.isInLastStand() && !player.isDead()) {
+            player.damage(1);
+        } else {
+            remove();
+        }
+    }
+
+    @Override public boolean runThrough() {
+        return runThrough;
+    }
+
     @Override public void setCount(int i) {
         count = i;
     }
 
     @Override public void setInterval(int i) {
         interval = i;
+    }
+
+    @Override public void setRunThrough(boolean tf) {
+        runThrough = tf;
+    }
+
+    private synchronized void addToThreads() {
+        data.threads.add(this);
     }
 }

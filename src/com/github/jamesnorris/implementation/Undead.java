@@ -9,21 +9,25 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameEntityType;
 import com.github.jamesnorris.enumerated.GameObjectType;
-import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZAMob;
+import com.github.jamesnorris.inter.ZAScheduledTask;
+import com.github.jamesnorris.inter.ZAThread;
 import com.github.jamesnorris.threading.MobTargettingThread;
+import com.github.jamesnorris.util.MiscUtil;
 
 public class Undead implements ZAMob, GameObject {
-    private DataContainer data = DataContainer.data;
     private int absorption = 0;
-    private boolean fireproof;
+    private DataContainer data = Ablockalypse.getData();
+    private boolean fireproof, removed;
     private Game game;
     private MobTargettingThread mtt;
     private Zombie zombie;
+    private ZAThread thread;
 
     /**
      * Creates a new instance of the GameZombie for ZA.
@@ -36,18 +40,31 @@ public class Undead implements ZAMob, GameObject {
         this.game = game;
         data.gameObjects.add(this);
         data.mobs.add(this);
+        game.addObject(this);
         game.getSpawnManager().mobs.add(this);
-        absorption = (int) ((.5 / 2) * game.getLevel() + 1);// slightly less than wolf, increases at .5 every round
+        absorption = (int) (.5 / 2 * game.getLevel() + 1);// slightly less than wolf, increases at .5 every round
         fireproof = true;
-        Player p = game.getRandomLivingPlayer();
-        Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
-        mtt = new MobTargettingThread((Creature) zombie, (targetbarrier != null) ? targetbarrier.getCenter() : p, true);
+        final Player p = game.getRandomLivingPlayer();
+        final Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
+        mtt = new MobTargettingThread(zombie, targetbarrier != null ? targetbarrier.getCenter() : p.getLocation(), 0.05D, true);
+        if (targetbarrier == null) {
+            final Location previous = p.getLocation();
+            thread = Ablockalypse.getMainThread().scheduleRepeatingTask(new ZAScheduledTask() {
+                @Override public void run() {
+                    if (p.isDead()) {
+                        thread.remove();
+                    }
+                    if (!MiscUtil.locationMatch(previous, p.getLocation())) {
+                        mtt.setTarget(p.getLocation());
+                    }
+                }
+            }, 1);
+        }
         zombie.setHealth(10);
         game.setMobCount(game.getMobCount() + 1);
-        if (!data.undead.contains(this))
+        if (!data.undead.contains(this)) {
             data.undead.add(this);
-        if (game.getLevel() >= (Integer) Setting.DOUBLE_SPEED_LEVEL.getSetting())
-            mtt.setNodesPerTick(0.6F);
+        }
     }
 
     /**
@@ -55,8 +72,12 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The creature associated with this mob
      */
-    public Creature getCreature() {
+    @Override public Creature getCreature() {
         return zombie;
+    }
+
+    @Override public Block getDefiningBlock() {
+        return zombie.getLocation().getBlock();
     }
 
     /**
@@ -75,7 +96,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The Entity associated with this instance
      */
-    public org.bukkit.entity.Entity getEntity() {
+    @Override public org.bukkit.entity.Entity getEntity() {
         return zombie;
     }
 
@@ -84,7 +105,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The game that this zombie is involved in
      */
-    public Game getGame() {
+    @Override public Game getGame() {
         return game;
     }
 
@@ -93,8 +114,12 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The amount of damage to be absorbed each time this mob is hit
      */
-    public int getHitAbsorption() {
+    @Override public int getHitAbsorption() {
         return absorption;
+    }
+
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.UNDEAD;
     }
 
     /**
@@ -102,7 +127,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The speed of the entity as a double
      */
-    public double getSpeed() {
+    @Override public double getSpeed() {
         return mtt.getNodesPerTick();
     }
 
@@ -111,8 +136,8 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The mobs' target as a location
      */
-    public Location getTargetLocation() {
-        return mtt.getTargetLocation();
+    @Override public Location getTargetLocation() {
+        return mtt.getTarget();
     }
 
     /**
@@ -120,8 +145,12 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @return The targetter attached to this instance
      */
-    public MobTargettingThread getTargetter() {
+    @Override public MobTargettingThread getTargetter() {
         return mtt;
+    }
+
+    @Override public GameEntityType getType() {
+        return GameEntityType.UNDEAD;
     }
 
     /**
@@ -145,12 +174,14 @@ public class Undead implements ZAMob, GameObject {
     /**
      * Kills the undead and finalizes the instance.
      */
-    public void kill() {
-        if (zombie != null) {
-            if (game.getSpawnManager().mobs.contains(this))
+    @Override public void kill() {
+        if (zombie != null && !removed) {
+            if (game != null && game.getSpawnManager().mobs.contains(this)) {
                 game.getSpawnManager().mobs.remove(this);
+            }
             zombie.getWorld().playEffect(zombie.getLocation(), Effect.EXTINGUISH, 1);
             zombie.remove();
+            removed = true;
         }
         game.setMobCount(game.getMobCount() - 1);
         data.gameObjects.remove(this);
@@ -177,7 +208,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @param amt The amount of health to give to the zombie
      */
-    public void setHealth(int amt) {
+    @Override public void setHealth(int amt) {
         zombie.setHealth(amt);
     }
 
@@ -187,7 +218,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @param i The damage absorption of this mob
      */
-    public void setHitAbsorption(int i) {
+    @Override public void setHitAbsorption(int i) {
         absorption = i;
     }
 
@@ -196,7 +227,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @param nodesPerTick The speed to set the entity to
      */
-    public void setSpeed(double nodesPerTick) {
+    @Override public void setSpeed(double nodesPerTick) {
         mtt.setNodesPerTick(nodesPerTick);
     }
 
@@ -205,19 +236,7 @@ public class Undead implements ZAMob, GameObject {
      * 
      * @param loc The location to target
      */
-    public void setTargetLocation(Location loc) {
+    @Override public void setTargetLocation(Location loc) {
         mtt.setTarget(loc);
-    }
-
-    @Override public Block getDefiningBlock() {
-        return zombie.getLocation().getBlock();
-    }
-
-    @Override public GameEntityType getType() {
-        return GameEntityType.UNDEAD;
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.UNDEAD;
     }
 }

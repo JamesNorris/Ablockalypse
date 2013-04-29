@@ -12,11 +12,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZASound;
@@ -31,20 +28,18 @@ import com.github.jamesnorris.util.MiscUtil;
 
 public class Game {
     private MysteryChest active;
-    private CopyOnWriteArrayList<GameObject> objects = new CopyOnWriteArrayList<GameObject>();
-    private int level, mobcount, startpoints;
+    private ChestFakeBeaconThread beacons;
+    private DataContainer data = Ablockalypse.getData();
+    private int level = 1, mobcount, startpoints;
     private Mainframe mainframe;
     private String name;
     private NextLevelThread nlt;
+    private CopyOnWriteArrayList<GameObject> objects = new CopyOnWriteArrayList<GameObject>();
     private HashMap<String, Integer> players = new HashMap<String, Integer>();
     private Random rand;
     private SpawnManager spawnManager;
     private List<Integer> wolfLevels = new ArrayList<Integer>();
     private boolean wolfRound, paused, started;
-    private ChestFakeBeaconThread beacons;
-    private Scoreboard scoreBoard;
-    private Team team;
-    private DataContainer data = DataContainer.data;
 
     /**
      * Creates a new instance of a game.
@@ -59,39 +54,8 @@ public class Game {
         beacons = new ChestFakeBeaconThread(this, 200, (Boolean) Setting.BEACONS.getSetting());
         wolfLevels = (List<Integer>) Setting.WOLF_LEVELS.getSetting();
         startpoints = (Integer) Setting.STARTING_POINTS.getSetting();
-        scoreBoard = Bukkit.getScoreboardManager().getNewScoreboard();
-        team = scoreBoard.registerNewTeam("Ablockalypse");
-        team.setCanSeeFriendlyInvisibles(true);
-        team.setAllowFriendlyFire((Boolean) Setting.DEFAULT_FRIENDLY_FIRE_MODE.getSetting());       
-        Objective objective = scoreBoard.registerNewObjective("showhealth", "health");
-        objective.setDisplaySlot(DisplaySlot.BELOW_NAME);
-        objective.setDisplayName("/ 20");
-        scoreBoard.registerNewObjective("points", "dummy").setDisplaySlot(DisplaySlot.SIDEBAR);//getScoreboard().getObjective("points") - to modify player points
+        spawnManager = new SpawnManager(this);
         data.games.put(name, this);
-    }
-    
-    public Scoreboard getScoreboard() {
-        return scoreBoard;
-    }
-    
-    public void setScoreboard(Scoreboard board) {
-        this.scoreBoard = board;
-    }
-    
-    public Team getTeam() {
-        return team;
-    }
-    
-    public void setTeam(Team team) {
-        this.team = team;
-    }
-
-    public ChestFakeBeaconThread getFakeBeaconThread() {
-        return beacons;
-    }
-
-    public void setFakeBeaconThread(ChestFakeBeaconThread thread) {
-        beacons = thread;
     }
 
     /**
@@ -103,19 +67,6 @@ public class Game {
         if (!overlapsAnotherObject(obj) && !objects.contains(obj)) {
             objects.add(obj);
         }
-    }
-
-    private boolean overlapsAnotherObject(GameObject obj) {
-        for (GameObject object : getAllPhysicalObjects()) {
-            for (Block block : object.getDefiningBlocks()) {
-                Location bLoc = block.getLocation();
-                for (Block otherBlock : obj.getDefiningBlocks()) {
-                    if (MiscUtil.locationMatch(otherBlock.getLocation(), bLoc))
-                        return true;
-                }
-            }
-        }
-        return false;
     }
 
     /**
@@ -133,10 +84,12 @@ public class Game {
         if (!players.containsKey(player.getName())) {
             players.put(player.getName(), startpoints);
             broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
-            if (paused)
+            if (paused) {
                 pause(false);
-            if (!started)
+            }
+            if (!started) {
                 nextLevel();
+            }
         }
     }
 
@@ -172,29 +125,38 @@ public class Game {
     public void end() {
         if (started) {
             int points = 0;
-            for (int i : players.values())
+            for (int i : players.values()) {
                 points = points + i;
+            }
             GameEndEvent GEE = new GameEndEvent(this, points);
             Bukkit.getPluginManager().callEvent(GEE);
             if (!GEE.isCancelled()) {
                 paused = true;
                 started = false;
                 mainframe.clearLinks();
-                if (nlt != null && nlt.isRunning())
+                level = 1;
+                if (nlt != null && nlt.isRunning()) {
                     nlt.remove();
+                }
                 for (Blinkable b : getObjectsOfType(Blinkable.class)) {
-                    if (b.getBlinkerThread() != null) {
-                        b.getBlinkerThread().setRunThrough(true);
+                    b.setBlinking(true);
+                }
+                for (Undead gu : data.undead) {
+                    if (gu.getGame() == this) {
+                        gu.kill();
                     }
                 }
-                for (Undead gu : data.undead)
-                    if (gu.getGame() == this)
-                        gu.kill();
-                for (Hellhound ghh : data.hellhounds)
-                    if (ghh.getGame() == this)
+                for (Hellhound ghh : data.hellhounds) {
+                    if (ghh.getGame() == this) {
                         ghh.kill();
-                for (Barrier barrier : getObjectsOfType(Barrier.class))
+                    }
+                }
+                for (Barrier barrier : getObjectsOfType(Barrier.class)) {
                     barrier.replacePanels();
+                }
+                for (Passage passage : getObjectsOfType(Passage.class)) {
+                    passage.close();
+                }
                 for (Claymore more : getObjectsOfType(Claymore.class)) {
                     more.remove();
                 }
@@ -217,6 +179,14 @@ public class Game {
      */
     public MysteryChest getActiveMysteryChest() {
         return active;
+    }
+
+    public CopyOnWriteArrayList<GameObject> getAllPhysicalObjects() {
+        return objects;
+    }
+
+    public ChestFakeBeaconThread getFakeBeaconThread() {
+        return beacons;
     }
 
     /**
@@ -264,6 +234,16 @@ public class Game {
         return name;
     }
 
+    @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {// TODO get this working
+        ArrayList<T> list = new ArrayList<T>();
+        for (Object obj : objects) {
+            if (type.isAssignableFrom(obj.getClass())) {
+                list.add((T) obj);
+            }
+        }
+        return list;
+    }
+
     /**
      * Returns a set of players currently in the game.
      * 
@@ -284,9 +264,10 @@ public class Game {
             ArrayList<ZAPlayer> zaps = new ArrayList<ZAPlayer>();
             for (String s : getPlayers()) {
                 Player p = Bukkit.getServer().getPlayer(s);
-                ZAPlayer zap = (ZAPlayer) data.getZAPlayer(p);
-                if (!p.isDead() && !zap.isInLastStand() && !zap.isInLimbo())
+                ZAPlayer zap = data.getZAPlayer(p);
+                if (!p.isDead() && !zap.isInLastStand() && !zap.isInLimbo()) {
                     zaps.add(zap);
+                }
             }
             return zaps.get(rand.nextInt(zaps.size())).getPlayer();
         }
@@ -391,16 +372,20 @@ public class Game {
                 p.setLevel(level);
                 p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + level + ChatColor.RESET + ChatColor.BOLD + " has started.");
             }
-            if (level != 1)
+            if (level != 1) {
                 broadcastPoints();
+            }
         }
-        if (wolfLevels != null && wolfLevels.contains(level))
+        if (wolfLevels != null && wolfLevels.contains(level)) {
             wolfRound = true;
-        if (paused)
+        }
+        if (paused) {
             pause(false);
-        nlt = new NextLevelThread(this, true, 40);
-        if (getMobCount() <= 0)
+        }
+        nlt = new NextLevelThread(this, true);
+        if (getMobCount() <= 0) {
             spawnWave();
+        }
     }
 
     /**
@@ -417,10 +402,12 @@ public class Game {
      */
     public void remove() {
         end();
-        for (GameObject object : getAllPhysicalObjects())
+        for (GameObject object : getAllPhysicalObjects()) {
             object.remove();
-        if (beacons != null)
+        }
+        if (beacons != null) {
             beacons.remove();
+        }
         data.games.remove(name);
     }
 
@@ -435,30 +422,21 @@ public class Game {
         }
     }
 
-    @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {
-        ArrayList<T> list = new ArrayList<T>();
-        for (Object obj : objects) {
-            if (obj.getClass().isInstance(type)) {
-                list.add((T) obj);
-            }
-        }
-        return list;
-    }
-
     /**
      * Removes a player from the game.
      * 
      * @param player The player to be removed from the game
      */
     public void removePlayer(Player player) {
-        if (players.containsKey(player.getName()))
+        if (players.containsKey(player.getName())) {
             players.remove(player.getName());
+        }
         ZAPlayer zap = data.getZAPlayer(player);
         if (zap != null) {
             zap.removeFromGame();
             data.players.get(player).removeFromGame();
             data.players.remove(player);
-            if (players.size() == 0) {
+            if (players.isEmpty()) {
                 pause(true);
                 end();
             }
@@ -473,13 +451,18 @@ public class Game {
     public void setActiveMysteryChest(MysteryChest mc) {
         if ((Boolean) Setting.MOVING_CHESTS.getSetting()) {
             active = mc;
-            for (MysteryChest chest : getObjectsOfType(MysteryChest.class))
+            for (MysteryChest chest : getObjectsOfType(MysteryChest.class)) {
                 chest.setActive(false);
+            }
             if (!mc.isActive()) {
                 mc.setActive(true);
                 mc.setActiveUses(rand.nextInt(8) + 2);
             }
         }
+    }
+
+    public void setFakeBeaconThread(ChestFakeBeaconThread thread) {
+        beacons = thread;
     }
 
     /**
@@ -502,8 +485,6 @@ public class Game {
         }
         mainframe = mf;
         data.mainframes.put(getName(), mf);
-        if (spawnManager == null)
-            spawnManager = new SpawnManager(this);
     }
 
     /**
@@ -515,8 +496,9 @@ public class Game {
      */
     public void setMobCount(int i) {
         mobcount = i;
-        if (mobcount < 0)
+        if (mobcount < 0) {
             mobcount = 0;
+        }
     }
 
     /**
@@ -543,15 +525,26 @@ public class Game {
      * If barriers are present and acessible, spawns the mobs at the barriers.
      */
     public void spawnWave() {
-        if (mainframe == null && getRandomLivingPlayer() != null)
+        if (mainframe == null && getRandomLivingPlayer() != null) {
             mainframe = new Mainframe(this, getRandomLivingPlayer().getLocation());
-        if (spawnManager == null)
-            spawnManager = new SpawnManager(this);
+        }
         spawnManager.spawnWave();
         started = true;
     }
 
-    public CopyOnWriteArrayList<GameObject> getAllPhysicalObjects() {
-        return objects;
+    private boolean overlapsAnotherObject(GameObject obj) {
+        for (GameObject object : getAllPhysicalObjects()) {
+            for (Block block : object.getDefiningBlocks()) {
+                if (block != null) {
+                    Location bLoc = block.getLocation();
+                    for (Block otherBlock : obj.getDefiningBlocks()) {
+                        if (MiscUtil.locationMatch(otherBlock.getLocation(), bLoc)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

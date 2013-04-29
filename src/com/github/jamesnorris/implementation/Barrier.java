@@ -26,16 +26,16 @@ import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.util.Square;
 
 public class Barrier implements GameObject, Blinkable {
-    private DataContainer data = DataContainer.data;
+    private int blockamt;
     private CopyOnWriteArrayList<Block> blocks = new CopyOnWriteArrayList<Block>();
     private BlinkerThread bt;
     private Location center, spawnloc;
     private boolean correct;
+    private DataContainer data = Ablockalypse.getData();
     private int fixtimes;
     private Game game;
     private int hittimes;
     private int hittimesoriginal = 5, fixtimesoriginal = 3;
-    private int radius, blockamt;
 
     /**
      * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
@@ -47,7 +47,6 @@ public class Barrier implements GameObject, Blinkable {
         data.gameObjects.add(this);
         this.center = center.getLocation();
         this.game = game;
-        radius = 2;
         fixtimes = fixtimesoriginal;
         hittimes = hittimesoriginal;
         Random rand = new Random();
@@ -68,8 +67,9 @@ public class Barrier implements GameObject, Blinkable {
             z = z - modZ;
         }
         spawnloc = w.getBlockAt(x, y, z).getLocation();
-        if (spawnloc == null)
+        if (spawnloc == null) {
             Ablockalypse.crash("A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
+        }
         /* end finding spawnloc */
         game.addObject(this);
         Square s = new Square(center.getLocation(), 1);
@@ -84,24 +84,15 @@ public class Barrier implements GameObject, Blinkable {
         initBlinker();
     }
 
-    private void initBlinker() {
-        ArrayList<Block> blockArray = new ArrayList<Block>();
-        blockArray.add(this.center.getBlock());
-        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
-        ZAColor color = (blockamt == 9) ? ZAColor.BLUE : ZAColor.RED;
-        correct = color == ZAColor.BLUE;
-        bt.setColor(color);
-    }
-
     /**
      * Slowly breaks the blocks of the barrier.
      * 
      * @param liveEntity The entityliving that is breaking the barrier
      */
     public void breakBarrier(LivingEntity liveEntity) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         new BarrierBreakThread(this, liveEntity, 100, true);
     }
 
@@ -123,8 +114,9 @@ public class Barrier implements GameObject, Blinkable {
      * @param zap The ZAPlayer that is going to be fixing this barrier
      */
     public void fixBarrier(ZAPlayer zap) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         new BarrierFixThread(this, zap, 20, true);
     }
 
@@ -155,6 +147,10 @@ public class Barrier implements GameObject, Blinkable {
         return center;
     }
 
+    @Override public Block getDefiningBlock() {
+        return center.getBlock();
+    }
+
     /**
      * Gets the blocks that defines this object as an object.
      * 
@@ -168,6 +164,14 @@ public class Barrier implements GameObject, Blinkable {
         return blockArray;
     }
 
+    public int getFixRequirement() {
+        return fixtimesoriginal;
+    }
+
+    public int getFixTimes() {
+        return fixtimes;
+    }
+
     /**
      * Gets the game this barrier is involved in.
      * 
@@ -177,13 +181,16 @@ public class Barrier implements GameObject, Blinkable {
         return game;
     }
 
-    /**
-     * Gets the radius of the barrier as an integer.
-     * 
-     * @return The radius of the barrier
-     */
-    public int getRadius() {
-        return radius;
+    public int getHitRequirement() {
+        return hittimesoriginal;
+    }
+
+    public int getHitTimes() {
+        return hittimes;
+    }
+
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.BARRIER;
     }
 
     /**
@@ -201,8 +208,9 @@ public class Barrier implements GameObject, Blinkable {
      * @return Whether or not the barrier is broken
      */
     public boolean isBroken() {
-        if (center.getBlock().isEmpty())
+        if (center.getBlock().isEmpty()) {
             return true;
+        }
         return false;
     }
 
@@ -221,10 +229,11 @@ public class Barrier implements GameObject, Blinkable {
      * @param e The entity to check for
      * @return Whether or not the entity is within the radius
      */
-    public boolean isWithinRadius(Entity e) {
+    public boolean isWithinRadius(Entity e, int radius) {
         int distance = (int) e.getLocation().distance(center);
-        if (distance <= radius)
+        if (distance <= radius) {
             return true;
+        }
         return false;
     }
 
@@ -260,11 +269,13 @@ public class Barrier implements GameObject, Blinkable {
      * @param tf Whether or not this barrier should blink
      */
     @Override public void setBlinking(boolean tf) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         if (tf) {
-            if (!data.threads.contains(bt))
+            if (!data.threads.contains(bt)) {
                 initBlinker();
+            }
             bt.setRunThrough(true);
         }
     }
@@ -284,14 +295,6 @@ public class Barrier implements GameObject, Blinkable {
         fixtimes = i;
     }
 
-    public int getFixTimes() {
-        return fixtimes;
-    }
-
-    public int getFixRequirement() {
-        return fixtimesoriginal;
-    }
-
     /**
      * Sets the amount of hit rounds to wait before breaking the barrier.
      * Hit rounds are called once every 100 ticks by all mobs close to barriers.
@@ -307,28 +310,13 @@ public class Barrier implements GameObject, Blinkable {
         hittimes = i;
     }
 
-    public int getHitTimes() {
-        return hittimes;
-    }
-
-    public int getHitRequirement() {
-        return hittimesoriginal;
-    }
-
-    /**
-     * Sets the radius of the barrier to be broken.
-     * 
-     * @param i The radius
-     */
-    public void setRadius(int i) {
-        radius = i;
-    }
-
-    @Override public Block getDefiningBlock() {
-        return center.getBlock();
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.BARRIER;
+    private void initBlinker() {
+        ArrayList<Block> blockArray = new ArrayList<Block>();
+        blockArray.add(center.getBlock());
+        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
+        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
+        ZAColor color = blockamt == 9 ? ZAColor.BLUE : ZAColor.RED;
+        correct = color == ZAColor.BLUE;
+        bt.setColor(color);
     }
 }

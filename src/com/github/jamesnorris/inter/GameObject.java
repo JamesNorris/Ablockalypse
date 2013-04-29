@@ -9,6 +9,13 @@ import com.github.jamesnorris.implementation.Game;
 
 public interface GameObject {
     /**
+     * Gets the singular block that defines this object as an object.
+     * 
+     * @return The block assigned to this object
+     */
+    public Block getDefiningBlock();
+
+    /**
      * Gets the blocks that defines this object as an object.
      * 
      * @return The blocks assigned to this object
@@ -22,17 +29,10 @@ public interface GameObject {
      */
     public Game getGame();
 
+    public GameObjectType getObjectType();
+
     /**
      * Removes the game object completely.
      */
     public void remove();
-
-    /**
-     * Gets the singular block that defines this object as an object.
-     * 
-     * @return The block assigned to this object
-     */
-    public Block getDefiningBlock();
-    
-    public GameObjectType getObjectType();
 }

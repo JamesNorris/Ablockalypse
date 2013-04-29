@@ -22,29 +22,32 @@ public class PerPlayerDataStorage implements Serializable {// TODO annotations
     private final boolean sleepingignored;
 
     public PerPlayerDataStorage(ZAPlayer zap) {
-        this.name = zap.getName();
-        this.gamename = zap.getGame().getName();
-        this.points = zap.getPoints();
-        this.kills = zap.getKills();
-        this.gameLevel = zap.getGame().getLevel();
+        name = zap.getName();
+        gamename = zap.getGame().getName();
+        points = zap.getPoints();
+        kills = zap.getKills();
+        gameLevel = zap.getGame().getLevel();
         Player player = zap.getPlayer();
-        this.location = new SerializableLocation(player.getLocation());
+        location = new SerializableLocation(player.getLocation());
         ItemStack[] inv = player.getInventory().getContents();
         inv = player.getInventory().getContents();
-        for (ItemStack is : inv)
-            if (is != null)
+        for (ItemStack is : inv) {
+            if (is != null) {
                 inventory.add(is.serialize());
+            }
+        }
         ItemStack[] ar = player.getInventory().getArmorContents();
-        for (ItemStack is : ar)
+        for (ItemStack is : ar) {
             armor.add(is.serialize());
-        this.health = player.getHealth();
-        this.food = player.getFoodLevel();
-        this.saturation = player.getSaturation();
-        this.sleepingignored = player.isSleepingIgnored();
-        this.fire = player.getFireTicks();
-        this.fall = player.getFallDistance();
-        this.exhaust = player.getExhaustion();
-        this.gm = player.getGameMode().getValue();
+        }
+        health = player.getHealth();
+        food = player.getFoodLevel();
+        saturation = player.getSaturation();
+        sleepingignored = player.isSleepingIgnored();
+        fire = player.getFireTicks();
+        fall = player.getFallDistance();
+        exhaust = player.getExhaustion();
+        gm = player.getGameMode().getValue();
     }
 
     public ArrayList<Map<String, Object>> getArmor() {
@@ -124,9 +127,11 @@ public class PerPlayerDataStorage implements Serializable {// TODO annotations
         p.setExhaustion(exhaust);
         p.setSleepingIgnored(sleepingignored);
         p.teleport(SerializableLocation.returnLocation(location));
-        for (Map<String, Object> is : inventory)
+        for (Map<String, Object> is : inventory) {
             p.getInventory().addItem(ItemStack.deserialize(is));
-        for (Map<String, Object> is : armor)
+        }
+        for (Map<String, Object> is : armor) {
             p.getInventory().addItem(ItemStack.deserialize(is));
+        }
     }
 }

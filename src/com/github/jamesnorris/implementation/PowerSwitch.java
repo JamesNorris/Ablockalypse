@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -14,59 +15,32 @@ import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.threading.BlinkerThread;
 
 public class PowerSwitch implements GameObject, Blinkable {
-    private DataContainer data = DataContainer.data;
+    private BlinkerThread bt;
+    private int cost = 0;
+    private DataContainer data = Ablockalypse.getData();
     private Game game;
     private Location loc;
-    private int cost = 0;
     private boolean on = false;
-    private BlinkerThread bt;
 
     public PowerSwitch(Game game, Location loc, int cost) {
         this.game = game;
         this.loc = loc;
         this.cost = cost;
         data.gameObjects.add(this);
+        game.addObject(this);
         initBlinker();
     }
-    
-    private void initBlinker() {
-        ArrayList<Block> blockArray = new ArrayList<Block>();
-        blockArray.add(loc.getBlock());
-        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
+
+    @Override public BlinkerThread getBlinkerThread() {
+        return bt;
     }
-    
-    public Location getLocation() {
-        return loc;
-    }
-    
-    public void setCost(int cost) {
-        this.cost = cost;
-    }
-    
+
     public int getCost() {
         return cost;
     }
-    
-    public void turnOn(ZAPlayer player) {
-        player.subtractPoints(cost);
-        on();
-    }
 
-    public void on() {
-        if (on) {
-            return;
-        }
-        on = true;
-        //TODO things that require power, allow interaction
-    }
-
-    public void off() {
-        if (!on) {
-            return;
-        }
-        on = false;
-      //TODO things that require power, disallow interaction
+    @Override public Block getDefiningBlock() {
+        return loc.getBlock();
     }
 
     @Override public ArrayList<Block> getDefiningBlocks() {
@@ -79,23 +53,51 @@ public class PowerSwitch implements GameObject, Blinkable {
         return game;
     }
 
-    @Override public void remove() {
-        data.gameObjects.remove(this);
-    }
-
-    @Override public Block getDefiningBlock() {
-        return loc.getBlock();
+    public Location getLocation() {
+        return loc;
     }
 
     @Override public GameObjectType getObjectType() {
         return GameObjectType.POWER_SWITCH;
     }
 
-    @Override public BlinkerThread getBlinkerThread() {
-        return bt;
+    public void off() {
+        if (!on) {
+            return;
+        }
+        on = false;
+        // TODO things that require power, disallow interaction
+    }
+
+    public void on() {
+        if (on) {
+            return;
+        }
+        on = true;
+        // TODO things that require power, allow interaction
+    }
+
+    @Override public void remove() {
+        data.gameObjects.remove(this);
     }
 
     @Override public void setBlinking(boolean tf) {
         bt.setRunThrough(tf);
+    }
+
+    public void setCost(int cost) {
+        this.cost = cost;
+    }
+
+    public void turnOn(ZAPlayer player) {
+        player.subtractPoints(cost);
+        on();
+    }
+
+    private void initBlinker() {
+        ArrayList<Block> blockArray = new ArrayList<Block>();
+        blockArray.add(loc.getBlock());
+        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
+        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
     }
 }

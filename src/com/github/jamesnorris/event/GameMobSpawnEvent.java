@@ -74,7 +74,7 @@ public class GameMobSpawnEvent extends AblockalypseEvent implements Cancellable 
      * 
      * @return Whether or not this event is cancelled
      */
-    public boolean isCancelled() {
+    @Override public boolean isCancelled() {
         return cancel;
     }
 
@@ -83,7 +83,7 @@ public class GameMobSpawnEvent extends AblockalypseEvent implements Cancellable 
      * 
      * @param arg Whether or not to cancel the event
      */
-    public void setCancelled(boolean arg) {
+    @Override public void setCancelled(boolean arg) {
         cancel = arg;
     }
 }

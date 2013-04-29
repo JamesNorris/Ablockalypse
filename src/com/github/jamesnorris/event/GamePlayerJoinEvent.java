@@ -70,7 +70,7 @@ public class GamePlayerJoinEvent extends AblockalypseEvent implements Cancellabl
      * 
      * @return Whether or not this event is cancelled
      */
-    public boolean isCancelled() {
+    @Override public boolean isCancelled() {
         return cancel;
     }
 
@@ -79,7 +79,7 @@ public class GamePlayerJoinEvent extends AblockalypseEvent implements Cancellabl
      * 
      * @param arg Whether or not to cancel the event
      */
-    public void setCancelled(boolean arg) {
+    @Override public void setCancelled(boolean arg) {
         cancel = arg;
     }
 }

@@ -7,18 +7,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Local;
 import com.github.jamesnorris.enumerated.ZAEffect;
 
 public class SignChange implements Listener {
-    private DataContainer data = DataContainer.data;
-    
-    /*
-     * Called when a player places a block.
+    private DataContainer data = Ablockalypse.getData();
+
+    /* Called when a player places a block.
      * Used mainly for avoiding unwanted players from placing ZASigns.
-     * Also used to add map data storage signs to the arraylist in GlobalData to be loaded on disable.
-     */
+     * Also used to add map data storage signs to the arraylist in GlobalData to be loaded on disable. */
     @EventHandler(priority = EventPriority.HIGHEST) public void SCE(SignChangeEvent event) {
         Player player = event.getPlayer();
         // Sign sign = (Sign) event.getBlock().getState();

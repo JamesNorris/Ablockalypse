@@ -2,7 +2,9 @@ package com.github;
 
 import java.io.File;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -35,21 +37,18 @@ import com.github.jamesnorris.event.bukkit.PlayerToggleSneak;
 import com.github.jamesnorris.event.bukkit.ProjectileHit;
 import com.github.jamesnorris.event.bukkit.SignChange;
 import com.github.jamesnorris.implementation.Game;
+import com.github.jamesnorris.inter.ZAThread;
 import com.github.jamesnorris.threading.BarrierBreakTriggerThread;
-import com.github.jamesnorris.threading.BlinkerThread;
+import com.github.jamesnorris.threading.HellhoundMaintenanceThread;
 import com.github.jamesnorris.threading.MainThread;
 import com.github.jamesnorris.threading.MobClearingThread;
-import com.github.jamesnorris.threading.HellhoundMaintenanceThread;
 import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 
 public class Ablockalypse extends JavaPlugin {
-    private static String address = "http://api.bukget.org/api2/bukkit/plugin/Ablockalypse/latest";
-    private static String issues = "https://github.com/JamesNorris/Ablockalypse/issues";
-    private static String path = "plugins" + File.separator + "Ablockalypse.jar";
-    private static DataContainer data;
     public static Ablockalypse instance;
-    private static Update upd;
+    private static DataContainer data = new DataContainer();
     private static MainThread mt;
+    private static Update upd;
 
     /**
      * Called when something is not working, and the plugin needs to be monitored.
@@ -58,13 +57,17 @@ public class Ablockalypse extends JavaPlugin {
      * @param disable Whether or not the Ablockalypse plugin should stop working
      */
     public static void crash(String reason, boolean disable) {
+        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
         /* Everything in this method should be static, except for strings */
         StringBuilder sb = new StringBuilder();
         sb.append("An aspect of Ablockalypse is broken, please report at: \n");
-        sb.append(getIssuesURL() + "\n");
+        sb.append("https://github.com/JamesNorris/Ablockalypse/issues\n");
         sb.append("--------------------------[ERROR REPORT]--------------------------\n");
-        sb.append("VERSION: " + data.version + "\n");
+        sb.append("VERSION: " + instance.getDescription().getVersion() + "\n");
         sb.append("BREAK REASON: " + reason + "\n");
+        for (int i = 1; i <= 5; i++) {
+            sb.append("CRASH CALL " + i + ": " + stackTraceElements[i] + "\n");
+        }
         sb.append("---------------------------[END REPORT]---------------------------\n");
         if (!disable) {
             sb.append("The error was NOT FATAL, therefore Ablockalypse will continue running.");
@@ -73,7 +76,10 @@ public class Ablockalypse extends JavaPlugin {
             Ablockalypse.kill();
         }
         System.err.println(sb.toString());
-        XMPPAPI.sendMessage("An error occurred! \n" + sb.toString());
+        Plugin comex = Bukkit.getPluginManager().getPlugin("CommandsEX");
+        if (comex != null && comex.isEnabled()) {
+            XMPPAPI.sendMessage("An error occurred!\n" + sb.toString());
+        }
     }
 
     /**
@@ -104,39 +110,12 @@ public class Ablockalypse extends JavaPlugin {
     }
 
     /**
-     * Gets the URL for issues to be sent to github.
-     * 
-     * @return The github issues URL
-     */
-    public static String getIssuesURL() {
-        return issues;
-    }
-
-    /**
-     * Gets the path from the plugins folder to the data folder.
-     * 
-     * @return The data folder path
-     */
-    public static String getJARPath() {
-        return path;
-    }
-
-    /**
      * Gets the Update instance of Ablockalypse, which auto-updates ths plugin.
      * 
      * @return The Update instance to Ablockalypse
      */
     public static Update getUpdater() {
         return upd;
-    }
-
-    /**
-     * Gets the URL from bukget for updating.
-     * 
-     * @return The bukget URL
-     */
-    public static String getUpdateURL() {
-        return address;
     }
 
     /**
@@ -148,15 +127,13 @@ public class Ablockalypse extends JavaPlugin {
 
     @Override public void onDisable() {
         External.saveData();
-        for (BlinkerThread bt : data.getThreadsOfType(BlinkerThread.class)) {
-            bt.remove();
+        for (ZAThread thread : data.threads) {
+            thread.remove();
         }
-        if (data.games != null) {
-            for (String name : data.games.keySet()) {
-                Game zag = data.games.get(name);
-                if (zag != null) {
-                    zag.remove();
-                }
+        for (String name : data.games.keySet()) {
+            Game zag = data.games.get(name);
+            if (zag != null) {
+                zag.remove();
             }
         }
     }
@@ -165,12 +142,13 @@ public class Ablockalypse extends JavaPlugin {
         Ablockalypse.instance = this;
         External.loadExternalFiles(this);
         upd = new Update(this);
-        data = new DataContainer();
         System.out.println("[Ablockalypse] Checking for updates...");
-        if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && upd.updateAvailable()) {
-            upd.download();
+        String address = "http://api.bukget.org/3/plugins/bukkit/zombie-ablockalypse/" + (String) Setting.UPDATE_VERSION.getSetting() + "/download";
+        String pathTo = "plugins" + File.separator + "Ablockalypse.jar";
+        if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && upd.updateAvailable(address, pathTo)) {
+            upd.download(address, pathTo);
             System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
-            this.getServer().getPluginManager().disablePlugin(this);
+            getServer().getPluginManager().disablePlugin(this);
         } else {
             System.out.println("[Ablockalypse] No updates found.");
             register();
@@ -212,9 +190,10 @@ public class Ablockalypse extends JavaPlugin {
                 new XMPP(/*non-bukkit event*/)
         };
         //@formatter:on
-        for (Listener listener : registrations)
+        for (Listener listener : registrations) {
             pm.registerEvents(listener, instance);
+        }
         /* COMMANDS */
-        ((Ablockalypse) instance).getCommand("za").setExecutor(new BaseCommand());
+        instance.getCommand("za").setExecutor(new BaseCommand());
     }
 }

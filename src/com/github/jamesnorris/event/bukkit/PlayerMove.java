@@ -10,6 +10,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAPerk;
 import com.github.jamesnorris.implementation.Barrier;
@@ -17,13 +18,20 @@ import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.util.MiscUtil;
 
 public class PlayerMove implements Listener {
-    private DataContainer data = DataContainer.data;
+    private DataContainer data = Ablockalypse.getData();
     private HashMap<String, Double> PHDPlayers = new HashMap<String, Double>();
 
-    /*
-     * Called whenever a player moves.
-     * Mostly used for preventing players from going through barriers.
-     */
+    public boolean isMoving(PlayerMoveEvent event) {
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        boolean anyX = Math.abs(to.getX() - from.getX()) <= 0;
+        boolean upY = from.getY() - to.getY() <= 0;
+        boolean anyZ = Math.abs(to.getZ() - from.getZ()) <= 0;
+        return !anyX || !upY || !anyZ;
+    }
+
+    /* Called whenever a player moves.
+     * Mostly used for preventing players from going through barriers. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PME(PlayerMoveEvent event) {
         Player p = event.getPlayer();
         Location from = event.getFrom();
@@ -52,14 +60,5 @@ public class PlayerMove implements Listener {
                 }
             }
         }
-    }
-
-    public boolean isMoving(PlayerMoveEvent event) {
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        boolean anyX = Math.abs(to.getX() - from.getX()) <= 0;
-        boolean upY = from.getY() - to.getY() <= 0;
-        boolean anyZ = Math.abs(to.getZ() - from.getZ()) <= 0;
-        return (!anyX || !upY || !anyZ);
     }
 }

@@ -5,9 +5,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 public class AblockalypseEvent extends Event implements Cancellable {
-    private boolean cancel = false;
     private static HandlerList handlers = new HandlerList();
-
     /**
      * Gets the handlerlist for this event.
      * 
@@ -17,7 +15,13 @@ public class AblockalypseEvent extends Event implements Cancellable {
         return handlers;
     }
 
+    private boolean cancel = false;
+
     public AblockalypseEvent() {}
+
+    @Override public HandlerList getHandlers() {
+        return handlers;
+    }
 
     @Override public boolean isCancelled() {
         return cancel;
@@ -25,9 +29,5 @@ public class AblockalypseEvent extends Event implements Cancellable {
 
     @Override public void setCancelled(boolean cancel) {
         this.cancel = cancel;
-    }
-
-    @Override public HandlerList getHandlers() {
-        return handlers;
     }
 }

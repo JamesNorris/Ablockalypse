@@ -83,12 +83,12 @@ public class XMPP implements Listener {
                     LastStandEvent lse = (LastStandEvent) event;
                     base = base.replaceAll(gameString, lse.getGame().getName());
                     base = base.replaceAll(playerString, lse.getPlayer().getName());
-                    String sat = (lse.isSitDown()) ? "knocked down" : "picked up";
+                    String sat = lse.isSitDown() ? "knocked down" : "picked up";
                     base = base.replaceAll(lastStandStatusString, sat);
                 break;
             }
-            Plugin CommandsEX = Bukkit.getPluginManager().getPlugin("CommandsEX");
-            shouldSend = (shouldSend) ? (CommandsEX != null && CommandsEX.isEnabled()) : false;
+            Plugin comex = Bukkit.getPluginManager().getPlugin("CommandsEX");
+            shouldSend = shouldSend ? comex != null && comex.isEnabled() : false;
             if (shouldSend) {
                 XMPPAPI.sendMessage(base);
             }

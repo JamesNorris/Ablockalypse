@@ -23,14 +23,15 @@ import com.google.common.collect.Maps;
 
 public enum PowerupType {
     ATOM_BOMB(1) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
             game.broadcast(ChatColor.GRAY + "ATOM BOMB! - All mobs will now explode.", null);
-            for (ZAMob zam : data.mobs)
+            for (ZAMob zam : data.mobs) {
                 if (zam.getGame() == game) {
                     ZASound.EXPLOSION.play(zam.getEntity().getLocation());
                     ZAEffect.FLAMES.play(zam.getEntity().getLocation());
                     zam.kill();
                 }
+            }
             for (String s2 : game.getPlayers()) {
                 Player p = Bukkit.getPlayer(s2);
                 ZAPlayer zap = data.getZAPlayer(p, game.getName(), false);
@@ -45,7 +46,7 @@ public enum PowerupType {
         }
     },
     CARPENTER(2) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
             game.broadcast(ChatColor.GRAY + "CARPENTER! - All barriers are being fixed.", null);
             List<Barrier> barriers = game.getObjectsOfType(Barrier.class);
             if (barriers.size() >= 1) {
@@ -59,8 +60,65 @@ public enum PowerupType {
             // nothing
         }
     },
+    DOUBLE_POINTS(5) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
+            game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.", null);
+            for (String s3 : game.getPlayers()) {
+                Player p = Bukkit.getPlayer(s3);
+                if (data.playerIsZAPlayer(p)) {
+                    ZAPlayer zap = data.getZAPlayer(p);
+                    zap.setPointGainMod(2);
+                    timedReverse(this, game, player, cause, data, 450);
+                }
+            }
+        }
+
+        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
+            for (String s3 : game.getPlayers()) {
+                Player p = Bukkit.getPlayer(s3);
+                if (data.playerIsZAPlayer(p)) {
+                    ZAPlayer zap = data.getZAPlayer(p);
+                    zap.setPointGainMod(1);
+                }
+            }
+        }
+    },
+    FIRESALE(6) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
+            game.broadcast(ChatColor.GRAY + "FIRESALE! - Weapons only cost 10 points.", null);
+            PlayerInteract.fireSale.add(game);
+            timedReverse(this, game, player, cause, data, 450);
+        }
+
+        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
+            PlayerInteract.fireSale.remove(game);
+        }
+    },
+    INSTA_KILL(4) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
+            game.broadcast(ChatColor.GRAY + "INSTA KILL! - It only takes one hit to kill.", null);
+            for (String s3 : game.getPlayers()) {
+                Player p = Bukkit.getPlayer(s3);
+                if (data.playerIsZAPlayer(p)) {
+                    final ZAPlayer zap = data.getZAPlayer(p);
+                    zap.setInstaKill(true);
+                    timedReverse(this, game, player, cause, data, 450);
+                }
+            }
+        }
+
+        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
+            for (String s3 : game.getPlayers()) {
+                Player p = Bukkit.getPlayer(s3);
+                if (data.playerIsZAPlayer(p)) {
+                    ZAPlayer zap = data.getZAPlayer(p);
+                    zap.setInstaKill(false);
+                }
+            }
+        }
+    },
     MAX_AMMO(3) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
+        @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
             game.broadcast(ChatColor.GRAY + "MAX AMMO! - All weapons are being fixed.", null);
             for (String s3 : game.getPlayers()) {
                 Player p = Bukkit.getPlayer(s3);
@@ -79,68 +137,24 @@ public enum PowerupType {
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
             // nothing
         }
-    },
-    INSTA_KILL(4) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "INSTA KILL! - It only takes one hit to kill.", null);
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerExists(p)) {
-                    final ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setInstaKill(true);
-                    timedReverse(this, game, player, cause, data, 450);
-                }
-            }
-        }
-
-        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerExists(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setInstaKill(false);
-                }
-            }
-        }
-    },
-    DOUBLE_POINTS(5) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.", null);
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerExists(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setPointGainMod(2);
-                    timedReverse(this, game, player, cause, data, 450);
-                }
-            }
-        }
-
-        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerExists(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setPointGainMod(1);
-                }
-            }
-        }
-    },
-    FIRESALE(6) {
-        public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "FIRESALE! - Weapons only cost 10 points.", null);
-            PlayerInteract.fireSale.add(game);
-            timedReverse(this, game, player, cause, data, 450);
-        }
-
-        @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
-            PlayerInteract.fireSale.remove(game);
-        }
     };
     private final static Map<Integer, PowerupType> BY_ID = Maps.newHashMap();
+    static {
+        for (PowerupType setting : values()) {
+            BY_ID.put(setting.id, setting);
+        }
+    }
 
     public static PowerupType getById(final int id) {
         return BY_ID.get(id);
+    }
+
+    private static void timedReverse(final PowerupType type, final Game game, final Player player, final Entity cause, final DataContainer data, final int delay) {
+        Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
+            @Override public void run() {
+                type.reverse(game, player, cause, data);
+            }
+        }, delay);
     }
 
     private int id;
@@ -152,22 +166,8 @@ public enum PowerupType {
     public int getId() {
         return id;
     }
-    
-    private static void timedReverse(final PowerupType type, final Game game, final Player player, final Entity cause, final DataContainer data, final int delay) {
-        Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
-            @Override public void run() {
-                type.reverse(game, player, cause, data);
-            }
-        }, delay);
-    }
 
     public abstract void play(Game game, Player player, Entity cause, DataContainer data);
 
     public abstract void reverse(Game game, Player player, Entity cause, DataContainer data);
-
-    static {
-        for (PowerupType setting : values()) {
-            BY_ID.put(setting.id, setting);
-        }
-    }
 }

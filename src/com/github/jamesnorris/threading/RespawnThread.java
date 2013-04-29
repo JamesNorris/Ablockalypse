@@ -3,16 +3,17 @@ package com.github.jamesnorris.threading;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
 public class RespawnThread implements ZARepeatingThread {
-    private DataContainer data = DataContainer.data;
+    private DataContainer data = Ablockalypse.getData();
     private Player player;
+    private boolean runThrough = false, messageSent = false;
     private int time, level, count = 0, interval;
     private ZAPlayer zap;
-    private boolean runThrough = false, messageSent = false;
 
     /**
      * Creates a new RespawnThread instance.
@@ -26,13 +27,10 @@ public class RespawnThread implements ZARepeatingThread {
         this.time = time;
         zap = data.getZAPlayer(player);
         level = zap.getGame().getLevel();
-        if (autorun)
+        if (autorun) {
             setRunThrough(true);
+        }
         addToThreads();
-    }
-
-    private synchronized void addToThreads() {
-        data.threads.add(this);
     }
 
     @Override public int getCount() {
@@ -43,6 +41,39 @@ public class RespawnThread implements ZARepeatingThread {
         return interval;
     }
 
+    @Override public void remove() {
+        data.threads.remove(this);
+    }
+
+    @Override public void run() {
+        if (!messageSent) {
+            player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
+            messageSent = true;
+        }
+        if (data.playerIsZAPlayer(player)) {
+            if (zap.getGame().getLevel() > level) {
+                if (time == 0) {
+                    ZAPlayer zap = data.players.get(player);
+                    if (zap.getGame() == null) {
+                        remove();
+                    }
+                    zap.sendToMainframe("Respawn");
+                    zap.setLimbo(false);
+                    remove();
+                } else {
+                    player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
+                }
+                --time;
+            }
+        } else {
+            remove();
+        }
+    }
+
+    @Override public boolean runThrough() {
+        return runThrough;
+    }
+
     @Override public void setCount(int i) {
         count = i;
     }
@@ -51,37 +82,11 @@ public class RespawnThread implements ZARepeatingThread {
         interval = i;
     }
 
-    @Override public boolean runThrough() {
-        return runThrough;
-    }
-
     @Override public void setRunThrough(boolean tf) {
         runThrough = tf;
     }
 
-    @Override public void run() {
-        if (!messageSent) {
-            player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
-            messageSent = true;
-        }
-        if (data.playerExists(player)) {
-            if (zap.getGame().getLevel() > level) {
-                if (time == 0) {
-                    ZAPlayer zap = data.players.get(player);
-                    if (zap.getGame() == null)
-                        remove();
-                    zap.sendToMainframe("Respawn");
-                    zap.setLimbo(false);
-                    remove();
-                } else
-                    player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
-                --time;
-            }
-        } else
-            remove();
-    }
-
-    @Override public void remove() {
-        data.threads.remove(this);
+    private synchronized void addToThreads() {
+        data.threads.add(this);
     }
 }

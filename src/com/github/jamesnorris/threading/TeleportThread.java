@@ -4,18 +4,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
 public class TeleportThread implements ZARepeatingThread {
-    private DataContainer data = DataContainer.data;
+    private DataContainer data = Ablockalypse.getData();
     private Location loc;
     private Player player;
+    private boolean runThrough = false;
     private int time, count = 0, interval;
     private ZAPlayer zaplayer;
-    private boolean runThrough = false;
 
     /**
      * Creates an instance of the thread for teleporting a player.
@@ -31,22 +32,10 @@ public class TeleportThread implements ZARepeatingThread {
         this.interval = interval;
         player = zaplayer.getPlayer();
         loc = zaplayer.getPlayer().getLocation();
-        if (autorun)
+        if (autorun) {
             setRunThrough(true);
+        }
         addToThreads();
-    }
-
-    private synchronized void addToThreads() {
-        data.threads.add(this);
-    }
-
-    /*
-     * Checks if the player is in roughly the same location as they were when they started the thread.
-     */
-    private boolean sameLocation() {
-        if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ())
-            return true;
-        return false;
     }
 
     @Override public int getCount() {
@@ -57,20 +46,8 @@ public class TeleportThread implements ZARepeatingThread {
         return interval;
     }
 
-    @Override public void setCount(int i) {
-        count = i;
-    }
-
-    @Override public void setInterval(int i) {
-        interval = i;
-    }
-
-    @Override public boolean runThrough() {
-        return runThrough;
-    }
-
-    @Override public void setRunThrough(boolean tf) {
-        runThrough = tf;
+    @Override public void remove() {
+        data.threads.remove(this);
     }
 
     @Override public void run() {
@@ -95,7 +72,31 @@ public class TeleportThread implements ZARepeatingThread {
         }
     }
 
-    @Override public void remove() {
-        data.threads.remove(this);
+    @Override public boolean runThrough() {
+        return runThrough;
+    }
+
+    @Override public void setCount(int i) {
+        count = i;
+    }
+
+    @Override public void setInterval(int i) {
+        interval = i;
+    }
+
+    @Override public void setRunThrough(boolean tf) {
+        runThrough = tf;
+    }
+
+    private synchronized void addToThreads() {
+        data.threads.add(this);
+    }
+
+    /* Checks if the player is in roughly the same location as they were when they started the thread. */
+    private boolean sameLocation() {
+        if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ()) {
+            return true;
+        }
+        return false;
     }
 }

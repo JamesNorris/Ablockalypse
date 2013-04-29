@@ -14,16 +14,17 @@ import com.github.jamesnorris.enumerated.GameEntityType;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.event.GameMobSpawnEvent;
 import com.github.jamesnorris.implementation.Barrier;
-import com.github.jamesnorris.implementation.MobSpawner;
 import com.github.jamesnorris.implementation.Game;
+import com.github.jamesnorris.implementation.MobSpawner;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.MobSpawningThread;
 
 public class SpawnManager {
-    private Game game;
     public ArrayList<ZAMob> mobs = new ArrayList<ZAMob>();
+    public int spawnedIn = 0;
+    private int amt = 0;
+    private Game game;
     private Random rand;
-    private int amt = 0, threadsQueued = 0;
 
     /**
      * Creates a new spawn manager for spawning mobs in a game.
@@ -35,6 +36,10 @@ public class SpawnManager {
     public SpawnManager(Game game) {
         this.game = game;
         rand = new Random();
+    }
+
+    public boolean allSpawnedIn() {
+        return spawnedIn >= amt;
     }
 
     /**
@@ -58,10 +63,11 @@ public class SpawnManager {
         if (chance == 1) {
             x = x - modX;
             z = z - modZ;
-        } else if (chance == 2)
+        } else if (chance == 2) {
             x = x - modX;
-        else if (chance == 3)
+        } else if (chance == 3) {
             z = z - modZ;
+        }
         return new Location(w, x, y, z, yaw, pitch);
     }
 
@@ -90,7 +96,7 @@ public class SpawnManager {
      * @return The closest barrier
      */
     public Barrier getClosestBarrier(Location loc) {
-        double distance = Integer.MAX_VALUE;
+        double distance = Double.MAX_VALUE;
         Barrier lp = null;// low priority
         Barrier hp = null;// high priority
         for (Barrier gb : game.getObjectsOfType(Barrier.class)) {
@@ -99,11 +105,12 @@ public class SpawnManager {
             if (current < distance) {
                 distance = current;
                 lp = gb;
-                if (pathIsClear(loc, l))
+                if (pathIsClear(loc, l)) {
                     hp = gb;
+                }
             }
         }
-        return (hp != null) ? hp : lp;
+        return hp != null ? hp : lp;
     }
 
     /**
@@ -132,11 +139,12 @@ public class SpawnManager {
             if (current < distance) {
                 distance = current;
                 lp = l1;
-                if (pathIsClear(loc, l))
+                if (pathIsClear(loc, l)) {
                     hp = l1;
+                }
             }
         }
-        return (hp != null) ? hp : lp;
+        return hp != null ? hp : lp;
     }
 
     /**
@@ -155,7 +163,14 @@ public class SpawnManager {
      * @return The amount of spawns in the current level
      */
     public int getCurrentSpawnAmount() {
-        return getSpawnAmount(game.getLevel(), game.getPlayers().size(), game.isWolfRound());
+        double m = 1.2;
+        double x = game.getLevel();
+        double b = game.getPlayers().size();
+        int amt = (int) Math.round(m * x + b);
+        if (game.isWolfRound()) {
+            amt = amt / 3;
+        }
+        return amt;
     }
 
     /**
@@ -176,19 +191,24 @@ public class SpawnManager {
      * @return The amount of spawns in this hypathetical level
      */
     public int getSpawnAmount(int level, int playeramt, boolean wolfround) {
-        int amt = (int) (Math.sqrt(40 * level) + (Math.sqrt(10 * level) * playeramt));
-        if (wolfround)
+        double m = 1.2;
+        double x = level;
+        double b = playeramt;
+        int amt = (int) Math.round(m * x + b);
+        if (wolfround) {
             amt = amt / 3;
+        }
         return amt;
     }
 
     /**
-     * @deprecated No method body
+     * @deprecated Only checks for a direct path
      * 
      * Checks that the blocks from the one location to the next in the distance are empty.
      * 
      * @param start The starting location
      * @param end The ending location
+     * @param distance The distance from the start to end
      * @return Whether or not all blocks from start to end are empty
      */
     @Deprecated public boolean pathIsClear(Location start, Location end) {// TODO get this working
@@ -202,13 +222,10 @@ public class SpawnManager {
      * @param closespawn Whether or not to spawn right next to the target
      */
     public void spawn(Location l, boolean closespawn) {
-        if (!closespawn)
+        if (!closespawn) {
             l = findSpawnLocation(l, 7, 4);
-        gameSpawn(l, (game.isWolfRound()) ? EntityType.WOLF : EntityType.ZOMBIE);
-    }
-    
-    public boolean allSpawnedIn() {
-        return threadsQueued >= amt;
+        }
+        gameSpawn(l, game.isWolfRound() ? EntityType.WOLF : EntityType.ZOMBIE);
     }
 
     /**
@@ -218,14 +235,14 @@ public class SpawnManager {
      * This will only spawn mobs if the game has a mob count of 0.
      */
     public void spawnWave() {
-        threadsQueued = 0;
         amt = getCurrentSpawnAmount();
-        if ((Boolean) Setting.DEBUG.getSetting())
+        spawnedIn = 0;
+        if ((Boolean) Setting.DEBUG.getSetting()) {
             System.out.println("[Ablockalypse] [DEBUG] Amount of zombies in this wave: (" + game.getName() + ") " + amt);
+        }
         if (game.getRemainingPlayers() >= 1 && game.getMobCount() <= 0) {
             for (int i = 0; i <= amt; i++) {
-                ++threadsQueued;
-                new MobSpawningThread(this, game, (i * 80 /* the delay between each mob is 4 seconds */));
+                new MobSpawningThread(this, game, i * 80);
             }
         } else {
             game.end();

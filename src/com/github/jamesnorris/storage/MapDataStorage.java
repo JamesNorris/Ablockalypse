@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.bukkit.Location;
 
-import com.github.jamesnorris.DataContainer;
+import com.github.Ablockalypse;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.GameObject;
@@ -13,44 +13,48 @@ import com.github.jamesnorris.util.SerializableLocation;
 
 public class MapDataStorage implements Serializable {
     private static final long serialVersionUID = -1279160560017448013L;
-    private final SerializableLocation keyLoc;
-    private final String gameName;
     /**
      * [i][0] = SerializableLocation of the orientator
      * [i][1] = The string that matches the class name of object of the orientator
      * [i][2] = Extra attachment that may return null
      */
     public final GameObjectOrientation[] locDifs;
+    private final String gameName;
+    private final SerializableLocation keyLoc;
 
     public MapDataStorage(Location baseKey, String gameName) {
         this.gameName = gameName;
         // get game orientators
         int j = 0;
-        Game game = DataContainer.data.getGame(gameName, true);
+        Game game = Ablockalypse.getData().getGame(gameName, true);
         GameObjectOrientation[] orientators = new GameObjectOrientation[game.getAllPhysicalObjects().size() + 2];
         for (int i = j; i < game.getAllPhysicalObjects().size(); i++) {
             GameObject object = game.getAllPhysicalObjects().get(i);
             Location key = object.getDefiningBlock().getLocation();
             GameObjectOrientation dif = new GameObjectOrientation(key, baseKey, object.getObjectType().getSerialization());
             orientators[i] = dif;
-            if (object.getObjectType().requiresSecondLocation())
+            if (object.getObjectType().requiresSecondLocation()) {
                 dif.addSecondLocation(object.getObjectType().getSecondLocationIfApplicable(object), baseKey);
+            }
         }
         keyLoc = new SerializableLocation(baseKey);
         locDifs = orientators;
     }
-    
-    public boolean possibleKey(Location test) {
-        for (GameObjectOrientation dif : locDifs) {
-            if (dif.typeid != test.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif).getBlock().getTypeId()) {
-                return false;
-            }
-        }
-        return true;
+
+    public GameObjectOrientation[] getData() {
+        return locDifs;
+    }
+
+    public String getGameName() {
+        return gameName;
+    }
+
+    public Location getKeyLocation() {
+        return SerializableLocation.returnLocation(keyLoc);
     }
 
     public void loadToGame(Location baseKey) {
-        Game game = DataContainer.data.getGame(gameName, true);
+        Game game = Ablockalypse.getData().getGame(gameName, true);
         for (int i = 0; i < locDifs.length; i++) {
             if (locDifs[i] != null) {
                 GameObjectOrientation dif = locDifs[i];
@@ -62,15 +66,12 @@ public class MapDataStorage implements Serializable {
         }
     }
 
-    public Location getKeyLocation() {
-        return SerializableLocation.returnLocation(keyLoc);
-    }
-
-    public GameObjectOrientation[] getData() {
-        return locDifs;
-    }
-
-    public String getGameName() {
-        return gameName;
+    public boolean possibleKey(Location test) {
+        for (GameObjectOrientation dif : locDifs) {
+            if (dif.typeid != test.clone().add(-dif.Xdif, -dif.Ydif, -dif.Zdif).getBlock().getTypeId()) {
+                return false;
+            }
+        }
+        return true;
     }
 }

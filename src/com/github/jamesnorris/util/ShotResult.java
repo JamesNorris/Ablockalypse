@@ -9,27 +9,27 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class ShotResult {
-    private HashMap<LivingEntity, Location> hits = new HashMap<LivingEntity, Location>();
     private Vector direction;
-    
+    private HashMap<LivingEntity, Location> hits = new HashMap<LivingEntity, Location>();
+
     public ShotResult(HashMap<LivingEntity, Location> hits, Vector direction) {
         this.hits = hits;
         this.direction = direction;
     }
-    
-    public Vector getShotDirection() {
-        return direction;
+
+    public Collection<Location> getHitLocations() {
+        return hits.values();
     }
-    
+
     public Set<LivingEntity> getLivingEntitiesHit() {
         return hits.keySet();
     }
-    
+
     public Location getLocationWhereHit(LivingEntity ent) {
         return hits.get(ent);
     }
-    
-    public Collection<Location> getHitLocations() {
-        return hits.values();
+
+    public Vector getShotDirection() {
+        return direction;
     }
 }

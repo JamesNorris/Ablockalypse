@@ -11,6 +11,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -25,7 +26,28 @@ import com.github.jamesnorris.inter.ZAScheduledTask;
  * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
  */
 public class MiscUtil {
+    public static int[] swords = new int[] {268, 283, 272, 267, 276};
     private static Random rand;
+
+    public static boolean anyItemRegulationsBroken(ZAPlayer zap, int id, int cost) {// TODO level? duh
+        Player player = zap.getPlayer();
+        int points = zap.getPoints();
+        if (zap.getPoints() < cost) {
+            player.sendMessage(ChatColor.RED + "You have " + points + " / " + cost + " points to buy this.");
+            return true;
+        }
+        return false;
+    }
+    
+    public static String getLastMethodCalls(Thread thread, int number) {
+        StackTraceElement[] stackTraceElements = thread.getStackTrace();
+        StringBuilder sb = new StringBuilder();
+        int start = 2;
+        for (int i = start; i <= number + (start - 1); i++) {
+            sb.append(stackTraceElements[i] + "\n");
+        }
+        return sb.toString();
+    }
 
     /**
      * Drops an item in the direction of the player, then has them pick it up.
@@ -48,61 +70,37 @@ public class MiscUtil {
                         External.itemManager.giveItem(player, is);
                     }
                 }, 10);
-            }           
+            }
         }, dropDelay);
     }
 
-    public static void setChestOpened(Player player, Block block, boolean opened) {
-        if (block == null)
-            return;
-        if (!(block.getState() instanceof Chest))
-            return;
-        player.playNote(block.getLocation(), (byte) 1, (opened) ? (byte) 1 : (byte) 0);
-        if (isDoubleChest(block)) {
-            player.playNote(getSecondChest(block).getLocation(), (byte) 1, (opened) ? (byte) 1 : (byte) 0);
-        }
+    public static String getLocationAsString(String prefix, Location loc) {
+        return prefix + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ() + ", yaw - " + loc.getYaw() + ", pitch - " + loc.getPitch();
     }
-
-    public static void setChestOpened(List<Player> players, Block block, boolean opened) {
-        if (block == null)
-            return;
-        if (!(block.getState() instanceof Chest))
-            return;
-        for (Player player : players) {
-            player.playNote(block.getLocation(), (byte) 1, (opened) ? (byte) 1 : (byte) 0);
-            if (isDoubleChest(block)) {
-                player.playNote(getSecondChest(block).getLocation(), (byte) 1, (opened) ? (byte) 1 : (byte) 0);
+    
+    public static Block getHighestBlockUnder(Location loc) {
+        for (int y = loc.getBlockY(); y > 0; y--) {
+            Location floor = new Location(loc.getWorld(), loc.getX(), y, loc.getZ(), loc.getYaw(), loc.getPitch());
+            Block block = floor.getBlock();
+            if (!block.isEmpty()) {
+                return block;
             }
         }
+        return loc.getBlock();
     }
-
-    public static boolean isDoubleChest(Block block) {
-        if (block == null)
-            return false;
-        if (!(block.getState() instanceof Chest))
-            return false;
-        Chest chest = (Chest) block.getState();
-        return chest.getInventory().getContents().length == 54;
-    }
-
-    public static boolean anyItemRegulationsBroken(ZAPlayer zap, int id, int cost) {// TODO level? duh
-        Player player = zap.getPlayer();
-        int points = zap.getPoints();
-        if (zap.getPoints() < cost) {
-            player.sendMessage(ChatColor.RED + "You have " + points + " / " + cost + " points to buy this.");
-            return true;
+    
+    public static Location floorLivingEntity(LivingEntity entity) {
+        Location eyeLoc = entity.getEyeLocation().clone();
+        double eyeHeight = entity.getEyeHeight();
+        Location floor = eyeLoc.clone().subtract(0, Math.floor(eyeHeight) + .5, 0);
+        for (int y = eyeLoc.getBlockY(); y > 0; y--) {
+            Location loc = new Location(floor.getWorld(), floor.getX(), y, floor.getZ(), floor.getYaw(), floor.getPitch());
+            if (!loc.getBlock().isEmpty()) {
+                floor = loc;
+                break;
+            }
         }
-        return false;
-    }
-
-    public static boolean locationMatch(Location loc1, Location loc2) {
-        if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ())
-            return true;
-        return false;
-    }
-
-    public static boolean locationMatch(Location loc1, Location loc2, int distance) {
-        return loc1.distance(loc2) <= distance;
+        return eyeLoc.clone().subtract(0, eyeLoc.getY() - floor.getY() - (2 * eyeHeight), 0);
     }
 
     /**
@@ -115,17 +113,23 @@ public class MiscUtil {
         BlockFace[] faces = new BlockFace[] {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
         for (BlockFace face : faces) {
             Block bl = b.getRelative(face);
-            if (bl.getState() instanceof Chest || bl.getState() instanceof DoubleChest)
+            if (bl.getState() instanceof Chest || bl.getState() instanceof DoubleChest) {
                 return bl;
+            }
         }
         return null;
     }
 
-    public static String getLocationAsString(String prefix, Location loc) {
-        return prefix + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ();
+    public static boolean isDoubleChest(Block block) {
+        if (block == null) {
+            return false;
+        }
+        if (!(block.getState() instanceof Chest)) {
+            return false;
+        }
+        Chest chest = (Chest) block.getState();
+        return chest.getInventory().getContents().length == 54;
     }
-
-    public static int[] swords = new int[] {268, 283, 272, 267, 276};
 
     public static boolean isEnchantableLikeSwords(ItemStack item) {
         for (int id : swords) {
@@ -136,6 +140,17 @@ public class MiscUtil {
         return false;
     }
 
+    public static boolean locationMatch(Location loc1, Location loc2) {
+        if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ()) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean locationMatch(Location loc1, Location loc2, int distance) {
+        return loc1.distance(loc2) <= distance;
+    }
+
     /**
      * Searched for a random powerup.
      * 
@@ -143,11 +158,40 @@ public class MiscUtil {
      * @param cause The entity that originated this event
      */
     public static void randomPowerup(ZAPlayer zap, Entity cause) {
-        if (rand == null)
+        if (rand == null) {
             rand = new Random();
+        }
         int chance = rand.nextInt(100) + 1;
         if (chance <= (Integer) Setting.POWERUP_CHANCE.getSetting()) {
             zap.givePowerup(PowerupType.getById(rand.nextInt(5) + 1), cause);
+        }
+    }
+
+    public static void setChestOpened(List<Player> players, Block block, boolean opened) {
+        if (block == null) {
+            return;
+        }
+        if (!(block.getState() instanceof Chest)) {
+            return;
+        }
+        for (Player player : players) {
+            player.playNote(block.getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+            if (isDoubleChest(block)) {
+                player.playNote(getSecondChest(block).getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+            }
+        }
+    }
+
+    public static void setChestOpened(Player player, Block block, boolean opened) {
+        if (block == null) {
+            return;
+        }
+        if (!(block.getState() instanceof Chest)) {
+            return;
+        }
+        player.playNote(block.getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+        if (isDoubleChest(block)) {
+            player.playNote(getSecondChest(block).getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
         }
     }
 }

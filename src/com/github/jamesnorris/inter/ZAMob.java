@@ -24,6 +24,15 @@ public interface ZAMob {
     public Entity getEntity();
 
     /**
+     * Gets the game that this mob is in.
+     * 
+     * @return The game that this mob is in
+     */
+    public Game getGame();
+
+    public int getHitAbsorption();
+
+    /**
      * Gets the speed of the entity.
      * 
      * @return The speed of the entity as an integer
@@ -44,17 +53,12 @@ public interface ZAMob {
      */
     public MobTargettingThread getTargetter();
 
+    public GameEntityType getType();
+
     /**
      * Kills the undead and finalized the instance.
      */
     public void kill();
-
-    /**
-     * Gets the game that this mob is in.
-     * 
-     * @return The game that this mob is in
-     */
-    public Game getGame();
 
     /**
      * Sets the zombie health. Mostly used for increasing health through the levels.
@@ -62,6 +66,8 @@ public interface ZAMob {
      * @param amt The amount of health to give to the zombie
      */
     public void setHealth(int amt);
+
+    public void setHitAbsorption(int absorption);
 
     /**
      * Sets the speed of the entity.
@@ -76,10 +82,4 @@ public interface ZAMob {
      * @param loc The location to target
      */
     public void setTargetLocation(Location loc);
-
-    public void setHitAbsorption(int absorption);
-
-    public int getHitAbsorption();
-    
-    public GameEntityType getType();
 }

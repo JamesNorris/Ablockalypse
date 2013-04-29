@@ -8,16 +8,21 @@ public enum ZAColor {
     //@formatter:off
 	BLUE(3, (byte) 11), 
 	GREEN(2, (byte) 5),
-	RED(1, (byte) 14),
-	ORANGE(4, (byte) 1);
+	ORANGE(4, (byte) 1),
+	RED(1, (byte) 14);
 	//@formatter:on
     //
     private final static Map<Integer, ZAColor> BY_ID = Maps.newHashMap();
 
+    static {
+        for (ZAColor setting : values()) {
+            BY_ID.put(setting.id, setting);
+        }
+    }
+
     public static ZAColor getById(final int id) {
         return BY_ID.get(id);
     }
-
     private byte data;
     private int id;
 
@@ -32,11 +37,5 @@ public enum ZAColor {
 
     public int getId() {
         return id;
-    }
-
-    static {
-        for (ZAColor setting : values()) {
-            BY_ID.put(setting.id, setting);
-        }
     }
 }

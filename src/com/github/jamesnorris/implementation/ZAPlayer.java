@@ -19,6 +19,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.GameObjectType;
@@ -35,20 +36,20 @@ import com.github.jamesnorris.util.Breakable;
 import com.github.jamesnorris.util.ShotResult;
 
 public class ZAPlayer implements GameObject {
-    private DataContainer data = DataContainer.data;
     private int absorption = 0;// used to add juggernaut
     private Location before;
+    private DataContainer data = Ablockalypse.getData();
     private float exp, saturation, fall, exhaust;
     private Game game;
     private GameMode gm;
     private ItemStack[] inventory, armor;
-    private boolean sleepingignored, sent, instakill;
     private int level, health, food, fire, points = 0, kills = 0, pointGainMod = 1;
     private String name;
     private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
     private Player player;
     private HashMap<String, Integer> point;
     private Collection<PotionEffect> pot;
+    private boolean sleepingignored, sent, instakill;
     private PlayerStatus status = PlayerStatus.NORMAL;
 
     /**
@@ -61,25 +62,13 @@ public class ZAPlayer implements GameObject {
      */
     public ZAPlayer(Player player, Game game) {
         data.gameObjects.add(this);
+        game.addObject(this);
         this.player = player;
         name = player.getName();
         this.game = game;
         point = new HashMap<String, Integer>();
         data.players.put(player, this);
-        game.getTeam().addPlayer(player);
         player.setLevel(game.getLevel());
-    }
-
-    public void setPointGainMod(int i) {
-        pointGainMod = i;
-    }
-
-    public int getPointGainMod() {
-        return pointGainMod;
-    }
-
-    public void addToPerkList(ZAPerk perk) {
-        perks.add(perk);
     }
 
     /**
@@ -88,12 +77,63 @@ public class ZAPlayer implements GameObject {
      * @param i The amount of points to give the player
      */
     public void addPoints(int i) {
-        points = points + (i * pointGainMod);
-        if (point.containsKey(getName()))
+        points += i * pointGainMod;
+        if (point.containsKey(getName())) {
             point.remove(getName());
+        }
         point.put(getName(), points);
         rename(name, "" + points);
-        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
+    }
+
+    public void addToPerkList(ZAPerk perk) {
+        perks.add(perk);
+    }
+
+    public void clearPerks() {
+        perks.clear();
+        player.getActivePotionEffects().clear();
+        setHitAbsorption(0);
+    }
+
+    /**
+     * Gets the block that the player is looking at, within the given distance.
+     * If the player is looking at a block farther than the given distance, this will return null.
+     * The higher the distance, the slower the method will be.
+     * 
+     * @param distance The maximum distance to check for the block
+     * @return The block that the player is looking at
+     */
+    public Block getAim(int distance) {// TODO test
+        Location loc = player.getLocation();
+        World world = loc.getWorld();
+        float x = loc.getBlockX();
+        float y = loc.getBlockY();
+        float z = loc.getBlockZ();
+        float pitch = loc.getPitch();
+        float yaw = loc.getYaw();
+        Block returned = null;
+        double XZslope = Math.tan(Math.toRadians(yaw));
+        double Yslope = Math.tan(Math.toRadians(pitch));
+        long runThrough = distance * (1 + (Math.round(XZslope) + Math.round(Yslope)) / 2);
+        for (int i = 0; i <= runThrough && (returned == null || returned.getLocation().distance(loc) <= distance); ++i) {
+            x += XZslope;
+            y += Yslope;
+            z += XZslope;
+            Block b = world.getBlockAt(Math.round(x), Math.round(y), Math.round(z));
+            returned = b;
+            if (!returned.isEmpty()) {
+                return returned;
+            }
+        }
+        return null;
+    }
+
+    @Override public Block getDefiningBlock() {
+        if (player != null) {
+            return player.getLocation().clone().getBlock();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -103,7 +143,9 @@ public class ZAPlayer implements GameObject {
      */
     @Override public ArrayList<Block> getDefiningBlocks() {
         ArrayList<Block> blocks = new ArrayList<Block>();
-        blocks.add(player.getLocation().subtract(0, 1, 0).getBlock());
+        if (player != null) {
+            blocks.add(player.getLocation().clone().subtract(0, 1, 0).getBlock());
+        }
         return blocks;
     }
 
@@ -143,6 +185,10 @@ public class ZAPlayer implements GameObject {
         return name;
     }
 
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.ZAPLAYER;
+    }
+
     /**
      * Gets a list of perks that the player has attached to them.
      * 
@@ -161,6 +207,10 @@ public class ZAPlayer implements GameObject {
         return player;
     }
 
+    public int getPointGainMod() {
+        return pointGainMod;
+    }
+
     /**
      * Gets the points the player currently has.
      * 
@@ -168,6 +218,10 @@ public class ZAPlayer implements GameObject {
      */
     public int getPoints() {
         return points;
+    }
+
+    public PlayerStatus getStatus() {
+        return status;
     }
 
     /**
@@ -178,14 +232,6 @@ public class ZAPlayer implements GameObject {
      */
     public void givePowerup(PowerupType type, Entity cause) {
         type.play(game, player, cause, data);
-    }
-
-    public void setStatus(PlayerStatus status) {
-        status.set(this);
-    }
-
-    public PlayerStatus getStatus() {
-        return status;
     }
 
     /**
@@ -242,8 +288,9 @@ public class ZAPlayer implements GameObject {
                     zag.addPlayer(player);
                     saveStatus();
                     prepForGame();
-                    if (game.getMainframe() == null)
+                    if (game.getMainframe() == null) {
                         game.setMainframe(new Mainframe(game, player.getLocation()));
+                    }
                     sendToMainframe("Loading player to a game");
                     player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
                     return;
@@ -254,54 +301,6 @@ public class ZAPlayer implements GameObject {
         } else {
             player.sendMessage(ChatColor.RED + "That game does not exist!");
         }
-    }
-
-    private void pickUp() {
-        LastStandEvent lse = new LastStandEvent(player, this, false);
-        Bukkit.getServer().getPluginManager().callEvent(lse);
-        if (!lse.isCancelled()) {
-            for (PotionEffect pe : player.getActivePotionEffects())
-                if (pe.getType() == PotionEffectType.CONFUSION)
-                    player.removePotionEffect(pe.getType());
-            player.sendMessage(ChatColor.GRAY + "You have been picked up!");
-            game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
-            status = PlayerStatus.NORMAL;
-            Breakable.setSitting(player, false);
-            if (player.getVehicle() != null)
-                player.getVehicle().remove();
-            player.setFoodLevel(20);
-            Entity v = player.getVehicle();
-            if (v != null)
-                v.remove();
-        }
-    }
-
-    /*
-     * Clearing the player status to allow the player to be put in the game without carrying over items.
-     */
-    @SuppressWarnings("deprecation") private void prepForGame() {
-        player.setGameMode(GameMode.SURVIVAL);
-        player.getInventory().clear();
-        player.setLevel(0);
-        player.setExp(0);
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.setSaturation(0);
-        player.getActivePotionEffects().clear();
-        player.getInventory().setArmorContents(null);
-        player.setSleepingIgnored(true);
-        player.setFireTicks(0);
-        player.setFallDistance(0F);
-        player.setExhaustion(0F);
-        if (External.itemManager != null && External.itemManager.getStartingItemsMap() != null) {
-            HashMap<Integer, Integer> startingItems = External.itemManager.getStartingItemsMap();
-            for (int id : startingItems.keySet()) {
-                int amount = startingItems.get(id);
-                External.itemManager.giveItem(player, new ItemStack(id, amount));
-            }
-        }
-        rename(name, "0");
-        player.updateInventory();
     }
 
     /**
@@ -317,74 +316,10 @@ public class ZAPlayer implements GameObject {
      */
     public void removeFromGame() {
         restoreStatus();
-        if (game.getPlayers().contains(player.getName()))
+        if (game.getPlayers().contains(player.getName())) {
             game.removePlayer(player);
-        game.getTeam().removePlayer(player);
-        data.gameObjects.remove(this);
-    }
-
-    /*
-     * Checks that the name and suffix are lower than 16 chars.
-     * Any higher and the name is truncated.
-     */
-    private void rename(String name, String suffix) {
-        String mod = name;
-        int cutoff = 16 - (suffix.length() + 1);
-        if (name.length() > cutoff)
-            mod = name.substring(0, cutoff);
-        player.setDisplayName(mod + " " + suffix);
-    }
-
-    /*
-     * Restoring the player status to the last saved status before the game.
-     */
-    @SuppressWarnings("deprecation") private void restoreStatus() {
-        if (status == PlayerStatus.LAST_STAND)
-            toggleLastStand();
-        if (gm != null) {
-            for (PotionEffect pe : player.getActivePotionEffects()) {
-                PotionEffectType pet = pe.getType();
-                player.removePotionEffect(pet);
-            }
-            player.setGameMode(gm);
-            player.teleport(before);
-            player.getInventory().clear();
-            player.getInventory().setContents(inventory);
-            player.setLevel(level);
-            player.setExp(exp);
-            player.setHealth(health);
-            player.setFoodLevel(food);
-            player.setSaturation(saturation);
-            player.addPotionEffects(pot);
-            player.getInventory().setArmorContents(armor);
-            player.setSleepingIgnored(sleepingignored);
-            player.setFireTicks(fire);
-            player.setFallDistance(fall);
-            player.setExhaustion(exhaust);
-            player.setDisplayName(name);
-            player.updateInventory();
         }
-    }
-
-    /*
-     * Saving the player status, so when the player is removed from the game, they are set back to where they were before.
-     */
-    private void saveStatus() {
-        before = player.getLocation();
-        inventory = player.getInventory().getContents();
-        exp = player.getExp();
-        level = player.getLevel();
-        health = player.getHealth();
-        food = player.getFoodLevel();
-        saturation = player.getSaturation();
-        pot = player.getActivePotionEffects();
-        armor = player.getInventory().getArmorContents();
-        sleepingignored = player.isSleepingIgnored();
-        fire = player.getFireTicks();
-        fall = player.getFallDistance();
-        exhaust = player.getExhaustion();
-        gm = player.getGameMode();
-        ZASound.START.play(player.getLocation());
+        data.gameObjects.remove(this);
     }
 
     /**
@@ -396,16 +331,19 @@ public class ZAPlayer implements GameObject {
         player.sendMessage(ChatColor.GRAY + "Teleporting to mainframe...");
         Location loc = game.getMainframe().getLocation().clone().add(0, 1, 0);
         Chunk c = loc.getChunk();
-        if (!c.isLoaded())
+        if (!c.isLoaded()) {
             c.load();
+        }
         player.teleport(loc);
         if (sent) {
             ZASound.START.play(loc);
             sent = true;
-        } else
+        } else {
             ZASound.TELEPORT.play(loc);
-        if ((Boolean) Setting.DEBUG.getSetting())
+        }
+        if ((Boolean) Setting.DEBUG.getSetting()) {
             System.out.println("[Ablockalypse] [DEBUG] Mainframe TP reason: (" + game.getName() + ") " + reason);
+        }
     }
 
     /**
@@ -443,7 +381,11 @@ public class ZAPlayer implements GameObject {
      * @param tf Whether or not the player should be put in limbo mode
      */
     public void setLimbo(boolean tf) {
-        status = (tf) ? PlayerStatus.LIMBO : PlayerStatus.NORMAL;
+        status = tf ? PlayerStatus.LIMBO : PlayerStatus.NORMAL;
+    }
+
+    public void setPointGainMod(int i) {
+        pointGainMod = i;
     }
 
     /**
@@ -457,7 +399,10 @@ public class ZAPlayer implements GameObject {
             difference *= pointGainMod;
         }
         points += difference;
-        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
+    }
+
+    public void setStatus(PlayerStatus status) {
+        status.set(this);
     }
 
     /**
@@ -466,40 +411,58 @@ public class ZAPlayer implements GameObject {
      * @param tf What to change the status to
      */
     public void setTeleporting(boolean tf) {
-        status = (tf) ? PlayerStatus.TELEPORTING : PlayerStatus.NORMAL;
+        status = tf ? PlayerStatus.TELEPORTING : PlayerStatus.NORMAL;
     }
 
-    private void sitDown() {
-        LastStandEvent lse = new LastStandEvent(player, this, true);
-        Bukkit.getServer().getPluginManager().callEvent(lse);
-        if (!lse.isCancelled()) {
-            player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
-            if (getGame().getRemainingPlayers() >= 1 || !(Boolean) Setting.END_ON_LAST_PLAYER_LAST_STAND.getSetting()) {
-                status = PlayerStatus.LAST_STAND;
-                Entity v = player.getVehicle();
-                if (v != null)
-                    v.remove();
-                rename(name, "[LS]");
-                player.setFoodLevel(0);
-                player.setHealth(5);
-                ZASound.LAST_STAND.play(player.getLocation());
-                Breakable.setSitting(player, true);
-                game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
-                new LastStandFallenThread(this, 240, true);
-                if ((Boolean) Setting.LOSE_PERKS_ON_LAST_STAND.getSetting()) {
-                    clearPerks();
+    public ShotResult shoot(int distance, int penetration, int damage, boolean wallsAffectPenetration, boolean hitsAffectPenetration) {
+        HashMap<LivingEntity, Location> hits = new HashMap<LivingEntity, Location>();
+        ArrayList<Location> nonEntityHits = new ArrayList<Location>();
+        Location ownerLoc = player.getEyeLocation();
+        Vector direction = ownerLoc.getDirection();
+        int lastSince = 15;
+        Location chunkLoc = null;
+        for (int i = 0; i < distance; i++) {
+            chunkLoc = ownerLoc.clone().add(direction);
+            ++lastSince;
+            if (lastSince >= 16) {
+                lastSince = 0;
+            }
+            for (int div = 5; div > 0; div--) {//the higher that starting number, the greater the accuracy
+                Vector shot = direction.clone().multiply(i + (1 / div));
+                if (!shot.toLocation(ownerLoc.getWorld()).getBlock().isEmpty() && wallsAffectPenetration && !nonEntityHits.contains(shot.toLocation(ownerLoc.getWorld()))) {
+                    --penetration;
+                    nonEntityHits.add(shot.toLocation(ownerLoc.getWorld()));
                 }
-                player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
-            } else {
-                removeFromGame();
+                if (chunkLoc != null && penetration > 0) {
+                    for (Entity e : chunkLoc.getChunk().getEntities()) {
+                        if (e instanceof LivingEntity) {
+                            LivingEntity ent = (LivingEntity) e;
+                            Location loc = ent.getEyeLocation();
+                            double height = ent.getEyeHeight();
+                            double width = Breakable.getNMSEntity(e).width;
+                            double length = Breakable.getNMSEntity(e).length;
+                            float thetaOne = Math.abs(loc.getYaw() - ownerLoc.getYaw());
+                            float thetaTwo = 90 - thetaOne;
+                            double viewWidth = width * Math.cos(thetaOne) + length * Math.cos(thetaTwo);
+                            double Xdif = loc.getX() - ownerLoc.getX();
+                            double Ydif = loc.getY() - ownerLoc.getY() - height;// foot Y
+                            double Zdif = loc.getZ() - ownerLoc.getZ();
+                            boolean Xhit = shot.getX() <= Xdif + viewWidth && shot.getX() >= Xdif - viewWidth;
+                            boolean Yhit = shot.getY() <= Ydif + height && shot.getY() >= Ydif;
+                            boolean Zhit = shot.getZ() <= Zdif + viewWidth && shot.getZ() >= Zdif - viewWidth;
+                            if (Xhit && Yhit && Zhit && !hits.containsValue(ent.getLocation())) {
+                                hits.put(ent, ent.getLocation());
+                                ent.damage(damage, player);
+                                if (hitsAffectPenetration) {
+                                    --penetration;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
-    }
-
-    public void clearPerks() {
-        perks.clear();
-        player.getActivePotionEffects().clear();
-        setHitAbsorption(0);
+        return new ShotResult(hits, direction);
     }
 
     /**
@@ -509,7 +472,6 @@ public class ZAPlayer implements GameObject {
      */
     public void subtractPoints(int i) {
         points -= i;
-        game.getScoreboard().getObjective("points").getScore(player).setScore(points);
     }
 
     /**
@@ -520,8 +482,9 @@ public class ZAPlayer implements GameObject {
      */
     public void teleport(Location location, String reason) {
         player.teleport(location);
-        if ((Boolean) Setting.DEBUG.getSetting())
+        if ((Boolean) Setting.DEBUG.getSetting()) {
             System.out.println("[Ablockalypse] [DEBUG] TP reason: (" + game.getName() + ") " + reason);
+        }
     }
 
     /**
@@ -549,90 +512,141 @@ public class ZAPlayer implements GameObject {
         }
     }
 
-    /**
-     * Gets the block that the player is looking at, within the given distance.
-     * If the player is looking at a block farther than the given distance, this will return null.
-     * The higher the distance, the slower the method will be.
-     * 
-     * @param distance The maximum distance to check for the block
-     * @return The block that the player is looking at
-     */
-    public Block getAim(int distance) {// TODO test
-        Location loc = player.getLocation();
-        World world = loc.getWorld();
-        float x = loc.getBlockX();
-        float y = loc.getBlockY();
-        float z = loc.getBlockZ();
-        float pitch = loc.getPitch();
-        float yaw = loc.getYaw();
-        Block returned = null;
-        double XZslope = Math.tan(Math.toRadians(yaw));
-        double Yslope = Math.tan(Math.toRadians(pitch));
-        long runThrough = distance * (1 + (Math.round(XZslope) + Math.round(Yslope)) / 2);
-        for (int i = 0; (i <= runThrough && (returned == null || returned.getLocation().distance(loc) <= distance)); ++i) {
-            x += XZslope;
-            y += Yslope;
-            z += XZslope;
-            Block b = world.getBlockAt(Math.round(x), Math.round(y), Math.round(z));
-            returned = b;
-            if (!returned.isEmpty())
-                return returned;
-        }
-        return null;
-    }
-
-    public ShotResult shoot(int distance, int penetration, int damage, boolean wallsAffectPenetration, boolean hitsAffectPenetration) {
-        HashMap<LivingEntity, Location> hits = new HashMap<LivingEntity, Location>();
-        Location ownerLoc = player.getEyeLocation();
-        Vector direction = ownerLoc.getDirection();
-        int lastSince = 15;
-        Location chunkLoc = null;
-        for (int i = 0; i < distance; i++) {
-            chunkLoc = ownerLoc.clone().add(direction);
-            ++lastSince;
-            if (lastSince >= 16) {
-                lastSince = 0;
-            }
-            Vector shot = direction.clone().multiply(i);
-            if (!shot.toLocation(ownerLoc.getWorld()).getBlock().isEmpty() && wallsAffectPenetration) {
-                --penetration;
-            }
-            if (chunkLoc != null && penetration > 0) {
-                for (Entity e : chunkLoc.getChunk().getEntities()) {
-                    if (e instanceof LivingEntity) {
-                        LivingEntity ent = (LivingEntity) e;
-                        Location loc = ent.getEyeLocation();
-                        double height = ent.getEyeHeight();
-                        double width = Breakable.getNMSEntity(e).width;
-                        double length = Breakable.getNMSEntity(e).length;
-                        float thetaOne = Math.abs(loc.getYaw() - ownerLoc.getYaw());
-                        float thetaTwo = 90 - thetaOne;
-                        double viewWidth = width * Math.cos(thetaOne) + length * Math.cos(thetaTwo);
-                        double Xdif = loc.getX() - ownerLoc.getX();
-                        double Ydif = loc.getY() - ownerLoc.getY() - height;// foot Y
-                        double Zdif = loc.getZ() - ownerLoc.getZ();
-                        boolean Xhit = (shot.getX() <= Xdif + viewWidth && shot.getX() >= Xdif - viewWidth);
-                        boolean Yhit = (shot.getY() <= Ydif + height && shot.getY() >= Ydif);
-                        boolean Zhit = (shot.getZ() <= Zdif + viewWidth && shot.getZ() >= Zdif - viewWidth);
-                        if (Xhit && Yhit && Zhit) {
-                            hits.put(ent, ent.getLocation());
-                            ent.damage(damage, player);
-                            if (hitsAffectPenetration) {
-                                --penetration;
-                            }
-                        }
-                    }
+    private void pickUp() {
+        LastStandEvent lse = new LastStandEvent(player, this, false);
+        Bukkit.getServer().getPluginManager().callEvent(lse);
+        if (!lse.isCancelled()) {
+            for (PotionEffect pe : player.getActivePotionEffects()) {
+                if (pe.getType() == PotionEffectType.CONFUSION) {
+                    player.removePotionEffect(pe.getType());
                 }
             }
+            player.sendMessage(ChatColor.GRAY + "You have been picked up!");
+            game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
+            status = PlayerStatus.NORMAL;
+            Breakable.setSitting(player, false);
+            if (player.getVehicle() != null) {
+                player.getVehicle().remove();
+            }
+            player.setFoodLevel(20);
+            Entity v = player.getVehicle();
+            if (v != null) {
+                v.remove();
+            }
         }
-        return new ShotResult(hits, direction);
     }
 
-    @Override public Block getDefiningBlock() {
-        return player.getLocation().getBlock();
+    /* Clearing the player status to allow the player to be put in the game without carrying over items. */
+    @SuppressWarnings("deprecation") private void prepForGame() {
+        player.setGameMode(GameMode.SURVIVAL);
+        player.getInventory().clear();
+        player.setLevel(0);
+        player.setExp(0);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setSaturation(0);
+        player.getActivePotionEffects().clear();
+        player.getInventory().setArmorContents(null);
+        player.setSleepingIgnored(true);
+        player.setFireTicks(0);
+        player.setFallDistance(0F);
+        player.setExhaustion(0F);
+        if (External.itemManager != null && External.itemManager.getStartingItemsMap() != null) {
+            HashMap<Integer, Integer> startingItems = External.itemManager.getStartingItemsMap();
+            for (int id : startingItems.keySet()) {
+                int amount = startingItems.get(id);
+                External.itemManager.giveItem(player, new ItemStack(id, amount));
+            }
+        }
+        rename(name, "0");
+        player.updateInventory();
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.ZAPLAYER;
+    /* Checks that the name and suffix are lower than 16 chars.
+     * Any higher and the name is truncated. */
+    private void rename(String name, String suffix) {
+        String mod = name;
+        int cutoff = 16 - (suffix.length() + 1);
+        if (name.length() > cutoff) {
+            mod = name.substring(0, cutoff);
+        }
+        player.setDisplayName(mod + " " + suffix);
+    }
+
+    /* Restoring the player status to the last saved status before the game. */
+    @SuppressWarnings("deprecation") private void restoreStatus() {
+        if (status == PlayerStatus.LAST_STAND) {
+            toggleLastStand();
+        }
+        if (gm != null) {
+            for (PotionEffect pe : player.getActivePotionEffects()) {
+                PotionEffectType pet = pe.getType();
+                player.removePotionEffect(pet);
+            }
+            player.setGameMode(gm);
+            player.teleport(before);
+            player.getInventory().clear();
+            player.getInventory().setContents(inventory);
+            player.setLevel(level);
+            player.setExp(exp);
+            player.setHealth(health);
+            player.setFoodLevel(food);
+            player.setSaturation(saturation);
+            player.addPotionEffects(pot);
+            player.getInventory().setArmorContents(armor);
+            player.setSleepingIgnored(sleepingignored);
+            player.setFireTicks(fire);
+            player.setFallDistance(fall);
+            player.setExhaustion(exhaust);
+            player.setDisplayName(name);
+            player.updateInventory();
+        }
+    }
+
+    /* Saving the player status, so when the player is removed from the game, they are set back to where they were before. */
+    private void saveStatus() {
+        before = player.getLocation();
+        inventory = player.getInventory().getContents();
+        exp = player.getExp();
+        level = player.getLevel();
+        health = player.getHealth();
+        food = player.getFoodLevel();
+        saturation = player.getSaturation();
+        pot = player.getActivePotionEffects();
+        armor = player.getInventory().getArmorContents();
+        sleepingignored = player.isSleepingIgnored();
+        fire = player.getFireTicks();
+        fall = player.getFallDistance();
+        exhaust = player.getExhaustion();
+        gm = player.getGameMode();
+        ZASound.START.play(player.getLocation());
+    }
+
+    private void sitDown() {
+        LastStandEvent lse = new LastStandEvent(player, this, true);
+        Bukkit.getServer().getPluginManager().callEvent(lse);
+        if (!lse.isCancelled()) {
+            player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
+            if (getGame().getRemainingPlayers() >= 1 || !(Boolean) Setting.END_ON_LAST_PLAYER_LAST_STAND.getSetting()) {
+                status = PlayerStatus.LAST_STAND;
+                Entity v = player.getVehicle();
+                if (v != null) {
+                    v.remove();
+                }
+                rename(name, "[LS]");
+                player.setFoodLevel(0);
+                player.setHealth((Integer) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting());
+                ZASound.LAST_STAND.play(player.getLocation());
+                Breakable.setSitting(player, true);
+                game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " is down and needs revival", player);
+                new LastStandFallenThread(this, 240, true);
+                if ((Boolean) Setting.LOSE_PERKS_ON_LAST_STAND.getSetting()) {
+                    clearPerks();
+                }
+                player.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, Integer.MAX_VALUE, 1));// TODO test
+            } else {
+                removeFromGame();
+            }
+        }
     }
 }

@@ -19,12 +19,17 @@ public enum ZAEventType {
 	GAME_MOB_DEATH_EVENT(3, "A mob in the Ablockalypse game @game@ has been killed. There are @mobcount@ mobs left in level @level@.", GameMobDeathEvent.class),
 	GAME_MOB_SPAWN_EVENT(4, "The #@mobcount@ mob has been spawned in level @level@ of the Ablockalypse game @game@.", GameMobSpawnEvent.class),
 	GAME_PLAYER_JOIN_EVENT(5, "Player @player@ has joined the Ablockalypse game @game@.", GamePlayerJoinEvent.class),
+	GAME_PLAYER_LAST_STAND_EVENT(8, "Player @player@ in game @game@ has been @laststandstatus@.", LastStandEvent.class),
 	GAME_PLAYER_LEAVE_EVENT(6, "Player @player@ has left the Ablockalypse game @game@.", GamePlayerLeaveEvent.class),
-	GAME_SIGN_CLICK_EVENT(7, "The @line2@ sign at @location@ has been clicked by @player@.", GameSignClickEvent.class),
-	GAME_PLAYER_LAST_STAND_EVENT(8, "Player @player@ in game @game@ has been @laststandstatus@.", LastStandEvent.class);
+	GAME_SIGN_CLICK_EVENT(7, "The @line2@ sign at @location@ has been clicked by @player@.", GameSignClickEvent.class);
 	//@formatter:on
     //
     private final static Map<Integer, ZAEventType> BY_ID = Maps.newHashMap();
+    static {
+        for (ZAEventType type : values()) {
+            BY_ID.put(type.id, type);
+        }
+    }
     private final Class<?> clazz;
     private final int id;
     private final String xmppmessage;
@@ -45,11 +50,5 @@ public enum ZAEventType {
 
     public String getXMPPMessage() {
         return xmppmessage;
-    }
-
-    static {
-        for (ZAEventType type : values()) {
-            BY_ID.put(type.id, type);
-        }
     }
 }

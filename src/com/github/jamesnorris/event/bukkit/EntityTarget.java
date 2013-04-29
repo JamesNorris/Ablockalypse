@@ -7,16 +7,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
 public class EntityTarget implements Listener {
-    private DataContainer data = DataContainer.data;
-    
-    /*
-     * Called when an entity targets another entity.
-     * Mostly used for making sure non-supported entites do not attack ZA players.
-     */
+    private DataContainer data = Ablockalypse.getData();
+
+    /* Called when an entity targets another entity.
+     * Mostly used for making sure non-supported entites do not attack ZA players. */
     @EventHandler(priority = EventPriority.HIGHEST) public void ETE(EntityTargetEvent event) {
         Entity target = event.getTarget();
         Entity entity = event.getEntity();

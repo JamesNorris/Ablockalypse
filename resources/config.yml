@@ -38,9 +38,6 @@ mysteryChestCost: 1500
 # The amount it costs to buy a mystery item from the mystery box.
 # This should be lower than the diamond sword cost from below.
 
-doubleSpeedLevel: 15
-# The level at which zombies should double their speed.
-
 wolfLevels:
     - 5 
     - 11
@@ -102,6 +99,9 @@ movingChests: true
 chestBeacons: true
 # Adds FIREWORKS (the beacon effect is client-side) above chests to let players see where the active chest is.
 
+levelTransitionTime: 10
+# The time, in seconds, before transitioning to the next level after finishing the previous one.
+
 clearNearbyMobs: true
 nearbyMobClearingRadius: 32
 # If enabled, clears all non-ablockalypse mobs near the player so they don't interfere.
@@ -125,6 +125,11 @@ xmppAnnounceLastStand: true
 
 ENABLE_AUTO_UPDATE: false
 # Enables automatic updating for Ablockalypse.
+
+UPDATE_VERSION: latest
+# Which version to download if enabled. The version can be in one of two formats, 
+# for example, you can use "1.0.0" to download that version, or you can use "latest" 
+# to download the most recent version.
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.

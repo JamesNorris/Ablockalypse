@@ -11,6 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -31,15 +32,15 @@ import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.Region;
 
 public class MysteryChest implements GameObject, Blinkable {
-    private DataContainer data = DataContainer.data;
     private boolean active = true;
     private BlinkerThread bt;
     private Object chest;
+    private DataContainer data = Ablockalypse.getData();
     private Game game;
+    private Location loc;
     private Location[] locs;
     private Random rand;
     private int uses;
-    private Location loc;
 
     /**
      * Creates a new instance of the GameMysteryChest.
@@ -53,9 +54,10 @@ public class MysteryChest implements GameObject, Blinkable {
         this.loc = loc;
         data.gameObjects.add(this);
         Block b2 = MiscUtil.getSecondChest(loc.getBlock());
-        this.locs = (b2 != null) ? new Location[] {loc, b2.getLocation()} : new Location[] {loc};
-        for (Location location : locs)
+        locs = b2 != null ? new Location[] {loc, b2.getLocation()} : new Location[] {loc};
+        for (Location location : locs) {
             data.chests.put(location, this);
+        }
         this.chest = chest;
         rand = new Random();
         this.game = game;
@@ -63,12 +65,6 @@ public class MysteryChest implements GameObject, Blinkable {
         this.active = active;
         uses = rand.nextInt(8) + 2;
         initBlinker();
-    }
-
-    private void initBlinker() {
-        ArrayList<Block> blocks = getDefiningBlocks();
-        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 
     /**
@@ -95,9 +91,14 @@ public class MysteryChest implements GameObject, Blinkable {
      * @return The chest associated with this instance
      */
     public Chest getChest() {
-        if (chest instanceof Chest)
+        if (chest instanceof Chest) {
             return (Chest) chest;
+        }
         return null;
+    }
+
+    @Override public Block getDefiningBlock() {
+        return loc.getBlock();
     }
 
     /**
@@ -107,8 +108,9 @@ public class MysteryChest implements GameObject, Blinkable {
      */
     @Override public ArrayList<Block> getDefiningBlocks() {
         ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Location loc : locs)
+        for (Location loc : locs) {
             blocks.add(loc.getBlock());
+        }
         return blocks;
     }
 
@@ -127,7 +129,11 @@ public class MysteryChest implements GameObject, Blinkable {
      * @return The location of the chest
      */
     public Location getLocation() {
-        return locs[1];
+        return locs[0];
+    }
+
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.MYSTERY_CHEST;
     }
 
     /**
@@ -138,7 +144,6 @@ public class MysteryChest implements GameObject, Blinkable {
     @SuppressWarnings("deprecation") public void giveRandomItem(final ZAPlayer zap) {
         Player p = zap.getPlayer();
         if (active) {
-            --uses;
             HashMap<Integer, ItemInfoMap> maps = External.itemManager.getSignItemMaps();
             ArrayList<Integer> idList = new ArrayList<Integer>();
             for (int testId : maps.keySet()) {
@@ -147,33 +152,43 @@ public class MysteryChest implements GameObject, Blinkable {
             int id = idList.get(rand.nextInt(idList.size()));// Solution for the lack of integer positions in item maps
             int cost = (Integer) Setting.CHEST_COST.getSetting();
             ItemInfoMap map = maps.get(id);
-            if (MiscUtil.anyItemRegulationsBroken(zap, map.id, cost))
-                return;
             ItemStack item = new ItemStack(Material.getMaterial(map.id), map.dropamount);
-            Location topView = (locs[2] != null) ? new Region(locs[1], locs[2]).getCenter().clone().add(0, 1, 0) : locs[1].clone().add(0, 1, 0);
+            if (MiscUtil.anyItemRegulationsBroken(zap, id, cost)) {
+                return;
+            }
+            Location topView = locs[1] != null ? new Region(locs[0], locs[1]).getCenter().clone().add(0, 1, 0) : locs[0].clone().add(0, 1, 0);
             final ArrayList<Player> players = new ArrayList<Player>();
             for (String name : game.getPlayers()) {
                 players.add(Bukkit.getPlayer(name));
             }
             MiscUtil.setChestOpened(players, loc.getBlock(), true);
+            final Item i = topView.getWorld().dropItem(topView, item);
+            i.setPickupDelay(Integer.MAX_VALUE);
             Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
                 @Override public void run() {
                     MiscUtil.setChestOpened(players, loc.getBlock(), false);
                 }
             }, 50);
-            MiscUtil.dropItemAtPlayer(topView, item, p, 10);
+            MiscUtil.dropItemAtPlayer(topView, item, p, 40);
+            Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
+                @Override public void run() {
+                    i.remove();
+                }
+            }, 40);
+            --uses;
             zap.subtractPoints(cost);
             if ((Boolean) Setting.EXTRA_EFFECTS.getSetting()) {
                 ZASound.ACHIEVEMENT.play(p.getLocation());
                 ZAEffect.FLAMES.play(p.getLocation());
             }
             p.updateInventory();
-            if (uses == 0)
+            if (uses == 0) {
                 if ((Boolean) Setting.MOVING_CHESTS.getSetting()) {
                     setActive(false);
                     List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
                     game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
                 }
+            }
         } else {
             p.sendMessage(ChatColor.RED + "This chest is currently inactive!");
         }
@@ -191,12 +206,13 @@ public class MysteryChest implements GameObject, Blinkable {
     /**
      * Removes the mystery chest completely.
      */
-    public void remove() {
+    @Override public void remove() {
         setActive(false);
         game.removeObject(this);
         data.gameObjects.remove(this);
-        for (Location loc : locs)
+        for (Location loc : locs) {
             data.chests.remove(loc);
+        }
         List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
         int size = chests.size();
         if (size >= 1) {
@@ -215,8 +231,9 @@ public class MysteryChest implements GameObject, Blinkable {
      */
     public void setActive(boolean tf) {
         if (tf) {
-            if (uses == 0)
+            if (uses == 0) {
                 uses = rand.nextInt(8) + 2;
+            }
         }
         active = tf;
     }
@@ -231,20 +248,20 @@ public class MysteryChest implements GameObject, Blinkable {
     }
 
     @Override public void setBlinking(boolean tf) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         if (tf) {
-            if (!data.threads.contains(bt))
+            if (!data.threads.contains(bt)) {
                 initBlinker();
+            }
             bt.setRunThrough(true);
         }
     }
 
-    @Override public Block getDefiningBlock() {
-        return loc.getBlock();
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.MYSTERY_CHEST;
+    private void initBlinker() {
+        ArrayList<Block> blocks = getDefiningBlocks();
+        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
+        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 }

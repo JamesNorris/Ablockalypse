@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Firework;
 import org.bukkit.inventory.meta.FireworkMeta;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.event.bukkit.EntityExplode;
@@ -21,32 +22,33 @@ import com.github.jamesnorris.inter.ZARepeatingThread;
 import com.github.jamesnorris.util.MiscUtil;
 
 public class ChestFakeBeaconThread implements ZARepeatingThread {
-    private DataContainer data = DataContainer.data;
-    private int count = 0, interval;
-    private boolean runThrough = false;
-    private Game game;
     private MysteryChest active;
-    private Random rand = new Random();
+    private int count = 0, interval;
+    private DataContainer data = Ablockalypse.getData();
     private ArrayList<Location> fireLocations = new ArrayList<Location>();
+    private Game game;
+    private Random rand = new Random();
+    private boolean runThrough = false;
 
     public ChestFakeBeaconThread(Game game, int interval, boolean autorun) {
         this.game = game;
         this.interval = interval;
-        if (autorun)
+        if (autorun) {
             setRunThrough(true);
+        }
         addToThreads();
     }
 
-    private synchronized void addToThreads() {
-        data.threads.add(this);
+    @Override public int getCount() {
+        return count;
     }
 
-    @Override public boolean runThrough() {
-        return runThrough;
+    @Override public int getInterval() {
+        return interval;
     }
 
-    @Override public void setRunThrough(boolean tf) {
-        runThrough = tf;
+    @Override public void remove() {
+        data.threads.remove(this);
     }
 
     @Override public void run() {
@@ -56,7 +58,9 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
             } else {
                 if (game.getActiveMysteryChest() == null) {
                     List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
-                    game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
+                    if (chests.size() > 0) {
+                        game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
+                    }
                 }
                 if (game.hasStarted() && game.getActiveMysteryChest() != null) {
                     if (active == null || !MiscUtil.locationMatch(game.getActiveMysteryChest().getLocation(), active.getLocation())) {
@@ -65,7 +69,7 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
                     }
                     for (Location l : fireLocations) {
                         Builder effect = FireworkEffect.builder().trail(true).flicker(false).withColor(Color.BLUE).with(Type.BURST);
-                        Firework work = (Firework) l.getWorld().spawn(l, Firework.class);
+                        Firework work = l.getWorld().spawn(l, Firework.class);
                         EntityExplode.preventExplosion(work.getUniqueId(), true);
                         FireworkMeta meta = work.getFireworkMeta();
                         meta.addEffect(effect.build());
@@ -75,6 +79,26 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
                 }
             }
         }
+    }
+
+    @Override public boolean runThrough() {
+        return runThrough;
+    }
+
+    @Override public void setCount(int i) {
+        count = i;
+    }
+
+    @Override public void setInterval(int i) {
+        interval = i;
+    }
+
+    @Override public void setRunThrough(boolean tf) {
+        runThrough = tf;
+    }
+
+    private synchronized void addToThreads() {
+        data.threads.add(this);
     }
 
     private ArrayList<Location> getFiringLocations(Location loc) {
@@ -88,25 +112,5 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
         // }
         // }
         return locations;
-    }
-
-    @Override public void remove() {
-        data.threads.remove(this);
-    }
-
-    @Override public int getCount() {
-        return count;
-    }
-
-    @Override public int getInterval() {
-        return interval;
-    }
-
-    @Override public void setCount(int i) {
-        count = i;
-    }
-
-    @Override public void setInterval(int i) {
-        interval = i;
     }
 }

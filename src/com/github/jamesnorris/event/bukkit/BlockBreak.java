@@ -11,22 +11,30 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
 import com.github.jamesnorris.implementation.Claymore;
 
 public class BlockBreak implements Listener {
-    private static DataContainer data = DataContainer.data;
-    
-    /*
-     * Called when a player breaks a block.
-     * Mainly used for preventing ZA Players from breaking blocks while in-game.
-     */
+    private static DataContainer data = Ablockalypse.getData();
+
+    public static boolean shouldBeBroken(Material type) {
+        for (Material m : data.modifiableMaterials) {
+            if (m == type) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* Called when a player breaks a block.
+     * Mainly used for preventing ZA Players from breaking blocks while in-game. */
     @EventHandler(priority = EventPriority.HIGHEST) public void BBE(BlockBreakEvent event) {
         Player p = event.getPlayer();
         Block b = event.getBlock();
         Location loc = b.getLocation();
-        if (data.playerExists(p) && !BlockBreak.shouldBeBroken(b.getType())) {
+        if (data.playerIsZAPlayer(p) && !BlockBreak.shouldBeBroken(b.getType())) {
             event.setCancelled(true);
         } else if ((b.getType() == Material.FLOWER_POT || b.getType() == Material.FLOWER_POT_ITEM) && data.isClaymore(loc)) {
             Claymore more = data.getClaymore(loc);
@@ -38,14 +46,5 @@ public class BlockBreak implements Listener {
                 event.setCancelled(true);
             }
         }
-    }
-    
-    public static boolean shouldBeBroken(Material type) {
-        for (Material m : data.modifiableMaterials) {
-            if (m == type) {
-                return true;
-            }
-        }
-        return false;
     }
 }

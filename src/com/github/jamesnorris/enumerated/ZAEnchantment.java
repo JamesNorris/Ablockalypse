@@ -10,10 +10,15 @@ public enum ZAEnchantment {
     DAMAGE(1, Local.PACK_A_PUNCH_STRING.getSetting(), Enchantment.DAMAGE_ALL, (Integer) Setting.PACK_A_PUNCH_COST.getSetting());
     private final static Map<Integer, ZAEnchantment> BY_ID = Maps.newHashMap();
 
+    static {
+        for (ZAEnchantment setting : values()) {
+            BY_ID.put(setting.id, setting);
+        }
+    }
+
     public static ZAEnchantment getById(final int id) {
         return BY_ID.get(id);
     }
-
     private Enchantment ench;
     private int id, cost;
     private String label;
@@ -39,10 +44,5 @@ public enum ZAEnchantment {
 
     public String getLabel() {
         return label;
-    }
-
-    static {
-        for (ZAEnchantment setting : values())
-            BY_ID.put(setting.id, setting);
     }
 }

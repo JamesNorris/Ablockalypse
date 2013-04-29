@@ -8,7 +8,7 @@ import com.github.jamesnorris.implementation.ZAPlayer;
 public enum ZAPerk {
     DEADSHOT_DAIQUIRI(Local.PERK_DEADSHOT_DAIQUIRI_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.DEADSHOT_DAIQUIRI_COST.getSetting(), (Integer) Setting.DEADSHOT_DAIQUIRI_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
-            zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, this.getDuration(), 1));
+            zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, getDuration(), 1));
             zap.addToPerkList(this);
         }
     },
@@ -18,19 +18,18 @@ public enum ZAPerk {
             zap.addToPerkList(this);
         }
     },
-    STAMINUP(Local.PERK_STAMINUP_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.STAMINUP_COST.getSetting(), (Integer) Setting.STAMINUP_LEVEL.getSetting()) {
+    PHD_FLOPPER(Local.PERK_PHD_FLOPPER_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.PHD_FLOPPER_COST.getSetting(), (Integer) Setting.PHD_FLOPPER_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
-            zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, this.getDuration(), 1));
+            // PlayerMove.java does all the work
             zap.addToPerkList(this);
         }
     },
-    PHD_FLOPPER(Local.PERK_PHD_FLOPPER_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.PHD_FLOPPER_COST.getSetting(), (Integer) Setting.PHD_FLOPPER_LEVEL.getSetting()) {
+    STAMINUP(Local.PERK_STAMINUP_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.STAMINUP_COST.getSetting(), (Integer) Setting.STAMINUP_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
-            //PlayerMove.java does all the work
+            zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, getDuration(), 1));
             zap.addToPerkList(this);
         }
     };
-
     private int duration, cost, level;
     private String label;
 
@@ -39,11 +38,10 @@ public enum ZAPerk {
         this.duration = duration;
         this.cost = cost;
         this.level = level;
-        if (duration == -1)
+        if (duration == -1) {
             duration = Integer.MAX_VALUE;
+        }
     }
-
-    public abstract void givePerk(ZAPlayer zap);
 
     public int getCost() {
         return cost;
@@ -60,4 +58,6 @@ public enum ZAPerk {
     public int getLevel() {
         return level;
     }
+
+    public abstract void givePerk(ZAPlayer zap);
 }

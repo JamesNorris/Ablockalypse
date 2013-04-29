@@ -20,9 +20,10 @@ import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.storage.MapDataStorage;
+import com.github.jamesnorris.util.MiscUtil;
 
 public class BaseCommand extends CommandUtil implements CommandExecutor {
-    private DataContainer data = DataContainer.data;
+    private DataContainer data = Ablockalypse.getData();
 
     @Override public boolean onCommand(CommandSender sender, Command cmd, String inf, String[] args) {
         if (cmd.getName().equalsIgnoreCase("za")) {
@@ -30,7 +31,6 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "You don't have permission to use Ablockalypse commands!");
                 return true;
             }
-
             if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
                 showHelp(sender, args, cmd.getLabel());
                 return true;
@@ -85,7 +85,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     return true;
                 }
                 String gameName = args[1];
-                if (!data.gameExists(gameName)) {
+                if (data.gameExists(gameName)) {
                     sender.sendMessage(ChatColor.RED + "That game already exists!");
                     return true;
                 }
@@ -144,7 +144,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     return true;
                 }
                 Game zag = data.getGame(gameName, false);
-                zag.setMainframe(new Mainframe(zag, p.getLocation()));
+                zag.setMainframe(new Mainframe(zag, MiscUtil.getHighestBlockUnder(p.getLocation()).getLocation()));
                 sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
                 return true;
             } else if (args[0].equalsIgnoreCase("remove")) {
@@ -194,7 +194,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 PlayerInteract.spawnerPlayers.put(player.getName(), data.getGame(gameName, true));
                 sender.sendMessage(ChatColor.GRAY + "Click a block to create a spawner.");
                 return true;
-            } else if (args[0].equalsIgnoreCase("area")) {
+            } else if (args[0].equalsIgnoreCase("passage")) {
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(notPlayer);
                     return true;
@@ -213,7 +213,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     return true;
                 }
                 Player player = (Player) sender;
-                PlayerInteract.areaPlayers.put(player.getName(), data.getGame(gameName, true));
+                PlayerInteract.passagePlayers.put(player.getName(), data.getGame(gameName, true));
                 sender.sendMessage(ChatColor.GRAY + "Click a block to select point 1.");
                 return true;
             } else if (args[0].equalsIgnoreCase("chest")) {
@@ -270,8 +270,9 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     String newFile = gameName + "_mapdata.bin";
                     try {
                         File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + External.mapdatafolderlocation + newFile);
-                        if (!saveFile.exists())
+                        if (!saveFile.exists()) {
                             saveFile.createNewFile();
+                        }
                         External.save(new MapDataStorage(player.getLocation(), gameName), External.filelocation + External.mapdatafolderlocation + newFile);
                         sender.sendMessage(ChatColor.GRAY + "Map data snapshot saved! \nPlease note that this data is only a snapshot, and never updates automatically.");
                     } catch (Exception e) {

@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -17,10 +18,10 @@ import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.threading.BlinkerThread;
 
 public class MobSpawner implements Blinkable, GameObject {// TODO annotations
-    private DataContainer data = DataContainer.data;
     private boolean blinkers;
     private Block block;
     private BlinkerThread bt;
+    private DataContainer data = Ablockalypse.getData();
     private Game game;
     private Location loc;
     private int x, y, z;
@@ -37,15 +38,10 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
         y = loc.getBlockY();
         z = loc.getBlockZ();
         data.gameObjects.add(this);
+        game.addObject(this);
         blinkers = (Boolean) Setting.BLINKERS.getSetting();
         initBlinker();
         game.addObject(this);
-    }
-
-    private void initBlinker() {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        blocks.add(block);
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 
     @Override public BlinkerThread getBlinkerThread() {
@@ -72,14 +68,22 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
         return loc;
     }
 
-    public ArrayList<Block> getDefiningBlocks() {
+    @Override public Block getDefiningBlock() {
+        return block;
+    }
+
+    @Override public ArrayList<Block> getDefiningBlocks() {
         ArrayList<Block> blocks = new ArrayList<Block>();
         blocks.add(block);
         return blocks;
     }
 
-    public Game getGame() {
+    @Override public Game getGame() {
         return game;
+    }
+
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.MOB_SPAWNER;
     }
 
     public double getX() {
@@ -113,11 +117,13 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
      * @param tf Whether or not this location should blink
      */
     @Override public void setBlinking(boolean tf) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         if (tf) {
-            if (!data.threads.contains(bt))
+            if (!data.threads.contains(bt)) {
                 initBlinker();
+            }
             bt.setRunThrough(true);
         }
     }
@@ -130,11 +136,9 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
         game.getSpawnManager().spawn(loc, true);
     }
 
-    @Override public Block getDefiningBlock() {
-        return block;
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.MOB_SPAWNER;
+    private void initBlinker() {
+        ArrayList<Block> blocks = new ArrayList<Block>();
+        blocks.add(block);
+        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 }

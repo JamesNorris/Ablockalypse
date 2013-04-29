@@ -10,22 +10,27 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Wolf;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameEntityType;
 import com.github.jamesnorris.enumerated.GameObjectType;
-import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZAMob;
+import com.github.jamesnorris.inter.ZAScheduledTask;
+import com.github.jamesnorris.inter.ZAThread;
 import com.github.jamesnorris.threading.MobReRandomTeleportThread;
 import com.github.jamesnorris.threading.MobTargettingThread;
+import com.github.jamesnorris.util.MiscUtil;
 
 public class Hellhound implements ZAMob, GameObject {
-    private DataContainer data = DataContainer.data;
     private int absorption = 0;
+    private DataContainer data = Ablockalypse.getData();
     private Game game;
     private MobTargettingThread mtt;
     private Wolf wolf;
+    private ZAThread thread;
+    private boolean removed = false;
 
     /**
      * Creates a new instance of the GameWolf for ZA.
@@ -39,19 +44,31 @@ public class Hellhound implements ZAMob, GameObject {
         wolf.getWorld().strikeLightning(wolf.getLocation());
         data.gameObjects.add(this);
         data.mobs.add(this);
+        game.addObject(this);
         game.getSpawnManager().mobs.add(this);
-        absorption = (int) ((.75 / 2) * game.getLevel() + 1);// slightly more than undead, raises .75 every round
+        absorption = (int) (.75 / 2 * game.getLevel() + 1);// slightly more than undead, raises .75 every round
         wolf.setHealth(8);
-        Player p = game.getRandomLivingPlayer();
-        Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
-        mtt = new MobTargettingThread((Creature) wolf, (targetbarrier != null) ? targetbarrier.getCenter() : p, true);
+        final Player p = game.getRandomLivingPlayer();
+        final Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
+        mtt = new MobTargettingThread(wolf, targetbarrier != null ? targetbarrier.getCenter() : p.getLocation(), 0.1D, true);
+        if (targetbarrier == null) {
+            final Location previous = p.getLocation();
+            thread = Ablockalypse.getMainThread().scheduleRepeatingTask(new ZAScheduledTask() {
+                @Override public void run() {
+                    if (p.isDead()) {
+                        thread.remove();
+                    }
+                    if (!MiscUtil.locationMatch(previous, p.getLocation())) {
+                        mtt.setTarget(p.getLocation());
+                    }
+                }
+            }, 1);
+        }
         game.setMobCount(game.getMobCount() + 1);
         setAggressive(true);
-        if (!data.hellhounds.contains(this))
+        if (!data.hellhounds.contains(this)) {
             data.hellhounds.add(this);
-        mtt.setNodesPerTick(0.7D);
-        if (game.getLevel() >= (Integer) Setting.DOUBLE_SPEED_LEVEL.getSetting())
-            mtt.setNodesPerTick(0.9D);
+        }
         new MobReRandomTeleportThread(wolf, game, true, 400);
     }
 
@@ -67,8 +84,12 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @return The creature associated with this mob
      */
-    public Creature getCreature() {
+    @Override public Creature getCreature() {
         return wolf;
+    }
+
+    @Override public Block getDefiningBlock() {
+        return wolf.getLocation().getBlock();
     }
 
     /**
@@ -87,7 +108,7 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @return The Entity associated with this instance
      */
-    public Entity getEntity() {
+    @Override public Entity getEntity() {
         return wolf;
     }
 
@@ -105,8 +126,12 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @return The amount of damage to be absorbed each time this mob is hit
      */
-    public int getHitAbsorption() {
+    @Override public int getHitAbsorption() {
         return absorption;
+    }
+
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.HELLHOUND;
     }
 
     /**
@@ -114,7 +139,7 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @return The speed of the entity as an integer
      */
-    public double getSpeed() {
+    @Override public double getSpeed() {
         return mtt.getNodesPerTick();
     }
 
@@ -123,8 +148,16 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @return The mobs' target as a location
      */
-    public Location getTargetLocation() {
-        return mtt.getTargetLocation();
+    @Override public Location getTargetLocation() {
+        return mtt.getTarget();
+    }
+
+    @Override public MobTargettingThread getTargetter() {
+        return mtt;
+    }
+
+    @Override public GameEntityType getType() {
+        return GameEntityType.HELLHOUND;
     }
 
     /**
@@ -139,16 +172,17 @@ public class Hellhound implements ZAMob, GameObject {
     /**
      * Kills the wolf and finalizes the instance.
      */
-    public void kill() {
-        if (wolf != null) {
-            if (game.getSpawnManager().mobs.contains(this))
+    @Override public void kill() {
+        if (wolf != null && !removed) {
+            if (game != null && game.getSpawnManager().mobs.contains(this)) {
                 game.getSpawnManager().mobs.remove(this);
+            }
             wolf.getWorld().playEffect(wolf.getLocation(), Effect.EXTINGUISH, 1);
             wolf.remove();
+            removed = true;
         }
         data.gameObjects.remove(this);
         game.setMobCount(game.getMobCount() - 1);
-        game = null;
     }
 
     /**
@@ -172,7 +206,7 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @param amt The amount of health to add to the wolf
      */
-    public void setHealth(int amt) {
+    @Override public void setHealth(int amt) {
         wolf.setHealth(amt);
     }
 
@@ -182,7 +216,7 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @param i The damage absorption of this mob
      */
-    public void setHitAbsorption(int i) {
+    @Override public void setHitAbsorption(int i) {
         absorption = i;
     }
 
@@ -191,32 +225,11 @@ public class Hellhound implements ZAMob, GameObject {
      * 
      * @param nodesPerTick The speed to set the entity to
      */
-    public void setSpeed(double nodesPerTick) {
+    @Override public void setSpeed(double nodesPerTick) {
         mtt.setNodesPerTick(nodesPerTick);
     }
 
-    /**
-     * Sets the target of this instance.
-     * 
-     * @param loc The location to target
-     */
-    public void setTargetLocation(Location loc) {
+    @Override public void setTargetLocation(Location loc) {
         mtt.setTarget(loc);
-    }
-
-    @Override public Block getDefiningBlock() {
-        return wolf.getLocation().getBlock();
-    }
-
-    @Override public MobTargettingThread getTargetter() {
-        return mtt;
-    }
-
-    @Override public GameEntityType getType() {
-        return GameEntityType.HELLHOUND;
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.HELLHOUND;
     }
 }

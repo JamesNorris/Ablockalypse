@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -19,8 +20,8 @@ import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.util.Rectangle;
 
 public class Passage implements GameObject, Blinkable {
-    private DataContainer data = DataContainer.data;
     private BlinkerThread bt;
+    private DataContainer data = Ablockalypse.getData();
     private Location loc1, loc2;
     private HashMap<Location, Byte> locdata = new HashMap<Location, Byte>();
     private HashMap<Location, Material> locs = new HashMap<Location, Material>();
@@ -31,7 +32,7 @@ public class Passage implements GameObject, Blinkable {
     /**
      * Creates a new Passage instance that is represented by a rectangular prism.
      * 
-     * @param zag The game that should use this area
+     * @param zag The game that should use this passage
      * @param loc1 The first corner of the rectangular prism
      * @param loc2 The second corner of the rectangular prism
      */
@@ -41,7 +42,7 @@ public class Passage implements GameObject, Blinkable {
         this.loc2 = loc2;
         this.zag = zag;
         opened = false;
-        data.areas.add(this);
+        data.passages.add(this);
         rectangle = new Rectangle(loc1, loc2);
         for (Location l : rectangle.getLocations()) {
             locs.put(l, l.getBlock().getType());
@@ -49,14 +50,6 @@ public class Passage implements GameObject, Blinkable {
         }
         zag.addObject(this);
         initBlinker();
-    }
-
-    @SuppressWarnings("deprecation") private void initBlinker() {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Location l : rectangle.get3DBorder())
-            blocks.add(l.getBlock());
-        this.blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 
     /**
@@ -88,8 +81,9 @@ public class Passage implements GameObject, Blinkable {
      */
     public ArrayList<Block> getBlocks() {
         ArrayList<Block> bls = new ArrayList<Block>();
-        for (Location l : locs.keySet())
+        for (Location l : locs.keySet()) {
             bls.add(l.getBlock());
+        }
         return bls;
     }
 
@@ -102,6 +96,10 @@ public class Passage implements GameObject, Blinkable {
         return rectangle.get3DBorder();
     }
 
+    @Override public Block getDefiningBlock() {
+        return loc1.getBlock();
+    }
+
     /**
      * Gets the blocks that defines this object as an object.
      * 
@@ -109,8 +107,9 @@ public class Passage implements GameObject, Blinkable {
      */
     @Override public ArrayList<Block> getDefiningBlocks() {
         ArrayList<Block> bs = new ArrayList<Block>();
-        for (Location l : locs.keySet())
+        for (Location l : locs.keySet()) {
             bs.add(l.getBlock());
+        }
         return bs;
     }
 
@@ -123,6 +122,10 @@ public class Passage implements GameObject, Blinkable {
         return zag;
     }
 
+    @Override public GameObjectType getObjectType() {
+        return GameObjectType.PASSAGE;
+    }
+
     /**
      * Gets a point from the passage. This must be between 1 and 2.
      * 
@@ -130,7 +133,7 @@ public class Passage implements GameObject, Blinkable {
      * @return The location of the point
      */
     public Location getPoint(int i) {
-        Location loc = (i == 1) ? loc1 : loc2;
+        Location loc = i == 1 ? loc1 : loc2;
         return loc;
     }
 
@@ -162,7 +165,7 @@ public class Passage implements GameObject, Blinkable {
         close();
         zag.removeObject(this);
         setBlinking(false);
-        data.areas.remove(this);
+        data.passages.remove(this);
         data.gameObjects.remove(this);
         data.threads.remove(bt);
         zag = null;
@@ -174,11 +177,13 @@ public class Passage implements GameObject, Blinkable {
      * @param tf Whether or not this passage should blink
      */
     @Override public void setBlinking(boolean tf) {
-        if (bt.isRunning())
+        if (bt.isRunning()) {
             bt.remove();
+        }
         if (tf) {
-            if (!data.threads.contains(bt))
+            if (!data.threads.contains(bt)) {
                 initBlinker();
+            }
             bt.setRunThrough(true);
         }
     }
@@ -190,19 +195,22 @@ public class Passage implements GameObject, Blinkable {
      * @param n A number between 1 and 2
      */
     public void setLocation(Location loc, int n) {
-        if (n == 1)
+        if (n == 1) {
             loc1 = loc;
-        else if (n == 2)
+        } else if (n == 2) {
             loc2 = loc;
-        if (n == 1 || n == 2)
+        }
+        if (n == 1 || n == 2) {
             rectangle = new Rectangle(loc1, loc2);
+        }
     }
 
-    @Override public Block getDefiningBlock() {
-        return loc1.getBlock();
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.PASSAGE;
+    @SuppressWarnings("deprecation") private void initBlinker() {
+        ArrayList<Block> blocks = new ArrayList<Block>();
+        for (Location l : rectangle.get3DBorder()) {
+            blocks.add(l.getBlock());
+        }
+        blinkers = (Boolean) Setting.BLINKERS.getSetting();
+        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
     }
 }

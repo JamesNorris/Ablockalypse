@@ -41,22 +41,6 @@ public final class SerializableLocation implements Serializable {
     private final String world;
     private final double x, y, z;
     private final float yaw, pitch;
-    
-    public int getBlockX() {
-        return (int) x;
-    }
-    
-    public int getBlockY() {
-        return (int) y;
-    }
-    
-    public int getBlockZ() {
-        return (int) z;
-    }
-    
-    public World getWorld() {
-        return Bukkit.getWorld(world);
-    }
 
     /**
      * Creates a new SerializableLocation instance of any org.bukkit.Location.
@@ -88,6 +72,18 @@ public final class SerializableLocation implements Serializable {
         pitch = ((Float) map.get("pitch")).floatValue();
     }
 
+    public int getBlockX() {
+        return (int) x;
+    }
+
+    public int getBlockY() {
+        return (int) y;
+    }
+
+    public int getBlockZ() {
+        return (int) z;
+    }
+
     /**
      * Gets the SerializableLocation as an org.bukkit.Location for the defined server.
      * 
@@ -97,11 +93,16 @@ public final class SerializableLocation implements Serializable {
     public final Location getLocation(Server server) {
         if (loc == null) {
             World world = server.getWorld(uuid);
-            if (world == null)
+            if (world == null) {
                 world = server.getWorld(this.world);
+            }
             loc = new Location(world, x, y, z, yaw, pitch);
         }
         return loc;
+    }
+
+    public World getWorld() {
+        return Bukkit.getWorld(world);
     }
 
     /**

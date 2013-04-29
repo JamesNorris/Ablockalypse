@@ -29,6 +29,12 @@ public enum GameEntityType {
     //
     private final static Map<EntityType, GameEntityType> BY_ENTITY_TYPE = Maps.newHashMap();
 
+    static {
+        for (GameEntityType setting : values()) {
+            BY_ENTITY_TYPE.put(setting.type, setting);
+        }
+    }
+
     public static GameEntityType translate(EntityType type) {
         return BY_ENTITY_TYPE.get(type);
     }
@@ -36,18 +42,11 @@ public enum GameEntityType {
     public static EntityType translate(GameEntityType type) {
         return type.type;
     }
-
-    public abstract ZAMob instantiate(Entity entity, Game game);
-
     private EntityType type;
 
     GameEntityType(EntityType type) {
         this.type = type;
     }
 
-    static {
-        for (GameEntityType setting : values()) {
-            BY_ENTITY_TYPE.put(setting.type, setting);
-        }
-    }
+    public abstract ZAMob instantiate(Entity entity, Game game);
 }

@@ -76,7 +76,7 @@ public class GameCreateEvent extends AblockalypseEvent implements Cancellable {
      * 
      * @return Whether or not this event is cancelled
      */
-    public boolean isCancelled() {
+    @Override public boolean isCancelled() {
         return cancel;
     }
 
@@ -86,7 +86,7 @@ public class GameCreateEvent extends AblockalypseEvent implements Cancellable {
      * @return Whether or not the creator of the game was a commandsender
      */
     public boolean isCommandSender() {
-        return (sender != null) ? true : false;
+        return sender != null ? true : false;
     }
 
     /**
@@ -95,7 +95,7 @@ public class GameCreateEvent extends AblockalypseEvent implements Cancellable {
      * @return Whether or not the creator of the game was a player
      */
     public boolean isPlayer() {
-        return (player != null) ? true : false;
+        return player != null ? true : false;
     }
 
     /**
@@ -103,7 +103,7 @@ public class GameCreateEvent extends AblockalypseEvent implements Cancellable {
      * 
      * @param arg Whether or not to cancel the event
      */
-    public void setCancelled(boolean arg) {
+    @Override public void setCancelled(boolean arg) {
         cancel = arg;
     }
 }

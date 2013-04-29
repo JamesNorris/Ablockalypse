@@ -6,18 +6,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
 public class PlayerDeath implements Listener {
-    private DataContainer data = DataContainer.data;
-    
-    /*
-     * Called when a player is killed.
+    private DataContainer data = Ablockalypse.getData();
+
+    /* Called when a player is killed.
      * 
-     * Used for respawning the player after the current level.
-     */
+     * Used for respawning the player after the current level. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PDE(PlayerDeathEvent event) {
         Player p = event.getEntity();
         if (data.players.containsKey(p)) {

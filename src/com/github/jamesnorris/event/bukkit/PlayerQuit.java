@@ -7,18 +7,17 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.event.GamePlayerLeaveEvent;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 
 public class PlayerQuit implements Listener {
-    private DataContainer data = DataContainer.data;
-    
-    /*
-     * Called when a player leaves the server.
-     * Used for removing a player from the ZAGame when they leave.
-     */
+    private DataContainer data = Ablockalypse.getData();
+
+    /* Called when a player leaves the server.
+     * Used for removing a player from the ZAGame when they leave. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PQE(PlayerQuitEvent event) {
         Player p = event.getPlayer();
         if (data.players.containsKey(p)) {
@@ -26,8 +25,9 @@ public class PlayerQuit implements Listener {
             Game zag = zap.getGame();
             GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
             Bukkit.getPluginManager().callEvent(GPLE);
-            if (!GPLE.isCancelled())
+            if (!GPLE.isCancelled()) {
                 zag.removePlayer(p);
+            }
         }
     }
 }
