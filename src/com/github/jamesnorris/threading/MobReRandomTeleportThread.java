@@ -7,6 +7,7 @@ import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.ZARepeatingThread;
+import com.github.jamesnorris.manager.SpawnManager;
 
 public class MobReRandomTeleportThread implements ZARepeatingThread {
     private Creature c;
@@ -16,7 +17,7 @@ public class MobReRandomTeleportThread implements ZARepeatingThread {
     private boolean runThrough = false;
 
     public MobReRandomTeleportThread(Creature c, Game game, boolean autorun, int interval) {
-        setRunThrough(autorun);
+        runThrough = autorun;
         this.interval = interval;
         this.c = c;
         this.game = game;
@@ -36,14 +37,14 @@ public class MobReRandomTeleportThread implements ZARepeatingThread {
     }
 
     @Override public void run() {
-        if (!c.isDead() && data.isZAMob(c)) {
-            Location target = game.getRandomLivingPlayer().getLocation();
-            Location strike = game.getSpawnManager().findSpawnLocation(target, 5, 3);
-            c.teleport(strike);
-            strike.getWorld().strikeLightning(strike);
-        } else {
+        if (!(!c.isDead() && data.isZAMob(c))) {
             remove();
+            return;
         }
+        Location target = game.getRandomLivingPlayer().getLocation();
+        Location strike = SpawnManager.findSpawnLocation(target, 3, 5);
+        c.teleport(strike);
+        strike.getWorld().strikeLightning(strike);
     }
 
     @Override public boolean runThrough() {

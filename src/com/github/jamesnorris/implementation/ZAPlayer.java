@@ -1,7 +1,6 @@
 package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 import org.bukkit.Bukkit;
@@ -21,8 +20,6 @@ import org.bukkit.util.Vector;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.External;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.PlayerStatus;
 import com.github.jamesnorris.enumerated.PowerupType;
 import com.github.jamesnorris.enumerated.Setting;
@@ -30,27 +27,25 @@ import com.github.jamesnorris.enumerated.ZAPerk;
 import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.event.GamePlayerJoinEvent;
 import com.github.jamesnorris.event.LastStandEvent;
+import com.github.jamesnorris.implementation.serialized.SerialZAPlayer;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
+import com.github.jamesnorris.manager.ItemFileManager;
 import com.github.jamesnorris.threading.LastStandFallenThread;
 import com.github.jamesnorris.util.Breakable;
+import com.github.jamesnorris.util.PlayerState;
 import com.github.jamesnorris.util.ShotResult;
 
-public class ZAPlayer implements GameObject {
-    private int absorption = 0;// used to add juggernaut
-    private Location before;
+public class ZAPlayer implements GameObject, Permadatable {
     private DataContainer data = Ablockalypse.getData();
-    private float exp, saturation, fall, exhaust;
     private Game game;
-    private GameMode gm;
-    private ItemStack[] inventory, armor;
-    private int level, health, food, fire, points = 0, kills = 0, pointGainMod = 1;
+    private int points = 0, kills = 0, pointGainMod = 1, absorption = 0, status = 3;
     private String name;
     private ArrayList<ZAPerk> perks = new ArrayList<ZAPerk>();
     private Player player;
-    private HashMap<String, Integer> point;
-    private Collection<PotionEffect> pot;
-    private boolean sleepingignored, sent, instakill;
-    private PlayerStatus status = PlayerStatus.NORMAL;
+    private boolean sentIntoGame, instakill;
+    private PlayerState playerState;
 
     /**
      * Creates a new instance of a ZAPlayer, using an instance of a Player.
@@ -66,9 +61,24 @@ public class ZAPlayer implements GameObject {
         this.player = player;
         name = player.getName();
         this.game = game;
-        point = new HashMap<String, Integer>();
         data.players.put(player, this);
         player.setLevel(game.getLevel());
+    }
+    
+    public boolean hasBeenSentIntoGame() {
+        return sentIntoGame;
+    }
+    
+    public void setSentIntoGame(boolean sent) {
+        sentIntoGame = sent;
+    }
+    
+    public void setState(PlayerState state) {
+        playerState = state;
+    }
+    
+    public PlayerState getState() {
+        return playerState;
     }
 
     /**
@@ -78,10 +88,6 @@ public class ZAPlayer implements GameObject {
      */
     public void addPoints(int i) {
         points += i * pointGainMod;
-        if (point.containsKey(getName())) {
-            point.remove(getName());
-        }
-        point.put(getName(), points);
         rename(name, "" + points);
     }
 
@@ -185,10 +191,6 @@ public class ZAPlayer implements GameObject {
         return name;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.ZAPLAYER;
-    }
-
     /**
      * Gets a list of perks that the player has attached to them.
      * 
@@ -221,7 +223,7 @@ public class ZAPlayer implements GameObject {
     }
 
     public PlayerStatus getStatus() {
-        return status;
+        return PlayerStatus.getById(status);
     }
 
     /**
@@ -249,7 +251,7 @@ public class ZAPlayer implements GameObject {
      * @return Whether or not the player is in last stand
      */
     public boolean isInLastStand() {
-        return status == PlayerStatus.LAST_STAND;
+        return status == 1;
     }
 
     /**
@@ -258,7 +260,7 @@ public class ZAPlayer implements GameObject {
      * @return Whether or not the player is in limbo
      */
     public boolean isInLimbo() {
-        return status == PlayerStatus.LIMBO;
+        return status == 2;
     }
 
     /**
@@ -267,7 +269,7 @@ public class ZAPlayer implements GameObject {
      * @return Whether or not the player is teleporting
      */
     public boolean isTeleporting() {
-        return status == PlayerStatus.TELEPORTING;
+        return status == 4;
     }
 
     /**
@@ -286,10 +288,10 @@ public class ZAPlayer implements GameObject {
                 int max = (Integer) Setting.MAX_PLAYERS.getSetting();
                 if (zag.getPlayers().size() < max) {
                     zag.addPlayer(player);
-                    saveStatus();
-                    prepForGame();
+                    prepare();
                     if (game.getMainframe() == null) {
-                        game.setMainframe(new Mainframe(game, player.getLocation()));
+                        Location pLoc = player.getLocation();
+                        game.setMainframe(new Mainframe(game, pLoc));
                     }
                     sendToMainframe("Loading player to a game");
                     player.sendMessage(ChatColor.GRAY + "You have joined the game: " + name);
@@ -316,7 +318,7 @@ public class ZAPlayer implements GameObject {
      */
     public void removeFromGame() {
         restoreStatus();
-        if (game.getPlayers().contains(player.getName())) {
+        if (game.getPlayers().contains(this)) {
             game.removePlayer(player);
         }
         data.gameObjects.remove(this);
@@ -335,9 +337,9 @@ public class ZAPlayer implements GameObject {
             c.load();
         }
         player.teleport(loc);
-        if (sent) {
+        if (sentIntoGame) {
             ZASound.START.play(loc);
-            sent = true;
+            sentIntoGame = true;
         } else {
             ZASound.TELEPORT.play(loc);
         }
@@ -381,7 +383,7 @@ public class ZAPlayer implements GameObject {
      * @param tf Whether or not the player should be put in limbo mode
      */
     public void setLimbo(boolean tf) {
-        status = tf ? PlayerStatus.LIMBO : PlayerStatus.NORMAL;
+        status = tf ? 2 : 3;
     }
 
     public void setPointGainMod(int i) {
@@ -411,7 +413,7 @@ public class ZAPlayer implements GameObject {
      * @param tf What to change the status to
      */
     public void setTeleporting(boolean tf) {
-        status = tf ? PlayerStatus.TELEPORTING : PlayerStatus.NORMAL;
+        status = tf ? 4 : 3;
     }
 
     public ShotResult shoot(int distance, int penetration, int damage, boolean wallsAffectPenetration, boolean hitsAffectPenetration) {
@@ -427,7 +429,7 @@ public class ZAPlayer implements GameObject {
             if (lastSince >= 16) {
                 lastSince = 0;
             }
-            for (int div = 5; div > 0; div--) {//the higher that starting number, the greater the accuracy
+            for (int div = 5; div > 0; div--) {// the higher that starting number, the greater the accuracy
                 Vector shot = direction.clone().multiply(i + (1 / div));
                 if (!shot.toLocation(ownerLoc.getWorld()).getBlock().isEmpty() && wallsAffectPenetration && !nonEntityHits.contains(shot.toLocation(ownerLoc.getWorld()))) {
                     --penetration;
@@ -505,7 +507,7 @@ public class ZAPlayer implements GameObject {
      * Toggles sitting for the player.
      */
     public void toggleLastStand() {
-        if (status != PlayerStatus.LAST_STAND) {
+        if (status != 1) {
             sitDown();
         } else {
             pickUp();
@@ -523,7 +525,7 @@ public class ZAPlayer implements GameObject {
             }
             player.sendMessage(ChatColor.GRAY + "You have been picked up!");
             game.broadcast(ChatColor.RED + name + ChatColor.GRAY + " has been revived.", player);
-            status = PlayerStatus.NORMAL;
+            status = 3;
             Breakable.setSitting(player, false);
             if (player.getVehicle() != null) {
                 player.getVehicle().remove();
@@ -534,32 +536,6 @@ public class ZAPlayer implements GameObject {
                 v.remove();
             }
         }
-    }
-
-    /* Clearing the player status to allow the player to be put in the game without carrying over items. */
-    @SuppressWarnings("deprecation") private void prepForGame() {
-        player.setGameMode(GameMode.SURVIVAL);
-        player.getInventory().clear();
-        player.setLevel(0);
-        player.setExp(0);
-        player.setHealth(20);
-        player.setFoodLevel(20);
-        player.setSaturation(0);
-        player.getActivePotionEffects().clear();
-        player.getInventory().setArmorContents(null);
-        player.setSleepingIgnored(true);
-        player.setFireTicks(0);
-        player.setFallDistance(0F);
-        player.setExhaustion(0F);
-        if (External.itemManager != null && External.itemManager.getStartingItemsMap() != null) {
-            HashMap<Integer, Integer> startingItems = External.itemManager.getStartingItemsMap();
-            for (int id : startingItems.keySet()) {
-                int amount = startingItems.get(id);
-                External.itemManager.giveItem(player, new ItemStack(id, amount));
-            }
-        }
-        rename(name, "0");
-        player.updateInventory();
     }
 
     /* Checks that the name and suffix are lower than 16 chars.
@@ -574,52 +550,44 @@ public class ZAPlayer implements GameObject {
     }
 
     /* Restoring the player status to the last saved status before the game. */
-    @SuppressWarnings("deprecation") private void restoreStatus() {
-        if (status == PlayerStatus.LAST_STAND) {
+    private void restoreStatus() {
+        if (status == 1) {
             toggleLastStand();
         }
-        if (gm != null) {
-            for (PotionEffect pe : player.getActivePotionEffects()) {
-                PotionEffectType pet = pe.getType();
-                player.removePotionEffect(pet);
-            }
-            player.setGameMode(gm);
-            player.teleport(before);
-            player.getInventory().clear();
-            player.getInventory().setContents(inventory);
-            player.setLevel(level);
-            player.setExp(exp);
-            player.setHealth(health);
-            player.setFoodLevel(food);
-            player.setSaturation(saturation);
-            player.addPotionEffects(pot);
-            player.getInventory().setArmorContents(armor);
-            player.setSleepingIgnored(sleepingignored);
-            player.setFireTicks(fire);
-            player.setFallDistance(fall);
-            player.setExhaustion(exhaust);
-            player.setDisplayName(name);
-            player.updateInventory();
+        for (PotionEffect pe : player.getActivePotionEffects()) {
+            PotionEffectType pet = pe.getType();
+            player.removePotionEffect(pet);
         }
+        playerState.update();
     }
 
     /* Saving the player status, so when the player is removed from the game, they are set back to where they were before. */
-    private void saveStatus() {
-        before = player.getLocation();
-        inventory = player.getInventory().getContents();
-        exp = player.getExp();
-        level = player.getLevel();
-        health = player.getHealth();
-        food = player.getFoodLevel();
-        saturation = player.getSaturation();
-        pot = player.getActivePotionEffects();
-        armor = player.getInventory().getArmorContents();
-        sleepingignored = player.isSleepingIgnored();
-        fire = player.getFireTicks();
-        fall = player.getFallDistance();
-        exhaust = player.getExhaustion();
-        gm = player.getGameMode();
+    @SuppressWarnings("deprecation") private void prepare() {
+        playerState = new PlayerState(player);
         ZASound.START.play(player.getLocation());
+        player.setGameMode(GameMode.SURVIVAL);
+        player.getInventory().clear();
+        player.setLevel(0);
+        player.setExp(0);
+        player.setHealth(20);
+        player.setFoodLevel(20);
+        player.setSaturation(0);
+        player.getActivePotionEffects().clear();
+        player.getInventory().setArmorContents(null);
+        player.setSleepingIgnored(true);
+        player.setFireTicks(0);
+        player.setFallDistance(0F);
+        player.setExhaustion(0F);
+        ItemFileManager itemManager = Ablockalypse.getExternal().getItemFileManager();
+        if (itemManager != null && itemManager.getStartingItemsMap() != null) {
+            HashMap<Integer, Integer> startingItems = itemManager.getStartingItemsMap();
+            for (int id : startingItems.keySet()) {
+                int amount = startingItems.get(id);
+                itemManager.giveItem(player, new ItemStack(id, amount));
+            }
+        }
+        rename(name, "0");
+        player.updateInventory();
     }
 
     private void sitDown() {
@@ -628,7 +596,7 @@ public class ZAPlayer implements GameObject {
         if (!lse.isCancelled()) {
             player.sendMessage(ChatColor.GRAY + "You have been knocked down!");
             if (getGame().getRemainingPlayers() >= 1 || !(Boolean) Setting.END_ON_LAST_PLAYER_LAST_STAND.getSetting()) {
-                status = PlayerStatus.LAST_STAND;
+                status = 1;
                 Entity v = player.getVehicle();
                 if (v != null) {
                     v.remove();
@@ -648,5 +616,9 @@ public class ZAPlayer implements GameObject {
                 removeFromGame();
             }
         }
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialZAPlayer(this);
     }
 }

@@ -3,7 +3,6 @@ package com.github.jamesnorris.enumerated;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -24,7 +23,7 @@ import com.google.common.collect.Maps;
 public enum PowerupType {
     ATOM_BOMB(1) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "ATOM BOMB! - All mobs will now explode.", null);
+            game.broadcast(ChatColor.GRAY + "ATOM BOMB! - All mobs will now explode.");
             for (ZAMob zam : data.mobs) {
                 if (zam.getGame() == game) {
                     ZASound.EXPLOSION.play(zam.getEntity().getLocation());
@@ -32,12 +31,8 @@ public enum PowerupType {
                     zam.kill();
                 }
             }
-            for (String s2 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s2);
-                ZAPlayer zap = data.getZAPlayer(p, game.getName(), false);
-                if (zap != null) {
-                    zap.addPoints((Integer) Setting.ATOM_BOMB_POINTS.getSetting());
-                }
+            for (ZAPlayer zap : game.getPlayers()) {
+                zap.addPoints((Integer) Setting.ATOM_BOMB_POINTS.getSetting());
             }
         }
 
@@ -47,7 +42,7 @@ public enum PowerupType {
     },
     CARPENTER(2) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "CARPENTER! - All barriers are being fixed.", null);
+            game.broadcast(ChatColor.GRAY + "CARPENTER! - All barriers are being fixed.");
             List<Barrier> barriers = game.getObjectsOfType(Barrier.class);
             if (barriers.size() >= 1) {
                 for (Barrier b : barriers) {
@@ -62,30 +57,22 @@ public enum PowerupType {
     },
     DOUBLE_POINTS(5) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.", null);
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerIsZAPlayer(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setPointGainMod(2);
-                    timedReverse(this, game, player, cause, data, 450);
-                }
+            game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.");
+            for (ZAPlayer zap : game.getPlayers()) {
+                zap.setPointGainMod(2);
+                timedReverse(this, game, player, cause, data, 450);
             }
         }
 
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerIsZAPlayer(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
-                    zap.setPointGainMod(1);
-                }
+            for (ZAPlayer zap : game.getPlayers()) {
+                zap.setPointGainMod(1);
             }
         }
     },
     FIRESALE(6) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "FIRESALE! - Weapons only cost 10 points.", null);
+            game.broadcast(ChatColor.GRAY + "FIRESALE! - Weapons only cost 10 points.");
             PlayerInteract.fireSale.add(game);
             timedReverse(this, game, player, cause, data, 450);
         }
@@ -96,32 +83,24 @@ public enum PowerupType {
     },
     INSTA_KILL(4) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "INSTA KILL! - It only takes one hit to kill.", null);
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerIsZAPlayer(p)) {
-                    final ZAPlayer zap = data.getZAPlayer(p);
+            game.broadcast(ChatColor.GRAY + "INSTA KILL! - It only takes one hit to kill.");
+            for (ZAPlayer zap : game.getPlayers()) {
                     zap.setInstaKill(true);
                     timedReverse(this, game, player, cause, data, 450);
-                }
             }
         }
 
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
-                if (data.playerIsZAPlayer(p)) {
-                    ZAPlayer zap = data.getZAPlayer(p);
+            for (ZAPlayer zap : game.getPlayers()) {
                     zap.setInstaKill(false);
-                }
             }
         }
     },
     MAX_AMMO(3) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "MAX AMMO! - All weapons are being fixed.", null);
-            for (String s3 : game.getPlayers()) {
-                Player p = Bukkit.getPlayer(s3);
+            game.broadcast(ChatColor.GRAY + "MAX AMMO! - All weapons are being fixed.");
+            for (ZAPlayer zap : game.getPlayers()) {
+                Player p = zap.getPlayer();
                 Inventory i = p.getInventory();
                 for (ItemStack it : i.getContents()) {
                     if (it != null) {

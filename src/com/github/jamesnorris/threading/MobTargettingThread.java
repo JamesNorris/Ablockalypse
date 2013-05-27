@@ -30,7 +30,7 @@ public class MobTargettingThread implements ZARepeatingThread {
         this.target = target;
         this.nodesPerTick = nodesPerTick;
         setTarget(target);
-        setRunThrough(autorun);
+        runThrough = autorun;
         addToThreads();
     }
 

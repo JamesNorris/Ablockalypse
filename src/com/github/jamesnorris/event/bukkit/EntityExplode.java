@@ -82,7 +82,7 @@ public class EntityExplode implements Listener {
                 }
             }
             Player p = Bukkit.getPlayer(ProjectileHit.uuids.get(e.getUniqueId()));
-            if (data.playerIsZAPlayer(p)) {
+            if (data.isZAPlayer(p)) {
                 for (LivingEntity le : damaged) {
                     EntityDeath.behaveLikeKill(p, le);
                 }

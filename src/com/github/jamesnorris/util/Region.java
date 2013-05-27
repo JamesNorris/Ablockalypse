@@ -156,9 +156,6 @@ public class Region {
 
     /* Checks a 1D rectangle for overlap. */
     private boolean overlap_1D(double low1, double high1, double low2, double high2) {
-        if (low1 <= low2) {
-            return low2 <= high1;
-        }
-        return low1 <= high2;
+        return (low1 <= low2) ? low2 <= high1 : low1 <= high2;
     }
 }

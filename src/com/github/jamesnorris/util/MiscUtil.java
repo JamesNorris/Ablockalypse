@@ -16,18 +16,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.External;
 import com.github.jamesnorris.enumerated.PowerupType;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZAScheduledTask;
 
-/**
- * The class for all utility methods. This class can be used for any miscellaneous needs of the plugin.
- */
 public class MiscUtil {
     public static int[] swords = new int[] {268, 283, 272, 267, 276};
-    private static Random rand;
+    private static Random rand = new Random();
 
     public static boolean anyItemRegulationsBroken(ZAPlayer zap, int id, int cost) {// TODO level? duh
         Player player = zap.getPlayer();
@@ -48,15 +44,19 @@ public class MiscUtil {
         }
         return sb.toString();
     }
+    
+    public static Location findLocationNear(Location loc, int min, int max) {
+        if (min > max) {
+            final int tempMin = min;
+            final int tempMax = max;
+            max = tempMin;
+            min = tempMax;
+        }
+        int modX = (rand.nextBoolean() ? 1 : -1) * rand.nextInt(max - min) + min;
+        int modZ = (rand.nextBoolean() ? 1 : -1) * rand.nextInt(max - min) + min;
+        return loc.clone().add(modX, 0, modZ);
+    }
 
-    /**
-     * Drops an item in the direction of the player, then has them pick it up.
-     * 
-     * @param from The location to drop from
-     * @param item The item to drop
-     * @param player The player to drop at
-     * @param dropDelay The delay before the item is dropped at the player
-     */
     public static void dropItemAtPlayer(final Location from, final ItemStack item, final Player player, int dropDelay) {
         Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
             @Override public void run() {
@@ -67,7 +67,7 @@ public class MiscUtil {
                 Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
                     @Override public void run() {
                         finali.remove();
-                        External.itemManager.giveItem(player, is);
+                        Ablockalypse.getExternal().getItemFileManager().giveItem(player, is);
                     }
                 }, 10);
             }
@@ -75,7 +75,7 @@ public class MiscUtil {
     }
 
     public static String getLocationAsString(String prefix, Location loc) {
-        return prefix + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ() + ", yaw - " + loc.getYaw() + ", pitch - " + loc.getPitch();
+        return prefix + ": " + loc.getX() + ", " + loc.getY() + ", " + loc.getZ() + ", " + loc.getYaw() + ", " + loc.getPitch();
     }
     
     public static Block getHighestBlockUnder(Location loc) {
@@ -103,12 +103,6 @@ public class MiscUtil {
         return eyeLoc.clone().subtract(0, eyeLoc.getY() - floor.getY() - (2 * eyeHeight), 0);
     }
 
-    /**
-     * Gets the second chest next to the location of the block given.
-     * 
-     * @param b The block to check around
-     * @return The second block
-     */
     public static Block getSecondChest(Block b) {
         BlockFace[] faces = new BlockFace[] {BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST};
         for (BlockFace face : faces) {
@@ -141,26 +135,14 @@ public class MiscUtil {
     }
 
     public static boolean locationMatch(Location loc1, Location loc2) {
-        if (loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ()) {
-            return true;
-        }
-        return false;
+        return loc1.getBlockX() == loc2.getBlockX() && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
 
     public static boolean locationMatch(Location loc1, Location loc2, int distance) {
         return loc1.distance(loc2) <= distance;
     }
 
-    /**
-     * Searched for a random powerup.
-     * 
-     * @param zap The player to apply the powerup to
-     * @param cause The entity that originated this event
-     */
     public static void randomPowerup(ZAPlayer zap, Entity cause) {
-        if (rand == null) {
-            rand = new Random();
-        }
         int chance = rand.nextInt(100) + 1;
         if (chance <= (Integer) Setting.POWERUP_CHANCE.getSetting()) {
             zap.givePowerup(PowerupType.getById(rand.nextInt(5) + 1), cause);
@@ -168,30 +150,26 @@ public class MiscUtil {
     }
 
     public static void setChestOpened(List<Player> players, Block block, boolean opened) {
-        if (block == null) {
+        if ((block == null) || !(block.getState() instanceof Chest)) {
             return;
         }
-        if (!(block.getState() instanceof Chest)) {
-            return;
-        }
+        byte open = opened ? (byte) 1 : (byte) 0;
         for (Player player : players) {
-            player.playNote(block.getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+            player.playNote(block.getLocation(), (byte) 1, open);
             if (isDoubleChest(block)) {
-                player.playNote(getSecondChest(block).getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+                player.playNote(getSecondChest(block).getLocation(), (byte) 1, open);
             }
         }
     }
 
     public static void setChestOpened(Player player, Block block, boolean opened) {
-        if (block == null) {
+        if ((block == null) || !(block.getState() instanceof Chest)) {
             return;
         }
-        if (!(block.getState() instanceof Chest)) {
-            return;
-        }
-        player.playNote(block.getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+        byte open = opened ? (byte) 1 : (byte) 0;
+        player.playNote(block.getLocation(), (byte) 1, open);
         if (isDoubleChest(block)) {
-            player.playNote(getSecondChest(block).getLocation(), (byte) 1, opened ? (byte) 1 : (byte) 0);
+            player.playNote(getSecondChest(block).getLocation(), (byte) 1, open);
         }
     }
 }

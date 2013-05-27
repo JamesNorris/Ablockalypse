@@ -25,9 +25,7 @@ public class LastStandFallenThread implements ZARepeatingThread {
         this.zap = zap;
         this.interval = interval;
         player = zap.getPlayer();
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -44,11 +42,11 @@ public class LastStandFallenThread implements ZARepeatingThread {
     }
 
     @Override public void run() {
-        if (zap.isInLastStand() && !player.isDead()) {
-            player.damage(1);
-        } else {
+        if (!zap.isInLastStand() || player.isDead()) {
             remove();
+            return;
         }
+        player.damage(1);
     }
 
     @Override public boolean runThrough() {

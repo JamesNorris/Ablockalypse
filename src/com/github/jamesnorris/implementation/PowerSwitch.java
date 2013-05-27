@@ -2,19 +2,22 @@ package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
+import com.github.jamesnorris.implementation.serialized.SerialPowerSwitch;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
+import com.github.jamesnorris.inter.Powerable;
 import com.github.jamesnorris.threading.BlinkerThread;
 
-public class PowerSwitch implements GameObject, Blinkable {
+public class PowerSwitch implements GameObject, Blinkable, Permadatable {
     private BlinkerThread bt;
     private int cost = 0;
     private DataContainer data = Ablockalypse.getData();
@@ -27,8 +30,13 @@ public class PowerSwitch implements GameObject, Blinkable {
         this.loc = loc;
         this.cost = cost;
         data.gameObjects.add(this);
+        data.switches.add(this);
         game.addObject(this);
         initBlinker();
+    }
+    
+    public boolean isOn() {
+        return on;
     }
 
     @Override public BlinkerThread getBlinkerThread() {
@@ -56,28 +64,41 @@ public class PowerSwitch implements GameObject, Blinkable {
     public Location getLocation() {
         return loc;
     }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.POWER_SWITCH;
+    
+    public void setOn(boolean on) {
+        if (on) {
+            on();
+        } else {
+            off();
+        }
     }
 
     public void off() {
         if (!on) {
             return;
         }
+        for (Powerable power : game.getObjectsOfType(Powerable.class)) {
+            if (power.isPowered()) {
+                power.powerOff();
+            }
+        }
         on = false;
-        // TODO things that require power, disallow interaction
     }
 
     public void on() {
         if (on) {
             return;
         }
+        for (Powerable power : game.getObjectsOfType(Powerable.class)) {
+            if (power.requiresPower()) {
+                power.powerOn();
+            }
+        }
         on = true;
-        // TODO things that require power, allow interaction
     }
 
     @Override public void remove() {
+        data.switches.remove(this);
         data.gameObjects.remove(this);
     }
 
@@ -98,6 +119,10 @@ public class PowerSwitch implements GameObject, Blinkable {
         ArrayList<Block> blockArray = new ArrayList<Block>();
         blockArray.add(loc.getBlock());
         boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
+        bt = new BlinkerThread(blockArray, Color.ORANGE, blinkers, 30, this);
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialPowerSwitch(this);
     }
 }

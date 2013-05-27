@@ -4,8 +4,6 @@ import java.util.Map;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Wolf;
-import org.bukkit.entity.Zombie;
 
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.Hellhound;
@@ -17,12 +15,12 @@ public enum GameEntityType {
     //@formatter:off
 	HELLHOUND(EntityType.WOLF) {
         @Override public ZAMob instantiate(Entity entity, Game game) {
-            return new Hellhound((Wolf) entity, game);
+            return new Hellhound(entity.getWorld(), entity.getUniqueId(), game);
         }	    
 	},
 	UNDEAD(EntityType.ZOMBIE) {
         @Override public ZAMob instantiate(Entity entity, Game game) {
-            return new Undead((Zombie) entity, game);
+            return new Undead(entity.getWorld(), entity.getUniqueId(), game);
         }	    
 	};
 	//@formatter:on

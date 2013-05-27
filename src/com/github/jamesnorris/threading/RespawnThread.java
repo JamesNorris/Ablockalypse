@@ -27,9 +27,7 @@ public class RespawnThread implements ZARepeatingThread {
         this.time = time;
         zap = data.getZAPlayer(player);
         level = zap.getGame().getLevel();
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -46,27 +44,32 @@ public class RespawnThread implements ZARepeatingThread {
     }
 
     @Override public void run() {
+        if (!data.isZAPlayer(player)) {
+            remove();
+            return;
+        }
+        if (player.isDead() || !player.isOnline()) {
+            return;
+        }
         if (!messageSent) {
             player.sendMessage(ChatColor.GRAY + "You will respawn at the beginning of the next level.");
             messageSent = true;
         }
-        if (data.playerIsZAPlayer(player)) {
-            if (zap.getGame().getLevel() > level) {
-                if (time == 0) {
-                    ZAPlayer zap = data.players.get(player);
-                    if (zap.getGame() == null) {
-                        remove();
-                    }
-                    zap.sendToMainframe("Respawn");
-                    zap.setLimbo(false);
+        if (zap.getGame().getLevel() > level) {
+            if (time == 0) {
+                ZAPlayer zap = data.players.get(player);
+                if (zap.getGame() == null) {
                     remove();
-                } else {
-                    player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
+                    return;
                 }
-                --time;
+                zap.sendToMainframe("Respawn");
+                zap.setLimbo(false);
+                remove();
+                return;
+            } else {
+                player.sendMessage(ChatColor.GRAY + "Waiting to respawn... " + time);
             }
-        } else {
-            remove();
+            --time;
         }
     }
 

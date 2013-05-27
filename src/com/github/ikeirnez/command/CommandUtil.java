@@ -1,4 +1,4 @@
-package com.github.ikeirnez.util;
+package com.github.ikeirnez.command;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -10,7 +10,7 @@ public class CommandUtil {
     public static String invalidSetting = ChatColor.RED + "That setting does not exist!";
     public static String joinGame = ChatColor.AQUA + "You have joined a game of Zombie Ablockalypse";
     public static String noMaintainPerms = ChatColor.RED + "You don't have permission to perform maintenance.";
-    public static String notPlayer = ChatColor.RED + "You must be a player to use that command.";
+    public static String requiresPlayer = ChatColor.RED + "You must be a player to use that command.";
     public static String settingChanged = ChatColor.GRAY + "That setting has been changed.";
 
     /**

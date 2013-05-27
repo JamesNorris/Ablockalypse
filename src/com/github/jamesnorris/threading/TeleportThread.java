@@ -9,6 +9,7 @@ import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
+import com.github.jamesnorris.util.MiscUtil;
 
 public class TeleportThread implements ZARepeatingThread {
     private DataContainer data = Ablockalypse.getData();
@@ -32,9 +33,7 @@ public class TeleportThread implements ZARepeatingThread {
         this.interval = interval;
         player = zaplayer.getPlayer();
         loc = zaplayer.getPlayer().getLocation();
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -58,11 +57,10 @@ public class TeleportThread implements ZARepeatingThread {
                 player.sendMessage(ChatColor.GRAY + "Teleportation cancelled!");
                 zaplayer.setTeleporting(false);
                 return;
-            } else {
-                player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
-                ZAEffect.TELEPORTATION.play(player.getLocation());
-                --time;
             }
+            player.sendMessage(ChatColor.GRAY + "" + time + " seconds to teleport...");
+            ZAEffect.TELEPORTATION.play(player.getLocation());
+            --time;
         } else if (time <= 0) {
             ZAEffect.SMOKE.play(player.getLocation());
             zaplayer.sendToMainframe("Teleport");
@@ -94,9 +92,6 @@ public class TeleportThread implements ZARepeatingThread {
 
     /* Checks if the player is in roughly the same location as they were when they started the thread. */
     private boolean sameLocation() {
-        if (player.getLocation().getBlockX() == loc.getBlockX() && player.getLocation().getBlockY() == loc.getBlockY() && player.getLocation().getBlockZ() == loc.getBlockZ()) {
-            return true;
-        }
-        return false;
+        return MiscUtil.locationMatch(player.getLocation(), loc);
     }
 }

@@ -20,7 +20,7 @@ public class PlayerKick implements Listener {
      * Usedx mostly to prevent multiple level gains after a player is kicked. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PKE(PlayerKickEvent event) {
         Player p = event.getPlayer();
-        if (data.playerIsZAPlayer(p)) {
+        if (data.isZAPlayer(p)) {
             ZAPlayer zap = data.getZAPlayer(p);
             Game zag = zap.getGame();
             GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);

@@ -1,10 +1,8 @@
 package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bukkit.Bukkit;
@@ -18,28 +16,30 @@ import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.event.GameEndEvent;
+import com.github.jamesnorris.event.bukkit.PlayerJoin;
+import com.github.jamesnorris.implementation.serialized.SerialGame;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.manager.SpawnManager;
 import com.github.jamesnorris.threading.ChestFakeBeaconThread;
 import com.github.jamesnorris.threading.NextLevelThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class Game {
+public class Game implements Permadatable {
     private MysteryChest active;
     private ChestFakeBeaconThread beacons;
     private DataContainer data = Ablockalypse.getData();
-    private int level = 1, mobcount, startpoints;
+    private int level = 1, mobcount, startpoints, spawnedInThisRound = 0;
     private Mainframe mainframe;
     private String name;
     private NextLevelThread nlt;
     private CopyOnWriteArrayList<GameObject> objects = new CopyOnWriteArrayList<GameObject>();
-    private HashMap<String, Integer> players = new HashMap<String, Integer>();
-    private Random rand;
-    private SpawnManager spawnManager;
-    private List<Integer> wolfLevels = new ArrayList<Integer>();
+    private ArrayList<Integer> wolfLevels = new ArrayList<Integer>();
     private boolean wolfRound, paused, started;
+    private Random rand = new Random();
 
     /**
      * Creates a new instance of a game.
@@ -48,14 +48,20 @@ public class Game {
      */
     @SuppressWarnings("unchecked") public Game(String name) {
         this.name = name;
-        rand = new Random();
         paused = false;
         started = false;
         beacons = new ChestFakeBeaconThread(this, 200, (Boolean) Setting.BEACONS.getSetting());
-        wolfLevels = (List<Integer>) Setting.WOLF_LEVELS.getSetting();
+        wolfLevels = (ArrayList<Integer>) Setting.WOLF_LEVELS.getSetting();
         startpoints = (Integer) Setting.STARTING_POINTS.getSetting();
-        spawnManager = new SpawnManager(this);
         data.games.put(name, this);
+    }
+
+    public int getMobCountSpawnedInThisRound() {
+        return spawnedInThisRound;
+    }
+
+    public void setMobCountSpawnedInThisRound(int amt) {
+        spawnedInThisRound = amt;
     }
 
     /**
@@ -76,13 +82,14 @@ public class Game {
      * @param player The player to be added to the game
      */
     public void addPlayer(Player player) {
-        if (!data.players.containsKey(player)) {
-            ZAPlayer zap = new ZAPlayer(player, this);
-            zap.loadPlayerToGame(name);
-            zap.addPoints(startpoints);
+        ZAPlayer zap = data.getZAPlayer(player, name, true);
+        if (!player.isOnline()) {
+            PlayerJoin.offlinePlayers.add(zap);
         }
-        if (!players.containsKey(player.getName())) {
-            players.put(player.getName(), startpoints);
+        if (!data.players.containsKey(player)) {
+            zap.setPoints(startpoints);
+        }
+        if (!getObjectsOfType(ZAPlayer.class).contains(zap)) {
             broadcast(ChatColor.RED + player.getName() + ChatColor.GRAY + " has joined the game!", player);
             if (paused) {
                 pause(false);
@@ -99,9 +106,35 @@ public class Game {
      * @param message The message to send
      * @param exception A player to be excluded from the broadcast
      */
-    public void broadcast(String message, Player exception) {
-        for (String name : getPlayers()) {
-            Bukkit.getPlayer(name).sendMessage(message);
+    public void broadcast(String message, Player... exceptions) {
+        for (ZAPlayer zap : getPlayers()) {
+            boolean contained = false;
+            if (exceptions != null) {
+                for (Player except : exceptions) {
+                    if (zap.getPlayer() == except) {
+                        contained = true;
+                    }
+                }
+            }
+            if (!contained) {
+                zap.getPlayer().sendMessage(message);
+            }
+        }
+    }
+
+    public void broadcastSound(ZASound sound, Player... exceptions) {
+        for (ZAPlayer zap : getPlayers()) {
+            boolean contained = false;
+            if (exceptions != null) {
+                for (Player except : exceptions) {
+                    if (zap.getPlayer() == except) {
+                        contained = true;
+                    }
+                }
+            }
+            if (!contained) {
+                sound.play(zap.getPlayer().getLocation());
+            }
         }
     }
 
@@ -109,12 +142,11 @@ public class Game {
      * Sends all players in the game the points of all players.
      */
     public void broadcastPoints() {
-        for (String s : getPlayers()) {
-            Player p = Bukkit.getPlayer(s);
-            for (String s2 : getPlayers()) {
-                Player p2 = Bukkit.getPlayer(s2);
-                ZAPlayer zap = data.getZAPlayer(p2);
-                p.sendMessage(ChatColor.RED + s2 + ChatColor.RESET + " - " + ChatColor.GRAY + zap.getPoints());
+        for (ZAPlayer zap : getPlayers()) {
+            Player p = zap.getPlayer();
+            for (ZAPlayer zap2 : getPlayers()) {
+                Player p2 = zap2.getPlayer();
+                p.sendMessage(ChatColor.RED + p2.getName() + ChatColor.RESET + " - " + ChatColor.GRAY + zap2.getPoints());
             }
         }
     }
@@ -125,12 +157,13 @@ public class Game {
     public void end() {
         if (started) {
             int points = 0;
-            for (int i : players.values()) {
-                points = points + i;
+            for (ZAPlayer zap : getObjectsOfType(ZAPlayer.class)) {
+                points += zap.getPoints();
             }
             GameEndEvent GEE = new GameEndEvent(this, points);
             Bukkit.getPluginManager().callEvent(GEE);
             if (!GEE.isCancelled()) {
+                spawnedInThisRound = 0;
                 paused = true;
                 started = false;
                 mainframe.clearLinks();
@@ -160,9 +193,8 @@ public class Game {
                 for (Claymore more : getObjectsOfType(Claymore.class)) {
                     more.remove();
                 }
-                for (String name : getPlayers()) {
-                    Player player = Bukkit.getServer().getPlayer(name);
-                    ZAPlayer zap = data.players.get(player);
+                for (ZAPlayer zap : getPlayers()) {
+                    Player player = zap.getPlayer();
                     player.sendMessage(ChatColor.BOLD + "" + ChatColor.GRAY + "The game has ended. You made it to level " + level);
                     ZASound.END.play(zap.getPlayer().getLocation());
                     removePlayer(player);
@@ -221,8 +253,12 @@ public class Game {
      * 
      * @return All mobs currently alive in this game
      */
-    public ArrayList<ZAMob> getMobs() {
-        return spawnManager.getLivingMobs();
+    public List<ZAMob> getMobs() {
+        return getObjectsOfType(ZAMob.class);
+    }
+
+    public boolean hasMob(ZAMob mob) {
+        return getMobs().contains(mob);
     }
 
     /**
@@ -234,7 +270,7 @@ public class Game {
         return name;
     }
 
-    @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {// TODO get this working
+    @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {
         ArrayList<T> list = new ArrayList<T>();
         for (Object obj : objects) {
             if (type.isAssignableFrom(obj.getClass())) {
@@ -245,12 +281,16 @@ public class Game {
     }
 
     /**
-     * Returns a set of players currently in the game.
+     * Returns a list of players currently in the game.
      * 
-     * @return A set of player names that are involved in this game
+     * @return A list of player names that are involved in this game
      */
-    public Set<String> getPlayers() {
-        return players.keySet();
+    public List<ZAPlayer> getPlayers() {
+        return getObjectsOfType(ZAPlayer.class);
+    }
+
+    public ArrayList<Integer> getWolfLevels() {
+        return wolfLevels;
     }
 
     /**
@@ -262,10 +302,8 @@ public class Game {
     public Player getRandomLivingPlayer() {
         if (getRemainingPlayers() >= 1) {
             ArrayList<ZAPlayer> zaps = new ArrayList<ZAPlayer>();
-            for (String s : getPlayers()) {
-                Player p = Bukkit.getServer().getPlayer(s);
-                ZAPlayer zap = data.getZAPlayer(p);
-                if (!p.isDead() && !zap.isInLastStand() && !zap.isInLimbo()) {
+            for (ZAPlayer zap : getPlayers()) {
+                if (!zap.getPlayer().isDead() && !zap.isInLastStand() && !zap.isInLimbo()) {
                     zaps.add(zap);
                 }
             }
@@ -279,16 +317,8 @@ public class Game {
      * 
      * @return The random player from this game
      */
-    public Player getRandomPlayer() {
-        if (getRemainingPlayers() >= 1) {
-            ArrayList<Player> ps = new ArrayList<Player>();
-            for (String s : getPlayers()) {
-                Player p = Bukkit.getServer().getPlayer(s);
-                ps.add(p);
-            }
-            return ps.get(rand.nextInt(ps.size())).getPlayer();
-        }
-        return null;
+    public ZAPlayer getRandomPlayer() {
+        return getPlayers().get(rand.nextInt(getPlayers().size()));
     }
 
     /**
@@ -299,23 +329,12 @@ public class Game {
      */
     public int getRemainingPlayers() {
         int i = 0;
-        for (String s : getPlayers()) {
-            Player p = Bukkit.getPlayer(s);
-            ZAPlayer zap = data.players.get(p);
-            if (!p.isDead() && !zap.isInLimbo() && !zap.isInLastStand()) {
+        for (ZAPlayer zap : getPlayers()) {
+            if (!zap.getPlayer().isDead() && !zap.isInLimbo() && !zap.isInLastStand()) {
                 ++i;
             }
         }
         return i;
-    }
-
-    /**
-     * Gets the manager that affects spawn for this game.
-     * 
-     * @return The SpawnManager instance associated with this game
-     */
-    public SpawnManager getSpawnManager() {
-        return spawnManager;
     }
 
     /**
@@ -357,6 +376,7 @@ public class Game {
             end();
             return;
         }
+        spawnedInThisRound = 0;
         mobcount = 0;
         if (!started) {
             level = 0;
@@ -367,8 +387,8 @@ public class Game {
             }
         }
         if (level != 0) {
-            for (String s : players.keySet()) {
-                Player p = Bukkit.getServer().getPlayer(s);
+            for (ZAPlayer zap : getPlayers()) {
+                Player p = zap.getPlayer();
                 p.setLevel(level);
                 p.sendMessage(ChatColor.BOLD + "Level " + ChatColor.RESET + ChatColor.RED + level + ChatColor.RESET + ChatColor.BOLD + " has started.");
             }
@@ -428,19 +448,23 @@ public class Game {
      * @param player The player to be removed from the game
      */
     public void removePlayer(Player player) {
-        if (players.containsKey(player.getName())) {
-            players.remove(player.getName());
+        if (getPlayers().contains(data.getZAPlayer(player))) {
+            objects.remove(data.getZAPlayer(player));
         }
         ZAPlayer zap = data.getZAPlayer(player);
         if (zap != null) {
             zap.removeFromGame();
             data.players.get(player).removeFromGame();
             data.players.remove(player);
-            if (players.isEmpty()) {
+            if (getPlayers().isEmpty()) {
                 pause(true);
                 end();
             }
         }
+    }
+
+    public void setWolfLevels(ArrayList<Integer> levels) {
+        wolfLevels = levels;
     }
 
     /**
@@ -516,8 +540,8 @@ public class Game {
      * @param l The location to spawn the mob at
      * @param closespawn Whether or not to spawn right next to the target
      */
-    public void spawn(Location l, boolean closespawn) {
-        spawnManager.spawn(l, closespawn);
+    public void spawn(Location l, boolean closeSpawn) {
+        SpawnManager.spawn(this, l, closeSpawn);
     }
 
     /**
@@ -526,9 +550,10 @@ public class Game {
      */
     public void spawnWave() {
         if (mainframe == null && getRandomLivingPlayer() != null) {
-            mainframe = new Mainframe(this, getRandomLivingPlayer().getLocation());
+            Location playerLoc = getRandomLivingPlayer().getLocation();
+            mainframe = new Mainframe(this, playerLoc);
         }
-        spawnManager.spawnWave();
+        SpawnManager.spawnWave(this);
         started = true;
     }
 
@@ -546,5 +571,9 @@ public class Game {
             }
         }
         return false;
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialGame(this);
     }
 }

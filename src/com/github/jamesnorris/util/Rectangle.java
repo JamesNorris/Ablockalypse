@@ -1,6 +1,5 @@
 package com.github.jamesnorris.util;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +8,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
 
-public class Rectangle implements Serializable {
-    private static final long serialVersionUID = 2425427337952053775L;
-    private transient ArrayList<Location> border2D = new ArrayList<Location>();
-    private transient ArrayList<Location> border3D = new ArrayList<Location>();
-    private transient Location loc1, loc2, loc3, loc4;
-    private transient HashMap<Location, Material> locs = new HashMap<Location, Material>();
+public class Rectangle {
+    private ArrayList<Location> border2D = new ArrayList<Location>();
+    private ArrayList<Location> border3D = new ArrayList<Location>();
+    private Location loc1, loc2, loc3, loc4;
+    private HashMap<Location, Material> locs = new HashMap<Location, Material>();
 
     /**
      * Creates a new rectangle from one location to the next.

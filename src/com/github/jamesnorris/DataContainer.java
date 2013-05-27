@@ -2,11 +2,13 @@ package com.github.jamesnorris;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -21,6 +23,7 @@ import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.implementation.MobSpawner;
 import com.github.jamesnorris.implementation.MysteryChest;
 import com.github.jamesnorris.implementation.Passage;
+import com.github.jamesnorris.implementation.PowerSwitch;
 import com.github.jamesnorris.implementation.Undead;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.GameObject;
@@ -56,6 +59,7 @@ public class DataContainer {
     public Material[] modifiableMaterials = new Material[] {Material.FLOWER_POT, Material.FLOWER_POT_ITEM};//default materials
     public CopyOnWriteArrayList<Passage> passages = new CopyOnWriteArrayList<Passage>();
     public ConcurrentHashMap<Player, ZAPlayer> players = new ConcurrentHashMap<Player, ZAPlayer>();
+    public CopyOnWriteArrayList<PowerSwitch> switches = new CopyOnWriteArrayList<PowerSwitch>();
     public CopyOnWriteArrayList<ZAThread> threads = new CopyOnWriteArrayList<ZAThread>();
     public CopyOnWriteArrayList<Undead> undead = new CopyOnWriteArrayList<Undead>();
 
@@ -110,6 +114,15 @@ public class DataContainer {
         }
         return null;
     }
+    
+    public Entity getEntityByUUID(World world, UUID uuid) {
+        for (Entity entity : world.getEntities()) {
+            if (entity.getUniqueId().compareTo(uuid) == 0) {
+                return entity;
+            }
+        }
+        return null;
+    }
 
     public MobSpawner getMobSpawner(Location loc) {
         for (Game game : mobSpawners.keySet()) {
@@ -142,6 +155,15 @@ public class DataContainer {
         for (Passage passage : passages) {
             if (passage.getBlocks().contains(loc.getBlock())) {
                 return passage;
+            }
+        }
+        return null;
+    }
+    
+    public PowerSwitch getPowerSwitch(Location loc) {
+        for (PowerSwitch power : switches) {
+            if (MiscUtil.locationMatch(power.getLocation(), loc)) {
+                return power;
             }
         }
         return null;
@@ -196,9 +218,9 @@ public class DataContainer {
         if (players.containsKey(player)) {
             zap = players.get(player);
         } else if (games.containsKey(gamename) && force) {
-            zap = new ZAPlayer(player, games.get(gamename));
+            zap = new ZAPlayer(player, getGame(gamename, false));
         } else if (force) {
-            zap = new ZAPlayer(player, new Game(gamename));
+            zap = new ZAPlayer(player, getGame(gamename, true));
         }
         return zap;
     }
@@ -243,6 +265,10 @@ public class DataContainer {
     public boolean isPassage(Location loc) {
         return getPassage(loc) != null;
     }
+    
+    public boolean isPowerSwitch(Location loc) {
+        return getPowerSwitch(loc) != null;
+    }
 
     public boolean isUndead(Entity e) {
         return getUndead(e) != null;
@@ -252,8 +278,7 @@ public class DataContainer {
         return getZAMob(e) != null;
     }
 
-    public boolean playerIsZAPlayer(Player player) {
-
+    public boolean isZAPlayer(Player player) {
         return players != null && players.size() >= 1 && players.containsKey(player);
     }
 

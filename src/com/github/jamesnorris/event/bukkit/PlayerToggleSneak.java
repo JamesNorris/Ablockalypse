@@ -18,13 +18,14 @@ public class PlayerToggleSneak implements Listener {
      * Used mostly for repairing broken barriers. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PTSE(PlayerToggleSneakEvent event) {
         Player p = event.getPlayer();
-        if (data.players.containsKey(p)) {
-            ZAPlayer zap = data.players.get(p);
+        if (data.isZAPlayer(p)) {
+            ZAPlayer zap = data.getZAPlayer(p);
             if (zap.isInLastStand()) {
                 event.setCancelled(true);
+                return;
             }
-            for (Barrier b : data.barriers) {
-                if (b.isWithinRadius(p, 2) && b.isBroken()) {
+            for (Barrier b : zap.getGame().getObjectsOfType(Barrier.class)) {
+                if (b.isWithinRadius(p, 3) && b.isBroken()) {
                     b.fixBarrier(zap);
                     break;
                 }

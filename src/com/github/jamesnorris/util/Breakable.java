@@ -15,12 +15,9 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.enumerated.Local;
-//@formatter:off
-//BREAKABLE IMPORTS
-//@formatter:on
 
 public class Breakable {
-    public class ByteData extends DataWatcher {
+    public static class ByteData extends DataWatcher {
         private byte data;
 
         private ByteData(byte data) {
@@ -77,7 +74,7 @@ public class Breakable {
             byte b1 = tf ? (byte) 0x04 : (byte) 0x00;
             for (Player p : Bukkit.getOnlinePlayers()) {
                 EntityPlayer ep = Breakable.getNMSPlayer(p);
-                ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new Breakable().new ByteData(b1), true));
+                ep.playerConnection.sendPacket(new Packet40EntityMetadata(player.getEntityId(), new ByteData(b1), true));
             }
             double modY = tf ? -.2 : .2;
             player.teleport(player.getLocation().add(0, modY, 0));

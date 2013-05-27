@@ -1,6 +1,5 @@
 package com.github.jamesnorris.threading;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
@@ -11,6 +10,7 @@ import com.github.jamesnorris.enumerated.ZASound;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.ZAPlayer;
 import com.github.jamesnorris.inter.ZARepeatingThread;
+import com.github.jamesnorris.manager.SpawnManager;
 
 public class NextLevelThread implements ZARepeatingThread {
     private int counter, interval = 20, count = 0;
@@ -28,9 +28,7 @@ public class NextLevelThread implements ZARepeatingThread {
             counter = 20;
         }
         running = false;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -58,12 +56,11 @@ public class NextLevelThread implements ZARepeatingThread {
             remove();
             return;
         }
-        if (data.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && game.getSpawnManager().allSpawnedIn()) {
+        if (data.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && SpawnManager.allSpawnedIn(game)) {
             if (!played) {
                 played = true;
                 if (game.getLevel() != 0) {
-                    for (String s : game.getPlayers()) {
-                        ZAPlayer zap = data.getZAPlayer(Bukkit.getPlayer(s), game.getName(), false);
+                    for (ZAPlayer zap : game.getPlayers()) {
                         if (zap != null) {
                             ZASound.PREV_LEVEL.play(zap.getPlayer().getLocation());
                             Player p = zap.getPlayer();
@@ -79,9 +76,7 @@ public class NextLevelThread implements ZARepeatingThread {
             }
             --counter;
             if (counter <= 5) {
-                for (String s : game.getPlayers()) {
-                    Bukkit.getPlayer(s).sendMessage("" + ChatColor.RED + counter + ChatColor.RESET + ChatColor.BOLD + " seconds left.");
-                }
+                game.broadcast("" + ChatColor.RED + counter + ChatColor.RESET + ChatColor.BOLD + " seconds left.");
             }
             if (counter == 0) {
                 played = false;
@@ -89,12 +84,7 @@ public class NextLevelThread implements ZARepeatingThread {
                     game.setWolfRound(false);
                 }
                 game.nextLevel();
-                for (String s : game.getPlayers()) {
-                    ZAPlayer zap = data.getZAPlayer(Bukkit.getPlayer(s), game.getName(), false);
-                    if (zap != null) {
-                        ZASound.NEXT_LEVEL.play(zap.getPlayer().getLocation());
-                    }
-                }
+                game.broadcastSound(ZASound.NEXT_LEVEL);
                 remove();
             }
         }

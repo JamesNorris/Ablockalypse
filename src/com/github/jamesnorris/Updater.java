@@ -12,7 +12,7 @@ import org.bukkit.plugin.Plugin;
 
 import com.github.Ablockalypse;
 
-public class Update {
+public class Updater {
     public boolean isUpdating = false;
     public int updatePercent = 0;
     private String finished = "[Ablockalypse] Update completed, please restart the server!";
@@ -26,7 +26,7 @@ public class Update {
      * 
      * @param instance The instance of Ablockalypse to use for the Updater
      */
-    public Update(Plugin instance) {
+    public Updater(Plugin instance) {
         plugin = (Ablockalypse) instance;
     }
 

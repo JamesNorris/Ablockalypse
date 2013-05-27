@@ -2,22 +2,24 @@ package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.enumerated.ZAEffect;
+import com.github.jamesnorris.implementation.serialized.SerialMainframe;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.threading.LinkedTeleporterEffectThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class Mainframe implements GameObject, Blinkable {
+public class Mainframe implements GameObject, Blinkable, Permadatable {
     private BlinkerThread bt;
     private DataContainer data = Ablockalypse.getData();
     private Game game;
@@ -25,21 +27,17 @@ public class Mainframe implements GameObject, Blinkable {
     private Location location;
     private LinkedTeleporterEffectThread ltet;
 
-    public Mainframe(Game game, Location location) {
+    public Mainframe(Game game, Location loc) {
         this.game = game;
-        this.location = location;
+        this.location = loc;
         data.gameObjects.add(this);
-        ltet = null;
         game.addObject(this);
+        ltet = new LinkedTeleporterEffectThread(this, 60, new ZAEffect[] {ZAEffect.TELEPORTATION, ZAEffect.FLAMES}, true);
         initBlinker();
     }
 
     public void clearLinks() {
         linked.clear();
-        if (ltet != null) {
-            ltet.remove();
-            ltet = null;
-        }
     }
 
     @Override public BlinkerThread getBlinkerThread() {
@@ -68,12 +66,8 @@ public class Mainframe implements GameObject, Blinkable {
         return location;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.MAINFRAME;
-    }
-
     public boolean isLinked(Location location) {
-        for (Location loc : linked) {
+        for (Location loc : getLinks()) {
             if (MiscUtil.locationMatch(location, loc)) {
                 return true;
             }
@@ -89,7 +83,13 @@ public class Mainframe implements GameObject, Blinkable {
     }
 
     @Override public void remove() {
+        setBlinking(false);
+        ltet.remove();
+        bt.remove();
+        game.removeObject(this);
+        data.threads.remove(bt);
         data.gameObjects.remove(this);
+        game = null;
     }
 
     @Override public void setBlinking(boolean tf) {
@@ -100,6 +100,10 @@ public class Mainframe implements GameObject, Blinkable {
         ArrayList<Block> blockArray = new ArrayList<Block>();
         blockArray.add(location.getBlock());
         boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
+        bt = new BlinkerThread(blockArray, Color.BLUE, blinkers, 30, this);
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialMainframe(this);
     }
 }

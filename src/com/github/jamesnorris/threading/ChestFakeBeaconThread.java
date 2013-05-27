@@ -33,9 +33,7 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
     public ChestFakeBeaconThread(Game game, int interval, boolean autorun) {
         this.game = game;
         this.interval = interval;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -55,27 +53,27 @@ public class ChestFakeBeaconThread implements ZARepeatingThread {
         if ((Boolean) Setting.BEACONS.getSetting()) {
             if (game == null || game.getFakeBeaconThread() != this) {
                 remove();
-            } else {
-                if (game.getActiveMysteryChest() == null) {
-                    List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
-                    if (chests.size() > 0) {
-                        game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
-                    }
+                return;
+            }
+            if (game.getActiveMysteryChest() == null) {
+                List<MysteryChest> chests = game.getObjectsOfType(MysteryChest.class);
+                if (chests.size() > 0) {
+                    game.setActiveMysteryChest(chests.get(rand.nextInt(chests.size())));
                 }
-                if (game.hasStarted() && game.getActiveMysteryChest() != null) {
-                    if (active == null || !MiscUtil.locationMatch(game.getActiveMysteryChest().getLocation(), active.getLocation())) {
-                        active = game.getActiveMysteryChest();
-                        fireLocations = getFiringLocations(active.getLocation());
-                    }
-                    for (Location l : fireLocations) {
-                        Builder effect = FireworkEffect.builder().trail(true).flicker(false).withColor(Color.BLUE).with(Type.BURST);
-                        Firework work = l.getWorld().spawn(l, Firework.class);
-                        EntityExplode.preventExplosion(work.getUniqueId(), true);
-                        FireworkMeta meta = work.getFireworkMeta();
-                        meta.addEffect(effect.build());
-                        meta.setPower(5);
-                        work.setFireworkMeta(meta);
-                    }
+            }
+            if (game.hasStarted() && game.getActiveMysteryChest() != null) {
+                if (active == null || !MiscUtil.locationMatch(game.getActiveMysteryChest().getLocation(), active.getLocation())) {
+                    active = game.getActiveMysteryChest();
+                    fireLocations = getFiringLocations(active.getLocation());
+                }
+                for (Location l : fireLocations) {
+                    Builder effect = FireworkEffect.builder().trail(true).flicker(false).withColor(Color.BLUE).with(Type.BURST);
+                    Firework work = l.getWorld().spawn(l, Firework.class);
+                    EntityExplode.preventExplosion(work.getUniqueId(), true);
+                    FireworkMeta meta = work.getFireworkMeta();
+                    meta.addEffect(effect.build());
+                    meta.setPower(5);
+                    work.setFireworkMeta(meta);
                 }
             }
         }

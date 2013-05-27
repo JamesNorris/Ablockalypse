@@ -46,9 +46,9 @@ public class EntityDamageByEntity implements Listener {
             if (instakillids.contains(f.getUniqueId())) {
                 event.setDamage(zam.getCreature().getHealth() * 10);
             } else {
-                int dmg = 40 - zam.getHitAbsorption();
-                if (dmg < 9) {
-                    dmg = 9;
+                int dmg = 40 - zam.getHitAbsorption();// fireball damage
+                if (dmg <= 1) {
+                    dmg = 1;
                 }
                 event.setDamage(dmg);
             }
@@ -57,22 +57,22 @@ public class EntityDamageByEntity implements Listener {
             if (instakillids.contains(a.getUniqueId())) {
                 event.setDamage(zam.getCreature().getHealth() * 10);
             } else {
-                int dmg = 25 - zam.getHitAbsorption();
-                if (dmg <= 8) {
-                    dmg = 8;
+                int dmg = 50 - zam.getHitAbsorption();// arrow damage
+                if (dmg <= 1) {
+                    dmg = 1;
                 }
                 event.setDamage(dmg);
             }
         } else if (damager instanceof Player) {
             Player p = (Player) damager;
-            if (data.playerIsZAPlayer(p)) {
+            if (data.isZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);
                 if (zap.hasInstaKill()) {
                     event.setDamage(zam.getCreature().getHealth() * 5);
                 } else {
-                    int dmg = evtdmg - zam.getHitAbsorption();
-                    if (dmg <= 4) {
-                        dmg = 4;
+                    int dmg = evtdmg - zam.getHitAbsorption();// regular hit damage
+                    if (dmg <= 1) {
+                        dmg = 1;
                     }
                     event.setDamage(dmg);
                 }
@@ -90,7 +90,7 @@ public class EntityDamageByEntity implements Listener {
             ZAPlayer zap = data.players.get(p);
             if (damager instanceof Player) {
                 Player p2 = (Player) damager;
-                if (data.playerIsZAPlayer(p2)) {
+                if (data.isZAPlayer(p2)) {
                     ZAPlayer hitter = data.players.get(p2);
                     if (zap.isInLastStand()) {
                         new LastStandPickupThread(hitter, zap, 20, 5, true);

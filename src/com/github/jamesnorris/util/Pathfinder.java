@@ -24,7 +24,7 @@ public class Pathfinder {
             Location correct = null;
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
-                    Location check = new Location(world, current.getX() + x, current.getY(), current.getZ() + z);
+                    Location check = current.clone().add(x, 0, z);
                     double newH = check.distance(target);
                     if (!check.getBlock().isEmpty()) {
                         if (check.clone().add(0, 1, 0).getBlock().isEmpty() && check.clone().add(0, 2, 0).getBlock().isEmpty()) {
@@ -55,11 +55,15 @@ public class Pathfinder {
     }
 
     /**
-     * [0] = x
-     * [1] = y
-     * [2] = z
-     * [3] = yaw
+     * Gets a serializable array of coordinates for this location.
+     * 
+     * [0] = x<br>
+     * [1] = y<br>
+     * [2] = z<br>
+     * [3] = yaw<br>
      * [4] = pitch
+     * 
+     * @param found The location to get the coordinates array for
      */
     public static double[] getCoordinates(Location found) {
         double[] coordinates = new double[5];
@@ -97,7 +101,7 @@ public class Pathfinder {
         return true;
     }
 
-    public static Location setLocationDirection(Location loc, Location lookat) {
+    public static Location setLocationDirection(Location loc, Location lookat) {// TODO not working?
         loc = loc.clone();
         // double b = lookat.getX() - loc.getX();
         // double d = lookat.getY() - loc.getY();

@@ -19,9 +19,7 @@ public class LinkedTeleporterEffectThread implements ZARepeatingThread {
         this.frame = frame;
         this.interval = interval;
         this.effects = effects;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 

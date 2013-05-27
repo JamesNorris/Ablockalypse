@@ -23,9 +23,7 @@ public class BarrierBreakThread implements ZARepeatingThread {
         this.entity = entity;
         center = barrier.getCenter();
         this.interval = interval;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -42,17 +40,17 @@ public class BarrierBreakThread implements ZARepeatingThread {
     }
 
     @Override public void run() {
-        if (!entity.isDead() && barrier.isWithinRadius(entity, 2) && !barrier.isBroken()) {
-            int hittimes = barrier.getHitTimes();
-            barrier.setHitTimes(--hittimes);
-            ZASound.BARRIER_BREAK.play(center);
-            ZAEffect.WOOD_BREAK.play(center);
-            if (hittimes == 0) {
-                barrier.setHitTimes(barrier.getHitRequirement());
-                barrier.breakPanels();
-                remove();
-            }
-        } else {
+        if (!(!entity.isDead() && barrier.isWithinRadius(entity, 2) && !barrier.isBroken())) {
+            remove();
+            return;
+        }
+        int hittimes = barrier.getHitTimes();
+        barrier.setHitTimes(--hittimes);
+        ZASound.BARRIER_BREAK.play(center);
+        ZAEffect.WOOD_BREAK.play(center);
+        if (hittimes == 0) {
+            barrier.setHitTimes(barrier.getHitRequirement());
+            barrier.breakPanels();
             remove();
         }
     }

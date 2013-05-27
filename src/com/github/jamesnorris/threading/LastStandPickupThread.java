@@ -27,9 +27,7 @@ public class LastStandPickupThread implements ZARepeatingThread {
         starting = (int) pickupPlayer.getExp();
         max = pickupPlayer.getExpToLevel() - 1;
         perRequirement = max / requirement;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 

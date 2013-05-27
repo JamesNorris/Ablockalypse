@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.github.Ablockalypse;
-import com.github.jamesnorris.External;
 import com.google.common.collect.Maps;
 
 public enum Local {
@@ -27,7 +26,7 @@ public enum Local {
     //
     private final static Map<Integer, Local> BY_ID = Maps.newHashMap();
     static {
-        FileConfiguration local = YamlConfiguration.loadConfiguration(External.localizationFile);
+        FileConfiguration local = YamlConfiguration.loadConfiguration(Ablockalypse.getExternal().getLocalizationFile());
         if (local == null) {
             Ablockalypse.crash("The localization file cound not be reached, this will break the plugin. Killing Ablockalypse to prevent future issues.", true);
         }

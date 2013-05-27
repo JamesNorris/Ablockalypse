@@ -15,9 +15,7 @@ public class MobClearingThread implements ZARepeatingThread {
 
     public MobClearingThread(boolean autorun, int interval) {
         this.interval = interval;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -39,6 +37,7 @@ public class MobClearingThread implements ZARepeatingThread {
             for (Entity e : p.getNearbyEntities(radius, radius, radius)) {
                 if (e != null && !data.isZAMob(e) && !(e instanceof Player)) {
                     e.remove();
+                    return;
                 }
             }
         }

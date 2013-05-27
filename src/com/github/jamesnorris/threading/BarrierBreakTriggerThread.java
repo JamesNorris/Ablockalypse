@@ -14,9 +14,7 @@ public class BarrierBreakTriggerThread implements ZARepeatingThread {
     private boolean runThrough = false;
 
     public BarrierBreakTriggerThread(boolean autorun, int interval) {
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         this.interval = interval;
         addToThreads();
     }

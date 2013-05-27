@@ -15,9 +15,7 @@ public class ClaymoreTriggerThread implements ZARepeatingThread {
     public ClaymoreTriggerThread(Claymore claymore, int interval, boolean autorun) {
         this.claymore = claymore;
         this.interval = interval;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -36,12 +34,13 @@ public class ClaymoreTriggerThread implements ZARepeatingThread {
     @Override public void run() {
         if (claymore == null || !claymore.getGame().hasStarted()) {
             remove();
-        } else {
-            for (ZAMob mob : claymore.getGame().getMobs()) {
-                if (claymore.isWithinExplosionDistance(mob.getEntity().getLocation())) {
-                    claymore.trigger();
-                    remove();
-                }
+            return;
+        }
+        for (ZAMob mob : claymore.getGame().getMobs()) {
+            if (claymore.isWithinExplosionDistance(mob.getEntity().getLocation())) {
+                claymore.trigger();
+                remove();
+                return;
             }
         }
     }

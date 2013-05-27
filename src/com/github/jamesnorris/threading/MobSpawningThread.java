@@ -15,10 +15,8 @@ public class MobSpawningThread implements ZADelayedThread {
     private DataContainer data = Ablockalypse.getData();
     private int delay, countup = 0;
     private Game game;
-    private SpawnManager sm;
 
-    public MobSpawningThread(SpawnManager sm, Game game, int delay) {
-        this.sm = sm;
+    public MobSpawningThread(Game game, int delay) {
         this.game = game;
         this.delay = delay;
         addToThreads();
@@ -40,15 +38,18 @@ public class MobSpawningThread implements ZADelayedThread {
         if (game.getRemainingPlayers() >= 1 && !game.isPaused()) {
             Player p = game.getRandomLivingPlayer();
             if (!game.getObjectsOfType(MobSpawner.class).isEmpty()) {
-                MobSpawner zaloc = sm.getClosestSpawner(p);
-                game.spawn(zaloc.getBukkitLocation().clone().add(0, 2, 0), true);
-                zaloc.playEffect(ZAEffect.FLAMES);
-            } else if (!game.getObjectsOfType(Barrier.class).isEmpty()) {
-                game.spawn(sm.getClosestBarrier(p).getSpawnLocation(), true);
-            } else {
-                game.spawn(p.getLocation(), false);
+                MobSpawner zaloc = SpawnManager.getClosestSpawner(game, p);
+                if (zaloc.isActive()) {
+                    game.spawn(zaloc.getBukkitLocation().clone().add(0, 2, 0), true);
+                    zaloc.playEffect(ZAEffect.FLAMES);
+                    return;
+                }
             }
-            sm.spawnedIn++;
+            if (!game.getObjectsOfType(Barrier.class).isEmpty()) {
+                game.spawn(SpawnManager.getClosestBarrier(game, p).getSpawnLocation(), true);
+                return;
+            }
+            game.spawn(p.getLocation(), false);
         }
     }
 

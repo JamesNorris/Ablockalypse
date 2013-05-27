@@ -37,7 +37,7 @@ public class EntityDamage implements Listener {
             }
         } else if (e != null && e instanceof Player) {
             Player player = (Player) e;
-            if (data.playerIsZAPlayer(player)) {
+            if (data.isZAPlayer(player)) {
                 ZAPlayer zap = data.getZAPlayer(player);
                 if (zap.isInLastStand()) {
                     event.setCancelled(true);

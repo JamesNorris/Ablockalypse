@@ -1,41 +1,39 @@
 package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.enumerated.ZASound;
+import com.github.jamesnorris.implementation.serialized.SerialBarrier;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.threading.BarrierBreakThread;
 import com.github.jamesnorris.threading.BarrierFixThread;
 import com.github.jamesnorris.threading.BlinkerThread;
+import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.Square;
 
-public class Barrier implements GameObject, Blinkable {
-    private int blockamt;
+public class Barrier implements GameObject, Blinkable, Permadatable {
     private CopyOnWriteArrayList<Block> blocks = new CopyOnWriteArrayList<Block>();
     private BlinkerThread bt;
     private Location center, spawnloc;
     private boolean correct;
     private DataContainer data = Ablockalypse.getData();
-    private int fixtimes;
     private Game game;
-    private int hittimes;
-    private int hittimesoriginal = 5, fixtimesoriginal = 3;
+    private int hittimesoriginal = 5, fixtimesoriginal = 3, fixtimes, hittimes, blockamt;
 
     /**
      * Creates a new instance of a Barrier, where center is the center of the 3x3 barrier.
@@ -43,37 +41,18 @@ public class Barrier implements GameObject, Blinkable {
      * @param center The center of the barrier
      * @param game The game to involve this barrier in
      */
-    public Barrier(Block center, Game game) {
+    public Barrier(Location center, Game game) {
         data.gameObjects.add(this);
-        this.center = center.getLocation();
+        this.center = center;
         this.game = game;
         fixtimes = fixtimesoriginal;
         hittimes = hittimesoriginal;
-        Random rand = new Random();
-        /* finding spawnloc */
-        int chance = rand.nextInt(4);
-        World w = this.center.getWorld();
-        int x = this.center.getBlockX();
-        int y = this.center.getBlockY();
-        int z = this.center.getBlockZ();
-        int modX = rand.nextInt(2) + 3;
-        int modZ = rand.nextInt(2) + 3;
-        if (chance == 1) {
-            x = x - modX;
-            z = z - modZ;
-        } else if (chance == 2) {
-            x = x - modX;
-        } else if (chance == 3) {
-            z = z - modZ;
-        }
-        spawnloc = w.getBlockAt(x, y, z).getLocation();
+        findSpawnLoc();
         if (spawnloc == null) {
             Ablockalypse.crash("A barrier has been created that doesn't have a suitable mob spawn location nearby. This could cause NullPointerExceptions in the future!", false);
         }
-        /* end finding spawnloc */
         game.addObject(this);
-        Square s = new Square(center.getLocation(), 1);
-        for (Location loc : s.getLocations()) {
+        for (Location loc : new Square(center, 1).getLocations()) {
             Block b = loc.getBlock();
             if (b != null && !b.isEmpty() && b.getType() != null && b.getType() == Material.FENCE) {
                 blocks.add(b);
@@ -84,6 +63,13 @@ public class Barrier implements GameObject, Blinkable {
         initBlinker();
     }
 
+    private void findSpawnLoc() {
+        spawnloc = MiscUtil.findLocationNear(this.center, 2, 4);
+        if (!spawnloc.getBlock().isEmpty()) {
+            findSpawnLoc();
+        }
+    }
+
     /**
      * Slowly breaks the blocks of the barrier.
      * 
@@ -92,6 +78,7 @@ public class Barrier implements GameObject, Blinkable {
     public void breakBarrier(LivingEntity liveEntity) {
         if (bt.isRunning()) {
             bt.remove();
+            return;
         }
         new BarrierBreakThread(this, liveEntity, 100, true);
     }
@@ -116,6 +103,7 @@ public class Barrier implements GameObject, Blinkable {
     public void fixBarrier(ZAPlayer zap) {
         if (bt.isRunning()) {
             bt.remove();
+            return;
         }
         new BarrierFixThread(this, zap, 20, true);
     }
@@ -189,10 +177,6 @@ public class Barrier implements GameObject, Blinkable {
         return hittimes;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.BARRIER;
-    }
-
     /**
      * Gets the mob spawn location for this barrier.
      * 
@@ -229,12 +213,8 @@ public class Barrier implements GameObject, Blinkable {
      * @param e The entity to check for
      * @return Whether or not the entity is within the radius
      */
-    public boolean isWithinRadius(Entity e, int radius) {
-        int distance = (int) e.getLocation().distance(center);
-        if (distance <= radius) {
-            return true;
-        }
-        return false;
+    public boolean isWithinRadius(Entity e, double radius) {
+        return e.getLocation().distance(center) <= radius;
     }
 
     /**
@@ -271,13 +251,15 @@ public class Barrier implements GameObject, Blinkable {
     @Override public void setBlinking(boolean tf) {
         if (bt.isRunning()) {
             bt.remove();
+            return;
         }
-        if (tf) {
-            if (!data.threads.contains(bt)) {
-                initBlinker();
-            }
-            bt.setRunThrough(true);
+        if (!tf) {
+            return;
         }
+        if (!data.threads.contains(bt)) {
+            initBlinker();
+        }
+        bt.setRunThrough(true);
     }
 
     /**
@@ -314,9 +296,13 @@ public class Barrier implements GameObject, Blinkable {
         ArrayList<Block> blockArray = new ArrayList<Block>();
         blockArray.add(center.getBlock());
         boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blockArray, ZAColor.BLUE, blinkers, 30, this);
-        ZAColor color = blockamt == 9 ? ZAColor.BLUE : ZAColor.RED;
-        correct = color == ZAColor.BLUE;
+        bt = new BlinkerThread(blockArray, Color.BLUE, blinkers, 30, this);
+        Color color = blockamt == 9 ? Color.BLUE : Color.RED;
+        correct = color == Color.BLUE;
         bt.setColor(color);
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialBarrier(this);
     }
 }

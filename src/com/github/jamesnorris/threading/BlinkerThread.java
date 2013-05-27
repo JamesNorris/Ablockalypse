@@ -3,13 +3,14 @@ package com.github.jamesnorris.threading;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.inter.GameObject;
 import com.github.jamesnorris.inter.ZARepeatingThread;
@@ -17,7 +18,7 @@ import com.github.jamesnorris.inter.ZARepeatingThread;
 public class BlinkerThread implements ZARepeatingThread {
     private HashMap<Block, Byte> blockdata = new HashMap<Block, Byte>();
     private HashMap<Block, Material> blocks = new HashMap<Block, Material>();
-    private ZAColor color;
+    private Color color;
     private boolean colored = false, running, runThrough;
     private DataContainer data = Ablockalypse.getData();
     private Game game = null;
@@ -34,7 +35,7 @@ public class BlinkerThread implements ZARepeatingThread {
      * @param interval The delay between blinks
      * @param type The type of object that will be blinking
      */
-    public BlinkerThread(ArrayList<Block> blocks, ZAColor color, final boolean autorun, int interval, GameObject type) {
+    public BlinkerThread(ArrayList<Block> blocks, Color color, final boolean autorun, int interval, GameObject type) {
         data.threads.add(this);
         for (Block b : blocks) {
             this.blocks.put(b, b.getType());
@@ -46,9 +47,7 @@ public class BlinkerThread implements ZARepeatingThread {
         gameObj = type;
         game = gameObj.getGame();
         colored = false;
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         addToThreads();
     }
 
@@ -90,12 +89,10 @@ public class BlinkerThread implements ZARepeatingThread {
      * Reverts the blocks to original state.
      */
     public void revertBlocks() {
-        if ((Boolean) Setting.BLINKERS.getSetting()) {
-            colored = false;
-            for (Block b : blocks.keySet()) {
-                b.setType(blocks.get(b));
-                b.setData(blockdata.get(b));
-            }
+        colored = false;
+        for (Block b : blocks.keySet()) {
+            b.setType(blocks.get(b));
+            b.setData(blockdata.get(b));
         }
     }
 
@@ -107,14 +104,14 @@ public class BlinkerThread implements ZARepeatingThread {
             running = true;
             if (game.hasStarted() && colored) {
                 revertBlocks();
-                setRunThrough(false);
+                runThrough = false;
+                return;
+            }
+            if (colored) {
+                revertBlocks();
             } else {
-                if (colored) {
-                    revertBlocks();
-                } else {
-                    setBlocks(Material.WOOL);
-                    setBlocksData(color.getData());
-                }
+                setBlocks(Material.WOOL);
+                setBlocksData(DyeColor.getByColor(color).getWoolData());
             }
         }
     }
@@ -160,7 +157,7 @@ public class BlinkerThread implements ZARepeatingThread {
      * 
      * @param color The color to blink
      */
-    public void setColor(ZAColor color) {
+    public void setColor(Color color) {
         this.color = color;
     }
 

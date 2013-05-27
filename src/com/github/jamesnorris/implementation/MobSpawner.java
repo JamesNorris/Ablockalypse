@@ -2,23 +2,27 @@ package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.enumerated.ZAEffect;
+import com.github.jamesnorris.implementation.serialized.SerialMobSpawner;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
+import com.github.jamesnorris.inter.Powerable;
 import com.github.jamesnorris.inter.ZAMob;
+import com.github.jamesnorris.manager.SpawnManager;
 import com.github.jamesnorris.threading.BlinkerThread;
 
-public class MobSpawner implements Blinkable, GameObject {// TODO annotations
-    private boolean blinkers;
+public class MobSpawner implements Blinkable, GameObject, Powerable, Permadatable {
+    private boolean blinkers, requiresPower = false, active = true;
     private Block block;
     private BlinkerThread bt;
     private DataContainer data = Ablockalypse.getData();
@@ -82,10 +86,6 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
         return game;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.MOB_SPAWNER;
-    }
-
     public double getX() {
         return X;
     }
@@ -111,6 +111,14 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
         game = null;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean tf) {
+        active = tf;
+    }
+
     /**
      * Stops/Starts the blinker for this location.
      * 
@@ -133,12 +141,41 @@ public class MobSpawner implements Blinkable, GameObject {// TODO annotations
     }
 
     public void spawn(ZAMob mob) {
-        game.getSpawnManager().spawn(loc, true);
+        SpawnManager.spawn(game, loc.clone().add(0, 2, 0), true);
     }
 
     private void initBlinker() {
         ArrayList<Block> blocks = new ArrayList<Block>();
         blocks.add(block);
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
+        bt = new BlinkerThread(blocks, Color.BLUE, blinkers, 30, this);
+    }
+
+    @Override public void powerOn() {
+        active = true;
+    }
+
+    @Override public void powerOff() {
+        active = false;
+    }
+
+    @Override public boolean requiresPower() {
+        return requiresPower;
+    }
+
+    @Override public void setRequiresPower(boolean required) {
+        requiresPower = required;
+        bt.setColor((required) ? Color.ORANGE : Color.BLUE);
+    }
+
+    @Override public boolean isPowered() {
+        return active;
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialMobSpawner(this);
+    }
+
+    @Override public void power(boolean power) {
+        active = power;
     }
 }

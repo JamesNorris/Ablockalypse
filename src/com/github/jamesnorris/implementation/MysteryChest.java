@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,21 +17,21 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.External;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.enumerated.ZASound;
+import com.github.jamesnorris.implementation.serialized.SerialMysteryChest;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.inter.ZAScheduledTask;
 import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.util.ItemInfoMap;
 import com.github.jamesnorris.util.MiscUtil;
 import com.github.jamesnorris.util.Region;
 
-public class MysteryChest implements GameObject, Blinkable {
+public class MysteryChest implements GameObject, Blinkable, Permadatable {
     private boolean active = true;
     private BlinkerThread bt;
     private Object chest;
@@ -39,7 +39,7 @@ public class MysteryChest implements GameObject, Blinkable {
     private Game game;
     private Location loc;
     private Location[] locs;
-    private Random rand;
+    private Random rand = new Random();
     private int uses;
 
     /**
@@ -50,7 +50,7 @@ public class MysteryChest implements GameObject, Blinkable {
      * @param loc A location on the chest
      * @param active Whether or not this chest should be active
      */
-    public MysteryChest(Object chest, Game game, Location loc, boolean active) {
+    public MysteryChest(Game game, Location loc, boolean active) {
         this.loc = loc;
         data.gameObjects.add(this);
         Block b2 = MiscUtil.getSecondChest(loc.getBlock());
@@ -58,8 +58,7 @@ public class MysteryChest implements GameObject, Blinkable {
         for (Location location : locs) {
             data.chests.put(location, this);
         }
-        this.chest = chest;
-        rand = new Random();
+        this.chest = loc.getBlock().getState();
         this.game = game;
         game.addObject(this);
         this.active = active;
@@ -132,10 +131,6 @@ public class MysteryChest implements GameObject, Blinkable {
         return locs[0];
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.MYSTERY_CHEST;
-    }
-
     /**
      * Randomizes the contents of the MysteryChest.
      * 
@@ -144,7 +139,7 @@ public class MysteryChest implements GameObject, Blinkable {
     @SuppressWarnings("deprecation") public void giveRandomItem(final ZAPlayer zap) {
         Player p = zap.getPlayer();
         if (active) {
-            HashMap<Integer, ItemInfoMap> maps = External.itemManager.getSignItemMaps();
+            HashMap<Integer, ItemInfoMap> maps = Ablockalypse.getExternal().getItemFileManager().getSignItemMaps();
             ArrayList<Integer> idList = new ArrayList<Integer>();
             for (int testId : maps.keySet()) {
                 idList.add(testId);
@@ -158,8 +153,8 @@ public class MysteryChest implements GameObject, Blinkable {
             }
             Location topView = locs[1] != null ? new Region(locs[0], locs[1]).getCenter().clone().add(0, 1, 0) : locs[0].clone().add(0, 1, 0);
             final ArrayList<Player> players = new ArrayList<Player>();
-            for (String name : game.getPlayers()) {
-                players.add(Bukkit.getPlayer(name));
+            for (ZAPlayer zap2 : game.getPlayers()) {
+                players.add(zap2.getPlayer());
             }
             MiscUtil.setChestOpened(players, loc.getBlock(), true);
             final Item i = topView.getWorld().dropItem(topView, item);
@@ -262,6 +257,10 @@ public class MysteryChest implements GameObject, Blinkable {
     private void initBlinker() {
         ArrayList<Block> blocks = getDefiningBlocks();
         boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
+        bt = new BlinkerThread(blocks, Color.BLUE, blinkers, 30, this);
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialMysteryChest(this);
     }
 }

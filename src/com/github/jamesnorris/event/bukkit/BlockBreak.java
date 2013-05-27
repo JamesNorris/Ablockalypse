@@ -13,7 +13,6 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.External;
 import com.github.jamesnorris.implementation.Claymore;
 
 public class BlockBreak implements Listener {
@@ -34,12 +33,12 @@ public class BlockBreak implements Listener {
         Player p = event.getPlayer();
         Block b = event.getBlock();
         Location loc = b.getLocation();
-        if (data.playerIsZAPlayer(p) && !BlockBreak.shouldBeBroken(b.getType())) {
+        if (data.isZAPlayer(p) && !BlockBreak.shouldBeBroken(b.getType())) {
             event.setCancelled(true);
         } else if ((b.getType() == Material.FLOWER_POT || b.getType() == Material.FLOWER_POT_ITEM) && data.isClaymore(loc)) {
             Claymore more = data.getClaymore(loc);
             if (more.getPlacer().getPlayer().getName().equalsIgnoreCase(p.getName())) {
-                External.itemManager.giveItem(p, new ItemStack(Material.FLOWER_POT_ITEM, 1));
+                Ablockalypse.getExternal().getItemFileManager().giveItem(p, new ItemStack(Material.FLOWER_POT_ITEM, 1));
                 p.sendMessage(ChatColor.GRAY + "You have picked up your claymore.");
             } else {
                 p.sendMessage(ChatColor.RED + "That is not your claymore!");

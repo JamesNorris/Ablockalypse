@@ -1,6 +1,7 @@
 package com.github;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -11,7 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.github.ikeirnez.command.BaseCommand;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.External;
-import com.github.jamesnorris.Update;
+import com.github.jamesnorris.Updater;
 import com.github.jamesnorris.XMPP;
 import com.github.jamesnorris.enumerated.Setting;
 import com.github.jamesnorris.event.bukkit.BlockBreak;
@@ -37,6 +38,7 @@ import com.github.jamesnorris.event.bukkit.PlayerToggleSneak;
 import com.github.jamesnorris.event.bukkit.ProjectileHit;
 import com.github.jamesnorris.event.bukkit.SignChange;
 import com.github.jamesnorris.implementation.Game;
+import com.github.jamesnorris.implementation.serialized.SerialGame;
 import com.github.jamesnorris.inter.ZAThread;
 import com.github.jamesnorris.threading.BarrierBreakTriggerThread;
 import com.github.jamesnorris.threading.HellhoundMaintenanceThread;
@@ -47,8 +49,9 @@ import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 public class Ablockalypse extends JavaPlugin {
     public static Ablockalypse instance;
     private static DataContainer data = new DataContainer();
-    private static MainThread mt;
-    private static Update upd;
+    private static MainThread mainThread;
+    private static Updater updater;
+    private static External external;
 
     /**
      * Called when something is not working, and the plugin needs to be monitored.
@@ -106,7 +109,7 @@ public class Ablockalypse extends JavaPlugin {
      * @return The MainThread run by Ablockalypse
      */
     public static MainThread getMainThread() {
-        return mt;
+        return mainThread;
     }
 
     /**
@@ -114,8 +117,12 @@ public class Ablockalypse extends JavaPlugin {
      * 
      * @return The Update instance to Ablockalypse
      */
-    public static Update getUpdater() {
-        return upd;
+    public static Updater getUpdater() {
+        return updater;
+    }
+
+    public static External getExternal() {
+        return external;
     }
 
     /**
@@ -126,7 +133,15 @@ public class Ablockalypse extends JavaPlugin {
     }
 
     @Override public void onDisable() {
-        External.saveData();
+        try {
+            for (String gameName : data.games.keySet()) {
+                Game game = data.games.get(gameName);
+                File thisSavedFile = external.getSavedDataFile(game.getName(), true);
+                External.save(game.getSerializedVersion(), thisSavedFile);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         for (ZAThread thread : data.threads) {
             thread.remove();
         }
@@ -139,24 +154,32 @@ public class Ablockalypse extends JavaPlugin {
     }
 
     @Override public void onEnable() {
-        Ablockalypse.instance = this;
-        External.loadExternalFiles(this);
-        upd = new Update(this);
-        System.out.println("[Ablockalypse] Checking for updates...");
-        String address = "http://api.bukget.org/3/plugins/bukkit/zombie-ablockalypse/" + (String) Setting.UPDATE_VERSION.getSetting() + "/download";
-        String pathTo = "plugins" + File.separator + "Ablockalypse.jar";
-        if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && upd.updateAvailable(address, pathTo)) {
-            upd.download(address, pathTo);
-            System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
-            getServer().getPluginManager().disablePlugin(this);
-        } else {
-            System.out.println("[Ablockalypse] No updates found.");
-            register();
-            External.loadData();
-            mt = new MainThread(true);
-            new BarrierBreakTriggerThread(true, 20);
-            new MobClearingThread((Boolean) Setting.CLEAR_MOBS.getSetting(), 360);
-            new HellhoundMaintenanceThread(true, 20);
+        try {
+            Ablockalypse.instance = this;
+            external = new External(this);
+            updater = new Updater(this);
+            System.out.println("[Ablockalypse] Checking for updates...");
+            String address = "http://api.bukget.org/3/plugins/bukkit/zombie-ablockalypse/" + (String) Setting.UPDATE_VERSION.getSetting() + "/download";
+            String pathTo = "plugins" + File.separator + "Ablockalypse.jar";
+            if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && updater.updateAvailable(address, pathTo)) {
+                updater.download(address, pathTo);
+                System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
+                getServer().getPluginManager().disablePlugin(this);
+            } else {
+                System.out.println("[Ablockalypse] No updates found.");
+                register();
+                for (File file : external.getMapDataFolder().listFiles()) {
+                    if (file != null) {
+                        ((SerialGame) External.load(file)).load();
+                    }
+                }
+                mainThread = new MainThread(true);
+                new BarrierBreakTriggerThread(true, 20);
+                new MobClearingThread((Boolean) Setting.CLEAR_MOBS.getSetting(), 360);
+                new HellhoundMaintenanceThread(true, 20);
+            }
+        } catch (Exception e) {
+            crash("Unknown startup error!", false);
         }
     }
 

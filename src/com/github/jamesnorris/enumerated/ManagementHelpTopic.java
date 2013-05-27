@@ -3,7 +3,7 @@ package com.github.jamesnorris.enumerated;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-import com.github.ikeirnez.util.CommandUtil;
+import com.github.ikeirnez.command.CommandUtil;
 
 public enum ManagementHelpTopic {
     MAPDATA {
@@ -26,8 +26,8 @@ public enum ManagementHelpTopic {
             //@formatter:off
             sb.append(gray + "Mapdata is an innovative new way to deliver maps from one server to another. " +
                     "\nWhen Ablockalypse was first created so that map packs would be released, but we ran into a problem. " +
-                    "\nThe problem was that physical game objects (barriers, etc) could not be moved to other games. " +
-                    "\nMapdata is a solution to that, and loads physical game objects to the new server/game." +
+                    "\nThe problem was that physical game objects (barriers, etc) and maps could not be moved to other games. " +
+                    "\nMapdata is a solution to that, and loads physical game objects and structures to the new server/game." +
                     reset + "\n---------------------------------------------------------------------------------------");
             //@formatter:on
             sb.append(gold + aliasView + bold + " mapdata <game> save - " + reset + gray + "Saves a mapdata file for the game given");
@@ -51,7 +51,7 @@ public enum ManagementHelpTopic {
         @Override public void showHelp(CommandSender sender, String[] args, String alias) {
             StringBuilder sb = new StringBuilder();
             sb.append(red + "----- Ablockalypse Objects Help -----");
-            sb.append(ChatColor.GOLD + "Available Game Objects: " + ChatColor.YELLOW + CommandUtil.implode(GameObjectType.values(), ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
+            sb.append(ChatColor.GOLD + "Available Game Objects: " + ChatColor.YELLOW + CommandUtil.implode(OBJECT_TYPES, ChatColor.GOLD + ", " + ChatColor.YELLOW, ChatColor.GOLD + " and " + ChatColor.YELLOW));
             sender.sendMessage(sb.toString());
         }
     },
@@ -103,12 +103,36 @@ public enum ManagementHelpTopic {
             sb.append(red + Local.BASE_WEAPON_STRING.getSetting() + " " + gray + "When clicked gives a weapon");
             sender.sendMessage(sb.toString());
         }
+    },
+    POWER {
+
+        @Override public String getDescription() {
+            return "Shows commands that can enable power for objects.";
+        }
+
+        @Override public String getName() {
+            return "power";
+        }
+
+        @Override public boolean matches(CommandSender sender, String[] args, String alias) {
+            return args.length == 2 && args[1].equalsIgnoreCase(getName()) && sender.hasPermission("za.create");
+        }
+
+        @Override public void showHelp(CommandSender sender, String[] args, String alias) {
+            String aliasView = "/" + alias;
+            StringBuilder sb = new StringBuilder();
+            sb.append(red + "----- Ablockalypse Sign Lines -----");//TODO add this to the base command
+            sb.append(gold + aliasView + bold + " power <game> <true/false> - " + reset + gray + "Allows you to enable/disable power for an object");
+            sender.sendMessage(sb.toString());
+        }
+        
     };
     ChatColor bold = ChatColor.BOLD;
     ChatColor gold = ChatColor.GOLD;
     ChatColor gray = ChatColor.GRAY;
     ChatColor red = ChatColor.RED;
     ChatColor reset = ChatColor.RESET;
+    public static final String[] OBJECT_TYPES = new String[] {"Barrier", "Mainframe", "Mob Spawner", "Mystery Chest", "Passage", "Power Switch"};
 
     public abstract String getDescription();
 

@@ -16,37 +16,37 @@ import org.bukkit.util.Vector;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.event.bukkit.EntityExplode;
+import com.github.jamesnorris.implementation.serialized.SerialClaymore;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.threading.ClaymoreTriggerThread;
 
-public class Claymore implements GameObject {
+public class Claymore implements GameObject, Permadatable {
     private Location beamLoc = null;
-    private Block block;
+    private Location location;
     private DataContainer data = Ablockalypse.getData();
     private Game game;
     private ZAPlayer placer;
     private ClaymoreTriggerThread trigger = null;
 
-    public Claymore(Block block, Game game, ZAPlayer placer, boolean placeBeam) {
+    public Claymore(Location location, Game game, ZAPlayer placer) {
         this.game = game;
-        this.block = block;
+        this.location = location;
         this.placer = placer;
         data.claymores.add(this);
         game.addObject(this);
-        if (placeBeam) {
-            placeBeam();
-        }
+        placeBeam();
     }
 
     @Override public Block getDefiningBlock() {
-        return block;
+        return location.getBlock();
     }
 
     @Override public ArrayList<Block> getDefiningBlocks() {
         ArrayList<Block> blocks = new ArrayList<Block>();
-        blocks.add(block);
+        blocks.add(location.getBlock());
         return blocks;
     }
 
@@ -54,8 +54,12 @@ public class Claymore implements GameObject {
         return game;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.CLAYMORE;
+    public Location getBeamLocation() {
+        return beamLoc;
+    }
+
+    public Location getLocation() {
+        return location;
     }
 
     public ZAPlayer getPlacer() {
@@ -67,7 +71,7 @@ public class Claymore implements GameObject {
     }
 
     @Override public void remove() {
-        block.setType(Material.AIR);
+        location.getBlock().setType(Material.AIR);
         if (beamLoc != null) {
             beamLoc.getBlock().setType(Material.AIR);
             if (trigger != null) {
@@ -79,13 +83,12 @@ public class Claymore implements GameObject {
     }
 
     public void trigger() {
-        Location loc = block.getLocation();
-        World world = loc.getWorld();
-        Entity ent = world.spawnEntity(loc, EntityType.FIREBALL);
+        World world = location.getWorld();
+        Entity ent = world.spawnEntity(location, EntityType.FIREBALL);
         Fireball f = (Fireball) ent;
         UUID uuid = f.getUniqueId();
         EntityExplode.preventBlockDestructionWithPoints(placer, uuid);// gives kill points when exploding and hitting a mob
-        f.setDirection(new Vector(0, -world.getHighestBlockYAt(loc), 0));
+        f.setDirection(new Vector(0, -world.getHighestBlockYAt(location), 0));
         f.setYield(2);
         f.setIsIncendiary(true);
         f.setTicksLived(1);
@@ -95,10 +98,9 @@ public class Claymore implements GameObject {
     private void placeBeam() {
         Player player = placer.getPlayer();
         Location pLoc = player.getLocation();
-        Location bLoc = block.getLocation();
         int modX = 0, modZ = 0;
-        int Xchange = bLoc.getBlockX() - pLoc.getBlockX();
-        int Zchange = bLoc.getBlockZ() - pLoc.getBlockZ();
+        int Xchange = location.getBlockX() - pLoc.getBlockX();
+        int Zchange = location.getBlockZ() - pLoc.getBlockZ();
         if (Xchange > .3) {
             modX = 1;
         } else if (Xchange < -.3) {
@@ -109,7 +111,15 @@ public class Claymore implements GameObject {
         } else if (Zchange < -.3) {
             modZ = -1;
         }
-        Location attempt = bLoc.add(modX, 0, modZ);
+        Location attempt = location.clone().add(modX, 0, modZ);
+        attemptBeamPlacement(attempt);
+    }
+    
+    public void attemptBeamPlacement(Location attempt) {
+        attemptBeamPlacement(attempt, placer.getPlayer());
+    }
+    
+    public void attemptBeamPlacement(Location attempt, Player player) {
         if (!attempt.getBlock().isEmpty()) {
             player.sendMessage(ChatColor.RED + "You cannot place a claymore there!");
             remove();
@@ -121,5 +131,9 @@ public class Claymore implements GameObject {
             }
             trigger = new ClaymoreTriggerThread(this, 5, true);
         }
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialClaymore(this);
     }
 }

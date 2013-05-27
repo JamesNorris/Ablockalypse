@@ -4,10 +4,10 @@ import java.util.ArrayList;
 
 import org.bukkit.block.Block;
 
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.implementation.Game;
 
 public interface GameObject {
+    
     /**
      * Gets the singular block that defines this object as an object.
      * 
@@ -28,8 +28,6 @@ public interface GameObject {
      * @return The game that this object is in
      */
     public Game getGame();
-
-    public GameObjectType getObjectType();
 
     /**
      * Removes the game object completely.

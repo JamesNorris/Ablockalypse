@@ -2,6 +2,7 @@ package com.github.jamesnorris.threading;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
+import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.implementation.Hellhound;
 import com.github.jamesnorris.inter.ZARepeatingThread;
 
@@ -11,9 +12,7 @@ public class HellhoundMaintenanceThread implements ZARepeatingThread {
     private boolean runThrough = false;
 
     public HellhoundMaintenanceThread(boolean autorun, int interval) {
-        if (autorun) {
-            setRunThrough(true);
-        }
+        runThrough = autorun;
         this.interval = interval;
         addToThreads();
     }
@@ -34,7 +33,7 @@ public class HellhoundMaintenanceThread implements ZARepeatingThread {
         if (data.hellhounds != null) {
             for (Hellhound f : data.hellhounds) {
                 if (!f.getWolf().isDead()) {
-                    f.addFlames();
+                    ZAEffect.FLAMES.play(f.getWolf().getLocation());
                     f.setAggressive(true);
                 }
             }

@@ -1,31 +1,33 @@
 package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.enumerated.GameObjectType;
 import com.github.jamesnorris.enumerated.Setting;
-import com.github.jamesnorris.enumerated.ZAColor;
 import com.github.jamesnorris.enumerated.ZAEffect;
 import com.github.jamesnorris.enumerated.ZASound;
+import com.github.jamesnorris.implementation.serialized.SerialPassage;
 import com.github.jamesnorris.inter.Blinkable;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
+import com.github.jamesnorris.inter.Powerable;
 import com.github.jamesnorris.threading.BlinkerThread;
 import com.github.jamesnorris.util.Rectangle;
 
-public class Passage implements GameObject, Blinkable {
+public class Passage implements GameObject, Blinkable, Powerable, Permadatable {
     private BlinkerThread bt;
     private DataContainer data = Ablockalypse.getData();
     private Location loc1, loc2;
-    private HashMap<Location, Byte> locdata = new HashMap<Location, Byte>();
-    private HashMap<Location, Material> locs = new HashMap<Location, Material>();
-    private boolean opened, blinkers;
+    private ArrayList<BlockState> states = new ArrayList<BlockState>();
+    private boolean opened, blinkers, requiresPower = false;
     private Rectangle rectangle;
     private Game zag;
 
@@ -36,17 +38,18 @@ public class Passage implements GameObject, Blinkable {
      * @param loc1 The first corner of the rectangular prism
      * @param loc2 The second corner of the rectangular prism
      */
-    public Passage(Game zag, Location loc1, Location loc2) {
+    public Passage(Game game, Location loc1, Location loc2) {
         data.gameObjects.add(this);
         this.loc1 = loc1;
         this.loc2 = loc2;
-        this.zag = zag;
+        this.zag = game;
         opened = false;
         data.passages.add(this);
         rectangle = new Rectangle(loc1, loc2);
         for (Location l : rectangle.getLocations()) {
-            locs.put(l, l.getBlock().getType());
-            locdata.put(l, l.getBlock().getData());
+            // locs.put(l, l.getBlock().getType());
+            // locdata.put(l, l.getBlock().getData());
+            states.add(l.getBlock().getState());
         }
         zag.addObject(this);
         initBlinker();
@@ -56,11 +59,12 @@ public class Passage implements GameObject, Blinkable {
      * Replaces the passage.
      */
     public void close() {
-        for (Location l : locs.keySet()) {
-            Block b = l.getBlock();
-            b.setType(locs.get(l));
-            b.setData(locdata.get(l));
-            ZAEffect.SMOKE.play(l);
+        for (BlockState state : states) {
+            // Block b = l.getBlock();
+            // b.setType(locs.get(l));
+            // b.setData(locdata.get(l));
+            state.update();
+            ZAEffect.SMOKE.play(state.getLocation());
         }
         opened = false;
     }
@@ -81,8 +85,8 @@ public class Passage implements GameObject, Blinkable {
      */
     public ArrayList<Block> getBlocks() {
         ArrayList<Block> bls = new ArrayList<Block>();
-        for (Location l : locs.keySet()) {
-            bls.add(l.getBlock());
+        for (BlockState state : states) {
+            bls.add(state.getBlock());
         }
         return bls;
     }
@@ -106,11 +110,7 @@ public class Passage implements GameObject, Blinkable {
      * @return The blocks assigned to this object
      */
     @Override public ArrayList<Block> getDefiningBlocks() {
-        ArrayList<Block> bs = new ArrayList<Block>();
-        for (Location l : locs.keySet()) {
-            bs.add(l.getBlock());
-        }
-        return bs;
+        return getBlocks();
     }
 
     /**
@@ -120,10 +120,6 @@ public class Passage implements GameObject, Blinkable {
      */
     @Override public Game getGame() {
         return zag;
-    }
-
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.PASSAGE;
     }
 
     /**
@@ -150,9 +146,9 @@ public class Passage implements GameObject, Blinkable {
      * Removes the passage.
      */
     public void open() {
-        for (Location l : locs.keySet()) {
-            l.getBlock().setType(Material.AIR);
-            ZAEffect.SMOKE.play(l);
+        for (BlockState state : states) {
+            state.getBlock().setType(Material.AIR);
+            ZAEffect.SMOKE.play(state.getLocation());
         }
         opened = true;
         ZASound.AREA_BUY.play(loc1);
@@ -211,6 +207,39 @@ public class Passage implements GameObject, Blinkable {
             blocks.add(l.getBlock());
         }
         blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerThread(blocks, ZAColor.BLUE, blinkers, 30, this);
+        bt = new BlinkerThread(blocks, Color.BLUE, blinkers, 30, this);
+    }
+
+    @Override public void powerOn() {
+        open();
+    }
+
+    @Override public void powerOff() {
+        close();
+    }
+
+    @Override public boolean requiresPower() {
+        return requiresPower;
+    }
+
+    @Override public void setRequiresPower(boolean required) {
+        requiresPower = required;
+        bt.setColor((required) ? Color.ORANGE : Color.BLUE);
+    }
+
+    @Override public boolean isPowered() {
+        return opened;
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialPassage(this);
+    }
+
+    @Override public void power(boolean power) {
+        if (power) {
+            open();
+        } else {
+            close();
+        }
     }
 }

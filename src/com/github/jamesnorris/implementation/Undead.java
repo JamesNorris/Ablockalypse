@@ -1,9 +1,11 @@
 package com.github.jamesnorris.implementation;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 import org.bukkit.Effect;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Player;
@@ -12,15 +14,18 @@ import org.bukkit.entity.Zombie;
 import com.github.Ablockalypse;
 import com.github.jamesnorris.DataContainer;
 import com.github.jamesnorris.enumerated.GameEntityType;
-import com.github.jamesnorris.enumerated.GameObjectType;
+import com.github.jamesnorris.implementation.serialized.SerialUndead;
 import com.github.jamesnorris.inter.GameObject;
+import com.github.jamesnorris.inter.Permadata;
+import com.github.jamesnorris.inter.Permadatable;
 import com.github.jamesnorris.inter.ZAMob;
 import com.github.jamesnorris.inter.ZAScheduledTask;
 import com.github.jamesnorris.inter.ZAThread;
+import com.github.jamesnorris.manager.SpawnManager;
 import com.github.jamesnorris.threading.MobTargettingThread;
 import com.github.jamesnorris.util.MiscUtil;
 
-public class Undead implements ZAMob, GameObject {
+public class Undead implements ZAMob, GameObject, Permadatable {
     private int absorption = 0;
     private DataContainer data = Ablockalypse.getData();
     private boolean fireproof, removed;
@@ -30,22 +35,21 @@ public class Undead implements ZAMob, GameObject {
     private ZAThread thread;
 
     /**
-     * Creates a new instance of the GameZombie for ZA.
+     * Creates a new instance of the zombie for ZA.
      * 
      * @param zombie The zombie to be made into this instance
      * @param game The game to involve this zombie in
      */
-    public Undead(Zombie zombie, Game game) {
-        this.zombie = zombie;
+    public Undead(World world, UUID entityUUID, Game game) {
+        this.zombie = (Zombie) data.getEntityByUUID(world, entityUUID);
         this.game = game;
         data.gameObjects.add(this);
         data.mobs.add(this);
         game.addObject(this);
-        game.getSpawnManager().mobs.add(this);
-        absorption = (int) (.5 / 2 * game.getLevel() + 1);// slightly less than wolf, increases at .5 every round
+        absorption = (int) (game.getLevel() / Math.sqrt(.5 * game.getLevel()));// less than a hellhound
         fireproof = true;
         final Player p = game.getRandomLivingPlayer();
-        final Barrier targetbarrier = game.getSpawnManager().getClosestBarrier(p.getLocation());
+        final Barrier targetbarrier = SpawnManager.getClosestBarrier(game, p.getLocation());
         mtt = new MobTargettingThread(zombie, targetbarrier != null ? targetbarrier.getCenter() : p.getLocation(), 0.05D, true);
         if (targetbarrier == null) {
             final Location previous = p.getLocation();
@@ -118,10 +122,6 @@ public class Undead implements ZAMob, GameObject {
         return absorption;
     }
 
-    @Override public GameObjectType getObjectType() {
-        return GameObjectType.UNDEAD;
-    }
-
     /**
      * Gets the speed of the entity.
      * 
@@ -176,8 +176,8 @@ public class Undead implements ZAMob, GameObject {
      */
     @Override public void kill() {
         if (zombie != null && !removed) {
-            if (game != null && game.getSpawnManager().mobs.contains(this)) {
-                game.getSpawnManager().mobs.remove(this);
+            if (game != null && game.hasMob(this)) {
+                game.removeObject(this);
             }
             zombie.getWorld().playEffect(zombie.getLocation(), Effect.EXTINGUISH, 1);
             zombie.remove();
@@ -238,5 +238,9 @@ public class Undead implements ZAMob, GameObject {
      */
     @Override public void setTargetLocation(Location loc) {
         mtt.setTarget(loc);
+    }
+
+    @Override public Permadata getSerializedVersion() {
+        return new SerialUndead(this);
     }
 }

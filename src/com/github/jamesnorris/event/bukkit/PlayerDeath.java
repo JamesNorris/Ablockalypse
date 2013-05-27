@@ -17,7 +17,7 @@ public class PlayerDeath implements Listener {
     /* Called when a player is killed.
      * 
      * Used for respawning the player after the current level. */
-    @EventHandler(priority = EventPriority.HIGHEST) public void PDE(PlayerDeathEvent event) {
+    @EventHandler(priority = EventPriority.HIGHEST) public void PDE(PlayerDeathEvent event) {//RespawnThread is activated by PlayerRespawn.java
         Player p = event.getEntity();
         if (data.players.containsKey(p)) {
             event.getDrops().clear();
@@ -25,9 +25,7 @@ public class PlayerDeath implements Listener {
             ZAPlayer zap = data.players.get(p);
             zap.setLimbo(true);
             Game zag = zap.getGame();
-            // removing perks
-            zap.clearPerks();
-            // end removing perks
+            zap.clearPerks();// remove perks
             if (zag.getRemainingPlayers() > 0) {
                 if (zap.isInLastStand()) {
                     zap.toggleLastStand();

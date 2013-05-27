@@ -1,6 +1,7 @@
 package com.github.jamesnorris.event.bukkit;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -31,10 +32,10 @@ public class BlockPlace implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST) public void BPE(BlockPlaceEvent event) {
         Player p = event.getPlayer();
         Block b = event.getBlockPlaced();
-        if (data.players.containsKey(p) && (b.getType() == Material.FLOWER_POT || b.getType() == Material.FLOWER_POT_ITEM)) {// See PlayerInteract.java to allow more blocks to be
-                                                                                                                             // placed
+        if (data.players.containsKey(p) && (b.getType() == Material.FLOWER_POT || b.getType() == Material.FLOWER_POT_ITEM)) {// See PlayerInteract.java to allow placement
             ZAPlayer zap = data.players.get(p);
-            new Claymore(b, zap.getGame(), zap, true);
+            Location loc = b.getLocation();
+            new Claymore(loc, zap.getGame(), zap);
             p.sendMessage(ChatColor.GRAY + "You have placed a claymore.");
         }
     }

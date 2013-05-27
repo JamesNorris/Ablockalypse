@@ -1,25 +1,21 @@
 package com.github.ikeirnez.command;
 
-import java.io.File;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
-import com.github.ikeirnez.util.CommandUtil;
 import com.github.jamesnorris.DataContainer;
-import com.github.jamesnorris.External;
 import com.github.jamesnorris.event.GameCreateEvent;
 import com.github.jamesnorris.event.GamePlayerLeaveEvent;
 import com.github.jamesnorris.event.bukkit.PlayerInteract;
 import com.github.jamesnorris.implementation.Game;
 import com.github.jamesnorris.implementation.Mainframe;
 import com.github.jamesnorris.implementation.ZAPlayer;
-import com.github.jamesnorris.storage.MapDataStorage;
 import com.github.jamesnorris.util.MiscUtil;
 
 public class BaseCommand extends CommandUtil implements CommandExecutor {
@@ -39,7 +35,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("join")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 if (args.length != 2) {
@@ -61,7 +57,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("quit")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 Player player = (Player) sender;
@@ -104,7 +100,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("barrier")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 if (!sender.hasPermission("za.create")) {
@@ -126,7 +122,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("mainframe")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 Player p = (Player) sender;
@@ -144,7 +140,8 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     return true;
                 }
                 Game zag = data.getGame(gameName, false);
-                zag.setMainframe(new Mainframe(zag, MiscUtil.getHighestBlockUnder(p.getLocation()).getLocation()));
+                Location loc = MiscUtil.getHighestBlockUnder(p.getLocation()).getLocation();
+                zag.setMainframe(new Mainframe(zag, loc));
                 sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
                 return true;
             } else if (args[0].equalsIgnoreCase("remove")) {
@@ -174,7 +171,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("spawner")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 if (!sender.hasPermission("za.create")) {
@@ -196,7 +193,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("passage")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 if (!sender.hasPermission("za.create")) {
@@ -218,7 +215,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("chest")) {
                 if (!(sender instanceof Player)) {
-                    sender.sendMessage(notPlayer);
+                    sender.sendMessage(requiresPlayer);
                     return true;
                 }
                 if (!sender.hasPermission("za.create")) {
@@ -243,46 +240,51 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     sender.sendMessage(noMaintainPerms);
                     return true;
                 }
-                if (args.length != 3) {
-                    sender.sendMessage(ChatColor.RED + "Incorrect syntax! /za mapdata <game> load - is correct!");
-                    return true;
-                }
                 if (!(sender instanceof Player)) {
                     sender.sendMessage(ChatColor.RED + "You must be a player to save/load mapdata! (A location on the map is needed)");
+                    return true;
+                }
+                if (args.length != 3) {
+                    sender.sendMessage(ChatColor.RED + "Incorrect syntax! /za mapdata <game> <save/load> - is correct!");
                     return true;
                 }
                 Player player = (Player) sender;
                 String gameName = args[1];
                 if (args[2].equalsIgnoreCase("load")) {
-                    String oldFile = gameName + "_mapdata.bin";
-                    File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + "map_data" + File.separatorChar + oldFile);
-                    try {
-                        MapDataStorage mds = (MapDataStorage) External.load(saveFile.getPath());
-                        if (!mds.possibleKey(player.getLocation())) {
-                            sender.sendMessage(ChatColor.RED + "You are not in the correct location to load mapdata! \nPlease make sure you are in the same spot where the mapdata was saved.");
-                        }
-                        mds.loadToGame(player.getLocation());
-                        sender.sendMessage(ChatColor.GRAY + "Map data loaded! \nPlease note that this is a single event, and is not constantly updated/loaded.");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    PlayerInteract.mapDataLoadPlayers.put(player.getName(), gameName);
+                    sender.sendMessage(ChatColor.GRAY + "Please click a block to load the mapdata at. This must be the bottom-left corner where you want the data loaded.");
+                    return true;
                 } else if (args[2].equalsIgnoreCase("save")) {
-                    String newFile = gameName + "_mapdata.bin";
-                    try {
-                        File saveFile = new File(Ablockalypse.instance.getDataFolder(), File.separatorChar + External.mapdatafolderlocation + newFile);
-                        if (!saveFile.exists()) {
-                            saveFile.createNewFile();
-                        }
-                        External.save(new MapDataStorage(player.getLocation(), gameName), External.filelocation + External.mapdatafolderlocation + newFile);
-                        sender.sendMessage(ChatColor.GRAY + "Map data snapshot saved! \nPlease note that this data is only a snapshot, and never updates automatically.");
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    PlayerInteract.mapDataSavePlayers.put(player.getName(), gameName);
+                    sender.sendMessage(ChatColor.GRAY + "Please click a corner of the map to begin.");
                     return true;
                 } else {
-                    sender.sendMessage(ChatColor.RED + "You must provide the final argument 'load/save'!");
+                    sender.sendMessage(ChatColor.RED + "You must provide the argument 'load/save'!");
                     return true;
                 }
+            } else if (args[0].equalsIgnoreCase("power")) {
+                if (!sender.hasPermission("za.create")) {
+                    sender.sendMessage(noMaintainPerms);
+                    return true;
+                }
+                if (!(sender instanceof Player)) {
+                    sender.sendMessage(ChatColor.RED + "You must be a player to enable/disable power! (A location on the map is needed)");
+                    return true;
+                }
+                if (args.length != 3) {
+                    sender.sendMessage(ChatColor.RED + "Incorrect syntax! /za power <game> <true/false> - is correct!");
+                    return true;
+                }
+                Player player = (Player) sender;
+                String gameName = args[1];
+                if (!args[2].equalsIgnoreCase("true") && !args[2].equalsIgnoreCase("false")) {
+                    sender.sendMessage(ChatColor.RED + "Incorrect syntax! /za power <game> <true/false> - is correct!");
+                    return true;
+                }
+                boolean power = Boolean.parseBoolean(args[2]);
+                PlayerInteract.powerClickers.put(player.getName(), power);
+                PlayerInteract.powerClickerGames.put(player.getName(), gameName);
+                player.sendMessage(ChatColor.GRAY + "Please click on a powerable object to " + ((power) ? "enable" : "disable") + " power");
                 return true;
             }
             return true;
