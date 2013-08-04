@@ -38,12 +38,16 @@ mysteryChestCost: 1500
 # The amount it costs to buy a mystery item from the mystery box.
 # This should be lower than the diamond sword cost from below.
 
+
 wolfLevels:
-    - 5 
-    - 11
-    - 15
-    - 18
-# The levels to spawn wolves on.
+     - '[5, 5] 100%'
+     - '[11, 11] 100%'
+     - '[15, 15] 75%'
+     - '[18, 18] 50%'
+     - '[21, 100) 10%'
+# Used to define wolf levels in the game. The brackets used are for mathematical interval notation.
+# Ex: - '[20, 23) 50%'
+# A '[' bracket makes the number given included, while a '(' bracket does not include the number shown.
 
 teleportTime: 5
 # The amount of time to count down before teleporting.
@@ -106,25 +110,14 @@ clearNearbyMobs: true
 nearbyMobClearingRadius: 32
 # If enabled, clears all non-ablockalypse mobs near the player so they don't interfere.
 
-################################################ PLUGIN INTEGRATION ################################################
-
-# CommandsEX by iKeirNez
-# NOTE - If CommandsEX is detected and XMPP is enabled, Zombie Ablockalypse will send
-# messages to the XMPP chatroom.
-
-xmppAnnounceGameCreate: true
-xmppAnnounceGameEnd: true
-xmppAnnounceGameMobSpawn: true
-xmppAnnounceGameMobDeath: true
-xmppAnnounceGameSignClick: true
-xmppAnnouncePlayerJoinGame: true
-xmppAnnouncePlayerLeaveGame: true
-xmppAnnounceLastStand: true
-
 #################################################### MAINTENANCE ####################################################
 
 ENABLE_AUTO_UPDATE: false
 # Enables automatic updating for Ablockalypse.
+
+MAX_FATALITY: 100
+# The most fatality points that Ablockalypse can take before shutting down. This is used to help
+# stop looping errors cause by Ablockalypse.
 
 UPDATE_VERSION: latest
 # Which version to download if enabled. The version can be in one of two formats, 
