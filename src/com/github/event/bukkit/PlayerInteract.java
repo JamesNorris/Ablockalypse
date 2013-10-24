@@ -2,6 +2,9 @@ package com.github.event.bukkit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -9,6 +12,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
@@ -17,19 +22,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.Lever;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Barrier;
-import com.github.aspect.Game;
-import com.github.aspect.Mainframe;
-import com.github.aspect.MobSpawner;
-import com.github.aspect.MysteryChest;
-import com.github.aspect.Passage;
-import com.github.aspect.PowerSwitch;
-import com.github.aspect.ZAPlayer;
-import com.github.behavior.GameObject;
-import com.github.behavior.Powerable;
+import com.github.aspect.block.MysteryBox;
+import com.github.aspect.block.Passage;
+import com.github.aspect.block.PowerSwitch;
+import com.github.aspect.block.Teleporter;
+import com.github.aspect.entity.ZAMob;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.BuyableItemData;
+import com.github.aspect.intelligent.Game;
 import com.github.enumerated.Local;
 import com.github.enumerated.Setting;
 import com.github.enumerated.ZAEffect;
@@ -37,32 +41,30 @@ import com.github.enumerated.ZAEnchantment;
 import com.github.enumerated.ZAPerk;
 import com.github.event.GameCreateEvent;
 import com.github.event.GameSignClickEvent;
+import com.github.queue.QueuedPlayerInteractData;
 import com.github.storage.MapDataStorage;
-import com.github.threading.inherent.TeleportThread;
-import com.github.threading.inherent.TeleporterLinkageTimerThread;
-import com.github.utility.BuyableItem;
-import com.github.utility.MiscUtil;
+import com.github.threading.inherent.TeleportTask;
+import com.github.threading.inherent.TeleporterLinkageTimerTask;
+import com.github.utility.BukkitUtility;
+import com.github.utility.ranged.Hit;
+import com.github.utility.ranged.HitBox;
+import com.github.utility.ranged.Shot;
+import com.github.utility.ranged.type.EntityHitBox;
+import com.github.utility.ranged.type.HitThroughWallShot;
 import com.github.utility.selection.Rectangle;
+import com.github.utility.selection.Cube;
 
 public class PlayerInteract implements Listener {
-    public static HashMap<String, Game> barrierPlayers = new HashMap<String, Game>();
-    public static HashMap<String, Game> chestPlayers = new HashMap<String, Game>();
-    public static ArrayList<Game> fireSale = new ArrayList<Game>();
-    public static HashMap<String, Location> locClickers = new HashMap<String, Location>();
-    public static HashMap<String, Game> locdataPlayers = new HashMap<String, Game>();
-    public static HashMap<String, String> locdataTemp = new HashMap<String, String>();
-    public static HashMap<ZAPlayer, Location> mainframeLinkers = new HashMap<ZAPlayer, Location>();
-    public static HashMap<ZAPlayer, TeleporterLinkageTimerThread> mainframeLinkers_Timers = new HashMap<ZAPlayer, TeleporterLinkageTimerThread>();
+    public static ArrayList<Game> fireSale = new ArrayList<Game>();// TODO queue all of these remaining lists/maps
+    public static HashMap<ZAPlayer, Teleporter> mainframeLinkers = new HashMap<ZAPlayer, Teleporter>();
+    public static HashMap<ZAPlayer, TeleporterLinkageTimerTask> mainframeLinkers_Timers = new HashMap<ZAPlayer, TeleporterLinkageTimerTask>();
     public static HashMap<String, Game> passagePlayers = new HashMap<String, Game>();
-    public static ArrayList<String> removers = new ArrayList<String>();
-    public static HashMap<String, Game> spawnerPlayers = new HashMap<String, Game>();
     public static HashMap<String, String> mapDataSavePlayers = new HashMap<String, String>();
-    public static HashMap<String, Location> mapDataPoint1SaveClickers = new HashMap<String, Location>();
+    private static HashMap<String, Location> mapDataPoint1SaveClickers = new HashMap<String, Location>();
     public static HashMap<String, String> mapDataLoadPlayers = new HashMap<String, String>();
-    public static HashMap<String, Game> powerSwitchClickers = new HashMap<String, Game>();
-    public static HashMap<String, Boolean> powerClickers = new HashMap<String, Boolean>();
-    public static HashMap<String, String> powerClickerGames = new HashMap<String, String>();// TODO a better playerinteract queue system
+    private static HashMap<UUID, Long> hitThroughWallTimers = new HashMap<UUID, Long>();
     private DataContainer data = Ablockalypse.getData();
+    public static CopyOnWriteArrayList<QueuedPlayerInteractData> queue = new CopyOnWriteArrayList<QueuedPlayerInteractData>();
 
     public boolean isPassage(Block block) {
         for (Passage passage : data.getObjectsOfType(Passage.class)) {
@@ -78,190 +80,174 @@ public class PlayerInteract implements Listener {
      * USED:
      * *When a ZAPlayer clicks a sign, to check the lines for strings that trigger a response. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PIE(PlayerInteractEvent event) {
-        Block b = event.getClickedBlock();
-        Player p = event.getPlayer();
+        for (QueuedPlayerInteractData data : queue) {
+            if ((data.getKey().equals(event.getPlayer().getName()) || data.getKey().equals(QueuedPlayerInteractData.ANY_PLAYER)) && data.isCompatible(event)) {
+                data.importPIE(event);
+                data.run();
+                if (data.removeAfterRun()) {
+                    queue.remove(data);
+                }
+                return;
+            }
+        }
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
         Action a = event.getAction();
-        if (b != null) {
-            Location loc = b.getLocation();
-            if (!data.isZAPlayer(p) && barrierPlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (data.isBarrier(loc)) {
-                    p.sendMessage(ChatColor.RED + "That is already a barrier!");
-                    return;
-                }
-                new Barrier(loc, barrierPlayers.get(p.getName()));
-                p.sendMessage(ChatColor.GRAY + "Barrier created successfully!");
-                barrierPlayers.remove(p.getName());
-            } else if (!data.isZAPlayer(p) && powerSwitchClickers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (data.isPowerSwitch(loc)) {
-                    p.sendMessage(ChatColor.RED + "That is already a power switch!");
-                    return;
-                }
-                new PowerSwitch(powerSwitchClickers.get(p.getName()), loc);
-                p.sendMessage(ChatColor.GRAY + "Switch created successfully.");
-                powerSwitchClickers.remove(p.getName());
-                return;
-            } else if (!data.isZAPlayer(p) && powerClickers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (data.isGameObject(loc)) {
-                    GameObject object = data.getGameObjectByLocation(loc);
-                    if (object instanceof Powerable && object.getGame() != null && object.getGame() == data.getGame(powerClickerGames.get(p.getName()), false)) {
-                        Powerable powerObj = (Powerable) object;
-                        boolean power = powerClickers.get(p.getName());
-                        powerObj.setRequiresPower(power);
-                        p.sendMessage(ChatColor.GRAY + "Power on this object " + (power ? "enabled" : "disabled") + ".");
-                        return;
-                    }
-                    p.sendMessage(ChatColor.RED + "Either this object is not powerable or it does not match the game entered.");
-                    return;
-                }
-                p.sendMessage(ChatColor.RED + "This is not an object!");
-                powerClickers.remove(p.getName());
-                powerClickerGames.remove(p.getName());
-                return;
-            } else if (!data.isZAPlayer(p) && spawnerPlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (data.isMobSpawner(b.getLocation()) && data.getMobSpawner(b.getLocation()).getGame() == spawnerPlayers.get(p.getName())) {
-                    p.sendMessage(ChatColor.RED + "That is already a mob spawner for this game!");
-                    return;
-                }
-                spawnerPlayers.get(p.getName()).addObject(new MobSpawner(loc, spawnerPlayers.get(p.getName())));
-                p.sendMessage(ChatColor.GRAY + "Spawner created successfully!");
-                spawnerPlayers.remove(p.getName());
-            } else if (!data.isZAPlayer(p) && chestPlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK && b.getType() == Material.CHEST) {
-                event.setUseInteractedBlock(Result.DENY);
-                Game zag = chestPlayers.get(p.getName());
-                if (!data.isMysteryChest(b.getLocation())) {
-                    chestPlayers.get(p.getName()).addObject(new MysteryChest(zag, loc, zag.getActiveMysteryChest() == null));
-                    p.sendMessage(ChatColor.GRAY + "Mystery chest created successfully!");
+        if (block != null) {
+            Location loc = block.getLocation();
+            if (!data.isZAPlayer(player) && mapDataSavePlayers.containsKey(player.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+                if (!mapDataPoint1SaveClickers.containsKey(player.getName())) {
+                    mapDataPoint1SaveClickers.put(player.getName(), block.getLocation());
+                    player.sendMessage(ChatColor.GRAY + "Please click the other corner of the map.");
                 } else {
-                    p.sendMessage(ChatColor.RED + "That is already a mystery chest!");
-                }
-                chestPlayers.remove(p.getName());
-            } else if (!data.isZAPlayer(p) && removers.contains(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                event.setUseInteractedBlock(Result.DENY);
-                GameObject removal = null;
-                for (GameObject o : data.getObjectsOfType(GameObject.class)) {
-                    for (Block block : o.getDefiningBlocks()) {
-                        if (block != null && block.getLocation().distanceSquared(b.getLocation()) <= 1) {// 1 squared = 1
-                            removal = o;
-                            break;
-                        }
-                    }
-                }
-                if (removal != null) {
-                    removal.remove();
-                    p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.GREEN + "successful");
-                } else {
-                    p.sendMessage(ChatColor.GRAY + "Removal " + ChatColor.RED + "unsuccessful");
-                }
-                removers.remove(p.getName());
-            } else if (!data.isZAPlayer(p) && passagePlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (isPassage(b)) {
-                    p.sendMessage(ChatColor.RED + "That is already a passage!");
-                    return;
-                }
-                if (!locClickers.containsKey(p.getName())) {
-                    locClickers.put(p.getName(), b.getLocation());
-                    p.sendMessage(ChatColor.GRAY + "Click another block to select point 2.");
-                } else {
-                    Location loc2 = locClickers.get(p.getName());
-                    new Passage(passagePlayers.get(p.getName()), loc, loc2);
-                    locClickers.remove(p.getName());
-                    passagePlayers.remove(p.getName());
-                    p.sendMessage(ChatColor.GRAY + "Passage created!");
-                }
-            } else if (!data.isZAPlayer(p) && mapDataSavePlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                if (!mapDataPoint1SaveClickers.containsKey(p.getName())) {
-                    mapDataPoint1SaveClickers.put(p.getName(), b.getLocation());
-                    p.sendMessage(ChatColor.GRAY + "Please click the other corner of the map.");
-                } else {
-                    boolean saved = new MapDataStorage(mapDataSavePlayers.get(p.getName())).save(new Rectangle(mapDataPoint1SaveClickers.get(p.getName()), b.getLocation()));
-                    mapDataPoint1SaveClickers.remove(p.getName());
-                    mapDataSavePlayers.remove(p.getName());
+                    boolean saved = new MapDataStorage(mapDataSavePlayers.get(player.getName())).save(new Rectangle(mapDataPoint1SaveClickers.get(player.getName()), block.getLocation()));
+                    mapDataPoint1SaveClickers.remove(player.getName());
+                    mapDataSavePlayers.remove(player.getName());
                     String successful = saved ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
-                    p.sendMessage(ChatColor.GRAY + "Mapdata saved " + successful + ".");
+                    player.sendMessage(ChatColor.GRAY + "Mapdata saved " + successful + ".");
                 }
-            } else if (!data.isZAPlayer(p) && mapDataLoadPlayers.containsKey(p.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
-                boolean loaded = MapDataStorage.getFromGame(mapDataLoadPlayers.get(p.getName())).load(b.getLocation());
-                mapDataLoadPlayers.remove(p.getName());
+            } else if (!data.isZAPlayer(player) && mapDataLoadPlayers.containsKey(player.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+                boolean loaded = MapDataStorage.getFromGame(mapDataLoadPlayers.get(player.getName())).load(block.getLocation());
+                mapDataLoadPlayers.remove(player.getName());
                 String successful = loaded ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
-                p.sendMessage(ChatColor.GRAY + "Mapdata loaded " + successful + ".");
-            } else if ((b.getType() == Material.SIGN || b.getType() == Material.SIGN_POST || b.getType() == Material.WALL_SIGN) && a == Action.RIGHT_CLICK_BLOCK) {
-                Sign s = (Sign) b.getState();
+                player.sendMessage(ChatColor.GRAY + "Mapdata loaded " + successful + ".");
+            } else if (!data.isZAPlayer(player) && data.isGameObject(loc)) {
+                event.setCancelled(true);
+            } else if ((block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) && a == Action.RIGHT_CLICK_BLOCK) {
+                Sign s = (Sign) block.getState();
                 if (s.getLine(0).equalsIgnoreCase(Local.BASE_STRING.getSetting())) {
                     event.setUseInteractedBlock(Result.DENY);
-                    runLines(s, p);
+                    runLines(s, player);
                     return;
                 }
                 return;
-            } else if (data.isZAPlayer(p)) {
-                if (!BlockPlace.shouldBePlaced(p.getItemInHand().getType())) {
+            } else if (data.isZAPlayer(player)) {
+                if (!BlockPlace.shouldBePlaced(player.getItemInHand().getType())) {
                     event.setUseItemInHand(Result.DENY);
                 }
-                ZAPlayer zap = data.getZAPlayer(p);
+                ZAPlayer zap = data.getZAPlayer(player);
                 Game game = zap.getGame();
-                if (b.getType() == Material.ENDER_PORTAL_FRAME && a == Action.RIGHT_CLICK_BLOCK) {
-
-                } else if (b.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
-                    Location l = b.getLocation();
+                if (block.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
+                    Location l = block.getLocation();
                     if (data.isMysteryChest(l)) {
-                        MysteryChest mc = data.getMysteryChest(l);
+                        MysteryBox mc = data.getMysteryChest(l);
                         if (mc != null && mc.isActive()) {
                             mc.giveRandomItem(zap);
                         } else {
-                            p.sendMessage(ChatColor.RED + "That chest is not active!");
+                            player.sendMessage(ChatColor.RED + "That chest is not active!");
                             event.setCancelled(true);
                             return;
                         }
                     }
-                } else if (b.getType() == Material.WOOD_DOOR || b.getType() == Material.IRON_DOOR) {
+                } else if (block.getType() == Material.WOOD_DOOR || block.getType() == Material.IRON_DOOR) {
                     event.setCancelled(true);
-                } else if (b.getType() == Material.FENCE && a == Action.LEFT_CLICK_BLOCK) {
+                } else if (block.getType() == Material.LEVER && a == Action.RIGHT_CLICK_BLOCK) {
+                    Lever lever = (Lever) block.getState().getData();
+                    if (lever.isPowered()) {
+                        player.sendMessage(lever.isPowered() ? ChatColor.GRAY + "The switch is on." : ChatColor.RED + "That switch is in use by another game!");
+                        event.setUseInteractedBlock(Result.DENY);
+                        event.setUseItemInHand(Result.DENY);
+                        event.setCancelled(true);
+                        return;
+                    }
+                    new PowerSwitch(game, loc, lever);
+                } else if (/*!block.getType().isOccluding()TODO not working for fences? &&*/ (a == Action.LEFT_CLICK_AIR || a == Action.LEFT_CLICK_BLOCK)) {
+                    //timer, half a second between through-wall hits per player
+                    if (hitThroughWallTimers.containsKey(player.getUniqueId())) {
+                        if (System.currentTimeMillis() - hitThroughWallTimers.get(player.getUniqueId()) < 500) {
+                            return;
+                        }
+                        hitThroughWallTimers.remove(player.getUniqueId());
+                    }
+                    hitThroughWallTimers.put(player.getUniqueId(), System.currentTimeMillis());
                     // through-fence damage
-                    short damage = p.getItemInHand().getDurability();
-                    zap.shoot(3, 1, damage, false, true);
+                    ItemStack handItem = player.getItemInHand();
+                    short damage = handItem == null ? 1/*hand damage*/ : handItem.getDurability();
+                    HitThroughWallShot shotData = new HitThroughWallShot(damage);
+                    Shot shot = new Shot(player.getEyeLocation(), shotData);
+                    System.out.println(player.getEyeLocation().getYaw());//TODO remove
+                    List<Hit> results = shot.shoot(shot.arrangeClosest(data.getObjectsOfType(HitBox.class)));
+                    if (results.isEmpty()) {
+                        return;
+                    }
+                    Hit closestHit = results.get(0);
+                    if (closestHit == null || !(closestHit.getHitBox() instanceof EntityHitBox)) {
+                        return;
+                    }
+                    Entity hitBoxEntity = ((EntityHitBox) closestHit.getHitBox()).getEntity();
+                    if (!(hitBoxEntity instanceof LivingEntity)) {
+                        return;
+                    }
+                    ZAMob zam = data.getZAMob((LivingEntity) hitBoxEntity);
+                    if (!zam.getGame().getUUID().equals(zap.getGame().getUUID())) {
+                        return;
+                    }
+//                    if (closestHit.getZones().isEmpty()) {
+//                        return;
+//                    }
+                    zam.getEntity().damage(shotData.getDamage(0), player);
+                    return;
                 } else if (a == Action.RIGHT_CLICK_BLOCK) {
-                    if (MiscUtil.locationMatch(b.getLocation(), game.getMainframe().getLocation(), 2)) {
+                    if (block.getType() == Material.CHEST) {
+                        event.setUseInteractedBlock(Result.DENY);
+                    }
+                    if (BukkitUtility.locationMatch(block.getLocation(), game.getMainframe().getLocation(), 2)) {
                         // mainframe
-                        Mainframe frame = game.getMainframe();
                         if (PlayerInteract.mainframeLinkers.containsKey(zap)) {
-                            TeleporterLinkageTimerThread tltt = PlayerInteract.mainframeLinkers_Timers.get(zap);
+                            TeleporterLinkageTimerTask tltt = PlayerInteract.mainframeLinkers_Timers.get(zap);
                             if (tltt.canBeLinked()) {
-                                p.sendMessage(ChatColor.GREEN + "Teleporter linked!");
+                                player.sendMessage(ChatColor.GREEN + "Teleporter linked!");
                                 tltt.setLinked(true);
-                                frame.link(PlayerInteract.mainframeLinkers.get(zap));
+                                PlayerInteract.mainframeLinkers.get(zap).setLinked(true);
                             }
                             PlayerInteract.mainframeLinkers.remove(zap);
                             PlayerInteract.mainframeLinkers_Timers.remove(zap);
                         }
-                    } else if (b.getType() == Material.ENDER_PORTAL_FRAME) {
+                    } else if (data.isTeleporter(block.getLocation())) {
+                        Teleporter tele = data.getTeleporter(block.getLocation());
+                        if (!tele.isPowered() && (Boolean) Setting.TELEPORTERS_REQUIRE_POWER.getSetting()) {
+                            return;
+                        }
                         // not mainframe
-                        int time = -1;
+                        double distanceSquared = Double.MAX_VALUE;
+                        double time = -1;
                         boolean requiresLinkage = true;
-                        Location below = loc.clone().subtract(0, 1, 0);
-                        if (below.getBlock().getState() instanceof Sign) {
-                            Sign sign = (Sign) below.getBlock().getState();
-                            try {
-                                requiresLinkage = Boolean.parseBoolean(sign.getLine(0));
-                                time = Integer.parseInt(sign.getLine(1));
-                            } catch (Exception e) {
-                                // nothing
+                        Cube cube = new Cube(block.getLocation(), 2);
+                        for (Location sqLoc : cube.getLocations()) {
+                            if (sqLoc.getBlock().getState() instanceof Sign) {
+                                Sign sign = (Sign) sqLoc.getBlock().getState();
+                                String[] lines = sign.getLines();
+                                if (lines[0].equalsIgnoreCase(Local.BASE_STRING.getSetting()) && lines[1].equalsIgnoreCase(Local.BASE_TELEPORTER_SETTINGS_STRING.getSetting())) {
+                                    try {
+                                        if (sqLoc.distanceSquared(block.getLocation()) < distanceSquared) {
+                                            requiresLinkage = Boolean.parseBoolean(lines[2]);
+                                            time = Double.parseDouble(lines[3]);
+                                            distanceSquared = sqLoc.distanceSquared(block.getLocation());
+                                        }
+                                    } catch (Exception e) {
+                                        // nothing
+                                    }
+                                }
                             }
                         }
-                        if (game.getMainframe().isLinked(b.getLocation()) || !requiresLinkage) {
-                            // this teleporter linked to the mainframe...
+                        tele.refresh();
+                        if (data.getTeleporter(block.getLocation()).isLinked() || !requiresLinkage) {
+                            // this teleporter is linked to the mainframe...
                             if (!zap.isTeleporting()) {
-                                p.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
-                                new TeleportThread(zap, (Integer) Setting.TELEPORT_TIME.getSetting(), true, 20);
+                                player.sendMessage(ChatColor.GRAY + "Teleportation sequence started...");
+                                new TeleportTask(zap, (Integer) Setting.TELEPORT_TIME.getSetting(), true);
                                 return;
                             } else {
-                                p.sendMessage(ChatColor.GRAY + "You are already teleporting!");
+                                player.sendMessage(ChatColor.GRAY + "You are already teleporting!");
                                 return;
                             }
                         } else {
                             // this teleporter is not linked to the mainframe...
-                            time = time == -1 ? (int) (loc.distanceSquared(game.getMainframe().getLocation()) * 4.5) : time;// 1 second per block difference (4.5 approx sqrt 20)
-                            PlayerInteract.mainframeLinkers.put(zap, loc);
-                            PlayerInteract.mainframeLinkers_Timers.put(zap, new TeleporterLinkageTimerThread(game.getMainframe(), zap, time)); // difference
-                            p.sendMessage(ChatColor.GRAY + "You now have " + time / 20 + " seconds to link the teleporter to the mainframe!");
+                            time = time == -1 ? (int) (loc.distanceSquared(game.getMainframe().getLocation()) * .1) : time;// 1 second per block difference (4.5 approx sqrt 20)
+                            tele.setLinkTime(time);
+                            PlayerInteract.mainframeLinkers.put(zap, tele);
+                            PlayerInteract.mainframeLinkers_Timers.put(zap, new TeleporterLinkageTimerTask(game.getMainframe(), zap, ((int) time) * 20, true)); // difference
+                            player.sendMessage(ChatColor.GRAY + "You now have " + time + " seconds to link the teleporter to the mainframe!");
                         }
                     }
                 }
@@ -301,7 +287,7 @@ public class PlayerInteract implements Listener {
                     int points = zap.getPoints();
                     if (l2.equalsIgnoreCase(Local.BASE_PERK_STRING.getSetting())) {
                         givePerk(sign, player, zap, l3, points);
-                    } else if (l2.equalsIgnoreCase(Local.BASE_ENCHANTMENT_STRING.getSetting()) && MiscUtil.isEnchantableLikeSwords(player.getItemInHand())) {
+                    } else if (l2.equalsIgnoreCase(Local.BASE_ENCHANTMENT_STRING.getSetting()) && BukkitUtility.isEnchantableLikeSwords(player.getItemInHand())) {
                         giveEnchantment(sign, player, zap, l3, points);
                     } else if (l2.equalsIgnoreCase(Local.BASE_WEAPON_STRING.getSetting())) {
                         giveItem(sign, player, zap, l3, points);
@@ -320,7 +306,8 @@ public class PlayerInteract implements Listener {
             cost = Integer.parseInt(l3);
         } catch (Exception e) {
             Ablockalypse.crash("The sign at " + sign.getLocation().toString() + " does not have a cost value on line 4.", 0);
-            player.sendMessage(ChatColor.RED + "That sign is incorrectly formatted.\nThe Ops have already been alerted.");
+            player.sendMessage(ChatColor.RED + "That sign is incorrectly formatted.\nThe server has already been alerted.");
+            return;
         }
         sign.setLine(3, " " + cost + " ");
         if (zap.getPoints() >= cost) {
@@ -379,23 +366,23 @@ public class PlayerInteract implements Listener {
                 zap.subtractPoints(ench.getCost());
                 player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
                 ZAEffect.POTION_BREAK.play(sign.getLocation());
-                MiscUtil.dropItemAtPlayer(sign.getLocation(), hand, player, 1, 1);
+                BukkitUtility.dropItemAtPlayer(sign.getLocation(), hand, player, 1, 1);
                 return;
             }
         }
     }
 
     private void giveItem(Sign sign, Player player, ZAPlayer zap, String l3, int points) {
-        HashMap<Integer, BuyableItem> maps = Ablockalypse.getExternal().getItemFileManager().getSignItemMaps();
+        HashMap<Integer, BuyableItemData> maps = Ablockalypse.getExternal().getItemFileManager().getSignItemMaps();
         for (int id : maps.keySet()) {
-            BuyableItem map = maps.get(id);
+            BuyableItemData map = maps.get(id);
             int cost = sign.getLine(3).isEmpty() ? map.getCost() : Integer.parseInt(sign.getLine(3));
             if (l3.equalsIgnoreCase(map.getName()) && zap.getGame().getLevel() >= map.getRequiredLevel()) {
                 if (points < cost) {
                     player.sendMessage(ChatColor.RED + "You have " + points + " / " + cost + " points to buy this.");
                     return;
                 }
-                MiscUtil.dropItemAtPlayer(sign.getLocation(), map.toItemStack(), player, 1, 1);
+                BukkitUtility.dropItemAtPlayer(sign.getLocation(), map.toItemStack(), player, 1, 1);
                 if (fireSale.contains(zap.getGame())) {
                     cost = 10;
                 }
@@ -445,7 +432,7 @@ public class PlayerInteract implements Listener {
         ZAPlayer zap = data.getZAPlayer(player, name, true);
         if (zag.getMainframe() == null) {
             Location pLoc = player.getLocation();
-            zag.setMainframe(new Mainframe(zag, pLoc));
+            zag.setMainframe(new Teleporter(zag, pLoc));
         }
         if (!exists) {
             GameCreateEvent gce = new GameCreateEvent(zag, null, player);
@@ -453,7 +440,7 @@ public class PlayerInteract implements Listener {
             if (!gce.isCancelled()) {
                 zap.loadPlayerToGame(name, true);
             } else {
-                zag.remove();
+                zag.remove(true);
             }
         } else {
             zap.loadPlayerToGame(name, true);

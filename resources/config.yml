@@ -38,16 +38,22 @@ mysteryChestCost: 1500
 # The amount it costs to buy a mystery item from the mystery box.
 # This should be lower than the diamond sword cost from below.
 
+displayPlayerHealth: true
+# Whether or not to display player health above their head when in a game.
+
+teleportersRequirePower: true
+# Whether or not teleporters need to be powered before being linked.
 
 wolfLevels:
      - '[5, 5] 100%'
      - '[11, 11] 100%'
-     - '[15, 15] 75%'
-     - '[18, 18] 50%'
-     - '[21, 100) 10%'
+     - '[15, 15] 075%'
+     - '[18, 18] 050%'
+     - '[21, 100) 010%'
 # Used to define wolf levels in the game. The brackets used are for mathematical interval notation.
-# Ex: - '[20, 23) 50%'
+# Ex: - '[20, 23) 050%'
 # A '[' bracket makes the number given included, while a '(' bracket does not include the number shown.
+# Make sure there are 3 digits in the percentage!
 
 teleportTime: 5
 # The amount of time to count down before teleporting.
@@ -94,8 +100,10 @@ maxWave: -1
 barrierPerFixIncrease: 20
 # The amount of points gained per fix of the barrier.
 
-barrierCompleteFixIncrease: 100
+barrierCompleteFixIncrease: 20
 # The amount of points gained when the barrier is completely fixed.
+# Because a player could simply let the zombie partially break the barrier, 
+# and re-fix it, it is recommended you keep this equal to the per fix increase.
 
 movingChests: true
 # Moves the active chest around, instead of all chests being active at once.
@@ -106,7 +114,14 @@ chestBeacons: true
 levelTransitionTime: 10
 # The time, in seconds, before transitioning to the next level after finishing the previous one.
 
-clearNearbyMobs: true
+preventNearbySpawning: true
+preventNearbySpawningRadius: 50
+# If enabled, prevents all non-ablockalypse mobs near za players from spawning.
+# This has an advantage over clearing them:
+# It affects slimes
+# It won't disturb other players
+
+clearNearbyMobs: false
 nearbyMobClearingRadius: 32
 # If enabled, clears all non-ablockalypse mobs near the player so they don't interfere.
 
@@ -123,6 +138,12 @@ UPDATE_VERSION: latest
 # Which version to download if enabled. The version can be in one of two formats, 
 # for example, you can use "1.0.0" to download that version, or you can use "latest" 
 # to download the most recent version.
+
+PRINT_STORAGE_DATA_TO_FILE: true
+# Whether or not to print all game storage data to a file. A file will be printed
+# per game on disable, allowing the owner to view (but not change) the game settings.
+# Setting this to false may save some speed when disabling the plugin.
+# This can be used to help debug the game, and may be helpful in a bug report.
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.

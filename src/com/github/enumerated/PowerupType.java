@@ -9,15 +9,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Barrier;
-import com.github.aspect.Game;
-import com.github.aspect.ZAPlayer;
-import com.github.behavior.ZAMob;
-import com.github.behavior.ZAScheduledTask;
+import com.github.aspect.block.Barrier;
+import com.github.aspect.entity.ZAMob;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
 import com.github.event.bukkit.PlayerInteract;
-import com.github.utility.MiscUtil;
+import com.github.threading.DelayedTask;
+import com.github.utility.BukkitUtility;
 import com.google.common.collect.Maps;
 
 public enum PowerupType {
@@ -104,7 +103,7 @@ public enum PowerupType {
                 Inventory i = p.getInventory();
                 for (ItemStack it : i.getContents()) {
                     if (it != null) {
-                        if (MiscUtil.isEnchantableLikeSwords(it)) {
+                        if (BukkitUtility.isEnchantableLikeSwords(it)) {
                             it.setDurability((short) 0);
                             ZAEffect.EXTINGUISH.play(p.getLocation());
                         }
@@ -128,12 +127,12 @@ public enum PowerupType {
         return BY_ID.get(id);
     }
 
-    private static void timedReverse(final PowerupType type, final Game game, final Player player, final Entity cause, final DataContainer data, final int delay) {
-        Ablockalypse.getMainThread().scheduleDelayedTask(new ZAScheduledTask() {
+    private static void timedReverse(final PowerupType type, final Game game, final Player player, final Entity cause, final DataContainer data, int delay) {
+        new DelayedTask(delay, true) {
             @Override public void run() {
                 type.reverse(game, player, cause, data);
             }
-        }, delay);
+        };
     }
 
     private int id;

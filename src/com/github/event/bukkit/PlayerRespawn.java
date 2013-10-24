@@ -8,7 +8,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.threading.inherent.RespawnThread;
+import com.github.threading.inherent.RespawnTask;
 
 public class PlayerRespawn implements Listener {
     private DataContainer data = Ablockalypse.getData();
@@ -18,7 +18,7 @@ public class PlayerRespawn implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST) public void PRE(PlayerRespawnEvent event) {
         Player p = event.getPlayer();
         if (data.isZAPlayer(p)) {
-            new RespawnThread(p, 5, true, true);
+            new RespawnTask(p, 5, true, true);
         }
     }
 }

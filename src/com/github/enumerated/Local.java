@@ -9,9 +9,13 @@ import com.github.Ablockalypse;
 import com.google.common.collect.Maps;
 
 public enum Local {
-    BASE_ENCHANTMENT_STRING("enchantmentString"), BASE_JOIN_STRING("joinString"), BASE_PASSAGE_STRING("passageString"), BASE_PERK_STRING("perkString"), 
-//@formatter:off
+  //@formatter:off
+    BASE_ENCHANTMENT_STRING("enchantmentString"), 
+    BASE_JOIN_STRING("joinString"), 
+    BASE_PASSAGE_STRING("passageString"), 
+    BASE_PERK_STRING("perkString"), 
     BASE_STRING("baseString"), 
+    BASE_TELEPORTER_SETTINGS_STRING("teleporterSettingsString"),
     BASE_WEAPON_STRING("weaponString"), 
     PACK_A_PUNCH_STRING("packapunchString"),
     PERK_DEADSHOT_DAIQUIRI_STRING("perkDeadshotDaiquiriString"), 

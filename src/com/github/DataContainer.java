@@ -11,23 +11,24 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
-import com.github.aspect.Barrier;
-import com.github.aspect.Claymore;
-import com.github.aspect.Game;
-import com.github.aspect.Hellhound;
-import com.github.aspect.Mainframe;
-import com.github.aspect.MobSpawner;
-import com.github.aspect.MysteryChest;
-import com.github.aspect.Passage;
-import com.github.aspect.PowerSwitch;
-import com.github.aspect.Undead;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.block.Barrier;
+import com.github.aspect.block.Claymore;
+import com.github.aspect.block.MobSpawner;
+import com.github.aspect.block.MysteryBox;
+import com.github.aspect.block.Passage;
+import com.github.aspect.block.Teleporter;
+import com.github.aspect.entity.Grenade;
+import com.github.aspect.entity.Hellhound;
+import com.github.aspect.entity.ZAMob;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.entity.Zombie;
+import com.github.aspect.intelligent.Game;
 import com.github.behavior.GameObject;
-import com.github.behavior.ZAMob;
-import com.github.behavior.ZAThread;
-import com.github.utility.MiscUtil;
+import com.github.threading.Task;
+import com.github.utility.BukkitUtility;
 
 public class DataContainer {
     public static DataContainer fromObject(Object obj) {
@@ -58,6 +59,28 @@ public class DataContainer {
     public Claymore getClaymore(Location loc) {
         return getGameObjectByLocation(Claymore.class, loc);
     }
+    
+    public <O extends GameObject> O getClosest(Class<O> type, Location loc) {
+        return getClosest(type, loc, Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+    }
+    
+    public <O extends GameObject> O getClosest(Class<O> type, Location loc, double distX, double distY, double distZ) {
+        O object = null;
+        double lowestDist = Double.MAX_VALUE;
+        for (O obj : getObjectsOfType(type)) {
+            if (obj.getDefiningBlocks() == null) {
+                continue;
+            }
+            Location objLoc = obj.getDefiningBlock().getLocation();
+            double xDif = Math.abs(objLoc.getX() - loc.getX());
+            double yDif = Math.abs(objLoc.getY() - loc.getY());
+            double zDif = Math.abs(objLoc.getZ() - loc.getZ());
+            if (xDif < distX && yDif < distY && zDif < distZ && xDif + yDif + zDif < lowestDist) {
+                object = obj;
+            }
+        }
+        return object;
+    }
 
     public Entity getEntityByUUID(World world, UUID uuid) {
         for (Entity entity : world.getEntities()) {
@@ -81,9 +104,11 @@ public class DataContainer {
 
     public <O extends GameObject> O getGameObjectByLocation(Class<O> type, Location loc) {
         for (O obj : getObjectsOfType(type)) {
+            if (obj.getDefiningBlocks() == null) {
+                continue;
+            }
             for (Block matchBlock : obj.getDefiningBlocks()) {
-                Location match = matchBlock.getLocation();
-                if (MiscUtil.locationMatch(match, loc)) {
+                if (BukkitUtility.locationMatch(matchBlock.getLocation(), loc)) {
                     return obj;
                 }
             }
@@ -94,21 +119,30 @@ public class DataContainer {
     public GameObject getGameObjectByLocation(Location loc) {
         return getGameObjectByLocation(GameObject.class, loc);
     }
-
-    public Hellhound getHellhound(Entity e) {
-        return getZAMobByEntity(Hellhound.class, e);
+    
+    public Grenade getGrenade(Entity entity) {
+        for (Grenade grenade : getObjectsOfType(Grenade.class)) {
+            if (grenade.getLocation() != null && grenade.getGrenadeEntity() != null && grenade.getGrenadeEntity().getUniqueId().compareTo(entity.getUniqueId()) == 0) {
+                return grenade;
+            }
+        }
+        return null;
     }
 
-    public Mainframe getMainframe(Location loc) {
-        return getGameObjectByLocation(Mainframe.class, loc);
+    public Hellhound getHellhound(LivingEntity e) {
+        return (Hellhound) getZAMobByEntity(e);
+    }
+
+    public Teleporter getMainframe(Location loc) {
+        return getGameObjectByLocation(Teleporter.class, loc);
     }
 
     public MobSpawner getMobSpawner(Location loc) {
         return getGameObjectByLocation(MobSpawner.class, loc);
     }
 
-    public MysteryChest getMysteryChest(Location loc) {
-        return getGameObjectByLocation(MysteryChest.class, loc);
+    public MysteryBox getMysteryChest(Location loc) {
+        return getGameObjectByLocation(MysteryBox.class, loc);
     }
 
     @SuppressWarnings("unchecked") public <O extends Object> List<O> getObjectsOfType(Class<O> type) {
@@ -125,10 +159,6 @@ public class DataContainer {
         return getGameObjectByLocation(Passage.class, loc);
     }
 
-    public PowerSwitch getPowerSwitch(Location loc) {
-        return getGameObjectByLocation(PowerSwitch.class, loc);
-    }
-
     public ArrayList<MobSpawner> getSpawns(String gamename) {
         ArrayList<MobSpawner> spawners = new ArrayList<MobSpawner>();
         for (MobSpawner spawn : getObjectsOfType(MobSpawner.class)) {
@@ -139,9 +169,13 @@ public class DataContainer {
         return spawners;
     }
 
-    @SuppressWarnings("unchecked") public <T extends ZAThread> List<T> getThreadsOfType(Class<T> type) {
+    public Teleporter getTeleporter(Location loc) {
+        return getGameObjectByLocation(Teleporter.class, loc);
+    }
+
+    @SuppressWarnings("unchecked") public <T extends Task> List<T> getTasksOfType(Class<T> type) {
         ArrayList<T> list = new ArrayList<T>();
-        for (ZAThread thread : getObjectsOfType(ZAThread.class)) {
+        for (Task thread : getObjectsOfType(Task.class)) {
             if (thread.getClass().isInstance(type)) {
                 list.add((T) thread);
             }
@@ -149,16 +183,16 @@ public class DataContainer {
         return list;
     }
 
-    public Undead getUndead(Entity e) {
-        return getZAMobByEntity(Undead.class, e);
+    public Zombie getZombie(LivingEntity e) {
+        return (Zombie) getZAMobByEntity(e);
     }
 
-    public ZAMob getZAMob(Entity e) {
-        return getZAMobByEntity(ZAMob.class, e);
+    public ZAMob getZAMob(LivingEntity e) {
+        return getZAMobByEntity(e);
     }
 
-    public <Z extends ZAMob> Z getZAMobByEntity(Class<Z> clazz, Entity ent) {
-        for (Z mob : getObjectsOfType(clazz)) {
+    public ZAMob getZAMobByEntity(LivingEntity ent) {
+        for (ZAMob mob : getObjectsOfType(ZAMob.class)) {
             if (mob.getEntity().getUniqueId().compareTo(ent.getUniqueId()) == 0) {
                 return mob;
             }
@@ -168,7 +202,7 @@ public class DataContainer {
 
     public ZAPlayer getZAPlayer(Player player) {
         for (ZAPlayer zap : getObjectsOfType(ZAPlayer.class)) {
-            if (zap.getName().equals(player.getName())) {
+            if (zap.getPlayer().getName().equals(player.getName())) {
                 return zap;
             }
         }
@@ -201,8 +235,12 @@ public class DataContainer {
     public boolean isGameObject(Location loc) {
         return getGameObjectByLocation(loc) != null;
     }
+    
+    public boolean isGrenade(Entity entity) {
+        return getGrenade(entity) != null;
+    }
 
-    public boolean isHellhound(Entity e) {
+    public boolean isHellhound(LivingEntity e) {
         return getHellhound(e) != null;
     }
 
@@ -231,15 +269,15 @@ public class DataContainer {
         return getPassage(loc) != null;
     }
 
-    public boolean isPowerSwitch(Location loc) {
-        return getPowerSwitch(loc) != null;
+    public boolean isTeleporter(Location loc) {
+        return getTeleporter(loc) != null;
     }
 
-    public boolean isUndead(Entity e) {
-        return getUndead(e) != null;
+    public boolean isUndead(LivingEntity e) {
+        return getZombie(e) != null;
     }
 
-    public boolean isZAMob(Entity e) {
+    public boolean isZAMob(LivingEntity e) {
         return getZAMob(e) != null;
     }
 

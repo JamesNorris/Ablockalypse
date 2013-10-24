@@ -1,6 +1,7 @@
 package com.github.event.bukkit;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -9,7 +10,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
 
 public class EntityTarget implements Listener {
     private DataContainer data = Ablockalypse.getData();
@@ -19,11 +20,11 @@ public class EntityTarget implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST) public void ETE(EntityTargetEvent event) {
         Entity target = event.getTarget();
         Entity entity = event.getEntity();
-        if (target instanceof Player) {
+        if (target instanceof Player && entity instanceof LivingEntity) {
             Player p = (Player) target;
             if (data.isZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);
-                if (zap.isInLastStand() || !data.isZAMob(entity)) {
+                if (zap.isInLastStand() || !data.isZAMob((LivingEntity) entity)) {
                     event.setCancelled(true);
                 }
             }

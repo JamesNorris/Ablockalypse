@@ -1,6 +1,6 @@
 package com.github.behavior;
 
-import com.github.threading.inherent.BlinkerThread;
+import com.github.threading.inherent.BlinkerTask;
 
 public interface Blinkable extends GameObject {
     /**
@@ -8,7 +8,7 @@ public interface Blinkable extends GameObject {
      * 
      * @return The BlinkerThread attached to this instance
      */
-    public BlinkerThread getBlinkerThread();
+    public BlinkerTask getBlinkerThread();
 
     /**
      * Stops/Starts the blinker for this instance.

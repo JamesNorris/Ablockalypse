@@ -1,8 +1,8 @@
 package com.github.event.bukkit;
 
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,8 +11,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Undead;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.entity.Zombie;
 
 public class EntityDamage implements Listener {
     private DataContainer data = Ablockalypse.getData();
@@ -21,12 +21,16 @@ public class EntityDamage implements Listener {
     /* Called when an entity is damaged.
      * Used mostly for cancelling fire damage to ZA mobs. */
     @EventHandler(priority = EventPriority.HIGHEST) public void EDE(EntityDamageEvent event) {
-        Entity e = event.getEntity();
+        Entity entity = event.getEntity();
+        if (!(entity instanceof LivingEntity)) {
+            return;
+        }
+        LivingEntity e = (LivingEntity) entity;
         if (e != null && data.isZAMob(e)) {
-            if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof Zombie) {
-                Undead gu = data.getUndead(e);
+            if ((event.getCause() == DamageCause.FIRE || event.getCause() == DamageCause.FIRE_TICK) && e instanceof org.bukkit.entity.Zombie) {
+                Zombie gu = data.getZombie(e);
                 if (gu.isFireproof()) {
-                    e.setFireTicks(0);// TODO test (originally Breakable.getNMSEntity(e).extinguish())
+                    e.setFireTicks(0);
                     event.setCancelled(true);
                 }
             } else if (event.getCause() == DamageCause.FALL && event.getDamage() <= 2) {

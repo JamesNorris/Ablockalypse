@@ -4,8 +4,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
-import com.github.aspect.Game;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
 
 public class LastStandEvent extends AblockalypseEvent implements Cancellable {
     private static final HandlerList handlers = new HandlerList();

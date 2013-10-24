@@ -29,7 +29,7 @@ import org.bukkit.inventory.ItemStack;
 import com.github.Ablockalypse;
 import com.github.DataContainer;
 import com.github.External;
-import com.github.aspect.Game;
+import com.github.aspect.intelligent.Game;
 import com.github.behavior.MapDatable;
 import com.github.utility.selection.Rectangle;
 import com.github.utility.selection.Region;

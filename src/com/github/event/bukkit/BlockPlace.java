@@ -12,8 +12,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Claymore;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.block.Claymore;
+import com.github.aspect.entity.ZAPlayer;
 
 public class BlockPlace implements Listener {
     private static DataContainer data = Ablockalypse.getData();

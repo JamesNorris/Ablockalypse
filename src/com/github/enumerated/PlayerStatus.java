@@ -2,7 +2,7 @@ package com.github.enumerated;
 
 import java.util.Map;
 
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
 import com.google.common.collect.Maps;
 
 public enum PlayerStatus {

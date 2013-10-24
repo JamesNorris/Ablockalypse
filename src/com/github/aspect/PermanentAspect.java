@@ -8,10 +8,12 @@ import java.lang.reflect.Constructor;
 import java.util.Map;
 import java.util.UUID;
 
+import com.github.Ablockalypse;
 import com.github.External;
 import com.github.utility.serial.SavedVersion;
 
 public class PermanentAspect {
+    public static final String[][] replacement = new String[][] {{"\\", ""}, {"/", ""}, {":", "="}, {"*", ""}, {"?", ""}, {"\"", ""}, {"<", "("}, {">", ")"}, {"|", ""}};
     public static Object load(Class<?> cast, SavedVersion version) {
         try {
             Constructor<?> constr = cast.getConstructor(SavedVersion.class);
@@ -24,9 +26,18 @@ public class PermanentAspect {
         }
         return null;
     }
+    
+    public static String modifyForCompliance(String header) {
+        String modHeader = header;
+        for (int i = 0; i < replacement.length; i++) {
+            modHeader = modHeader.replace(replacement[i][0], replacement[i][1]);
+        }
+        return modHeader;
+    }
 
     public static File printData(PermanentAspect aspect) throws IOException {
-        File file = new File(aspect.getHeader());
+        String header = modifyForCompliance(aspect.getHeader());
+        File file = new File(Ablockalypse.getExternal().getPrintedSettingsFolder(), header + ".yml");
         if (!file.exists()) {
             try {
                 file.createNewFile();
@@ -39,7 +50,11 @@ public class PermanentAspect {
             Map<String, Object> save = aspect.getSave().getRawMap();
             for (String key : save.keySet()) {
                 Object value = save.get(key);
-                writer.write(key + ": " + value);
+                if (value instanceof SavedVersion) {
+                    SavedVersion saved = (SavedVersion) value;
+                    value = saved.getRawMap();
+                }
+                writer.write(key + ": " + value + "\n");
             }
         } catch (IOException e) {
             try {
@@ -66,7 +81,7 @@ public class PermanentAspect {
     private final UUID uuid = UUID.randomUUID();
 
     public String getHeader() {
-        return this.getClass().getSimpleName() + " <UUID: " + getUUID() + ">";
+        return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
     }
 
     public SavedVersion getSave() {
@@ -75,9 +90,5 @@ public class PermanentAspect {
 
     public UUID getUUID() {
         return uuid;
-    }
-
-    public File printData() {
-        return null;
     }
 }

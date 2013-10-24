@@ -8,8 +8,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Game;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
 import com.github.enumerated.PlayerStatus;
 
 public class PlayerDeath implements Listener {
@@ -27,7 +27,7 @@ public class PlayerDeath implements Listener {
             zap.setStatus(PlayerStatus.LIMBO);
             Game zag = zap.getGame();
             zap.clearPerks();// remove perks
-            if (zag.getRemainingPlayers() > 0) {
+            if (zag.getRemainingPlayers().size() > 0) {
                 if (zap.isInLastStand()) {
                     zap.toggleLastStand();
                 }

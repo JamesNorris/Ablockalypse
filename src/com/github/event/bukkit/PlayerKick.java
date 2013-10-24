@@ -9,24 +9,25 @@ import org.bukkit.event.player.PlayerKickEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Game;
-import com.github.aspect.ZAPlayer;
-import com.github.event.GamePlayerLeaveEvent;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
+import com.github.event.PlayerLeaveGameEvent;
 
 public class PlayerKick implements Listener {
     private DataContainer data = Ablockalypse.getData();
 
     /* Called when a player is kicked from the game.
-     * Usedx mostly to prevent multiple level gains after a player is kicked. */
+     * Used mostly to prevent multiple level gains after a player is kicked. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PKE(PlayerKickEvent event) {
         Player p = event.getPlayer();
         if (data.isZAPlayer(p)) {
             ZAPlayer zap = data.getZAPlayer(p);
             Game zag = zap.getGame();
-            GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
+            PlayerLeaveGameEvent GPLE = new PlayerLeaveGameEvent(zap, zag);
             Bukkit.getPluginManager().callEvent(GPLE);
             if (!GPLE.isCancelled()) {
                 zag.removePlayer(p);
+                zap.remove();
             }
         }
     }

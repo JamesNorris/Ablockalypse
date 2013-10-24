@@ -77,7 +77,7 @@ public class External {
         os.close();
     }
 
-    private File configuration, localization, items, savedData, mapData;
+    private File configuration, localization, items, savedData, mapData, printedSettings;
     private ItemFileManager itemsManager;
 
     public External(Plugin instance) {
@@ -92,6 +92,8 @@ public class External {
         ensureDirectory(savedData);
         mapData = new File(dataFolder, "map_data");
         ensureDirectory(mapData);
+        printedSettings = new File(dataFolder, "printed_settings");
+        ensureDirectory(printedSettings);
         itemsManager = new ItemFileManager(items);
     }
 
@@ -151,6 +153,10 @@ public class External {
             Ablockalypse.crash("The game object mapdata file: <mapdata" + File.separatorChar + mapname + ".objects> could not be found or created.", 5);
         }
         return null;
+    }
+    
+    public File getPrintedSettingsFolder() {
+        return printedSettings;
     }
 
     public File getSavedDataFile(String gamename, boolean force) {

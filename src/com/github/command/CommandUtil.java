@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 
 import com.github.Ablockalypse;
-import com.github.aspect.Game;
+import com.github.aspect.intelligent.Game;
 import com.github.enumerated.Local;
 import com.github.enumerated.Setting;
 
@@ -53,11 +53,11 @@ public class CommandUtil {
     });
     public static final ChatMenu OBJECT_LIST = new ChatMenu(ChatColor.RED + "Object Types", new String[] {
             ChatColor.GOLD + "Barrier" + ChatColor.GRAY + " - A 3x3 wall that is broken by mobs.",
+            ChatColor.GOLD + "Teleporter" + ChatColor.GRAY + " - Sends the player to the mainframe.",
             ChatColor.GOLD + "Mainframe" + ChatColor.GRAY + " - The teleporter that all lead to.",
             ChatColor.GOLD + "MobSpawner" + ChatColor.GRAY + " - A block where game mobs spawn.",
             ChatColor.GOLD + "Passage" + ChatColor.GRAY + " - A wall that reveals new areas of the map.",
-            ChatColor.GOLD + "MysteryChest" + ChatColor.GRAY + " - A chest that gives random items at a cost.",
-            ChatColor.GOLD + "PowerSwitch" + ChatColor.GRAY + " - A lever connected to a powerable object."
+            ChatColor.GOLD + "MysteryBox" + ChatColor.GRAY + " - A chest that gives random items at a cost."
     });
     //@formatter:on
     protected void updateGameListMenu() {

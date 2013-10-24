@@ -1,14 +1,13 @@
 package com.github.event.bukkit;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Creature;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,26 +15,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.util.Vector;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.ZAPlayer;
-import com.github.behavior.ZAMob;
+import com.github.aspect.entity.Grenade;
+import com.github.aspect.entity.ZAMob;
+import com.github.aspect.entity.ZAPlayer;
 import com.github.enumerated.ZAEffect;
 
 public class ProjectileHit implements Listener {
-    public static HashMap<UUID, String> uuids;
-
-    protected static void preventBlockDestructionWithPoints(ZAPlayer zap, UUID uuid) {
-        uuids.put(uuid, zap.getPlayer().getName());
-    }
 
     private DataContainer data = Ablockalypse.getData();
-    private float yield = 2F;// Can be changed to make a larger explosion.
-
-    public ProjectileHit() {
-        ProjectileHit.uuids = new HashMap<UUID, String>();
-    }
 
     /* Called when a player throws an object.
      * Used for changing ender pearls to grenades for ZAPlayers. */
@@ -44,10 +35,13 @@ public class ProjectileHit implements Listener {
         if (e instanceof EnderPearl) {
             EnderPearl ep = (EnderPearl) e;
             Player p = (Player) ep.getShooter();
-            if (data.isZAPlayer(p)) {
+            if (data.isZAPlayer(p) && !data.isGrenade(e)) {
                 Location loc = ep.getLocation();
+                Location pLoc = p.getLocation();
                 ZAPlayer zap = data.getZAPlayer(p);
-                EntityExplode.createNonBlockDestructionExplosionWithPoints(zap, loc, yield);
+                double xDiffForce = (loc.getX() - pLoc.getX()) / 20;
+                double zDiffForce = (loc.getZ() - pLoc.getZ()) / 20;
+                new Grenade(e, zap, 60, true, false, new Vector(xDiffForce, .1, zDiffForce));
             }
         } else if (e instanceof Arrow && ((Arrow) e).getShooter() instanceof Player) {
             Arrow a = (Arrow) e;
@@ -61,10 +55,10 @@ public class ProjectileHit implements Listener {
                 Location loc2 = e.getLocation();
                 /* through-barrier damage */
                 for (ZAMob zam : zap.getGame().getMobs()) {
-                    Creature c = zam.getCreature();
+                    LivingEntity c = zam.getEntity();
                     Location loc3 = c.getLocation();
-                    if (loc3.distanceSquared(loc2) <= 2.25) {// within 1.5 blocks (2.25 approx 1.5 squared)
-                        double dmg = 16;
+                    if (loc3.distanceSquared(loc2) <= 3) {// within 1.5 blocks (2.25 approx 1.5 squared)
+                        double dmg = 40;
                         EntityDamageByEntityEvent EDBE = new EntityDamageByEntityEvent(p, c, DamageCause.CUSTOM, dmg);
                         Bukkit.getPluginManager().callEvent(EDBE);
                         if (!EDBE.isCancelled()) {

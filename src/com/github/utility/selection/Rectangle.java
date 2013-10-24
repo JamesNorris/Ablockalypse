@@ -7,6 +7,7 @@ import java.util.List;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 
 public class Rectangle {
     private ArrayList<Location> border2D = new ArrayList<Location>();
@@ -52,6 +53,14 @@ public class Rectangle {
     public Location getCorner(int corner) {
         Location[] corners = new Location[] {loc1, loc2, loc3, loc4};
         return corners[corner - 1];
+    }
+
+    public List<Block> getBlocks() {
+        List<Block> blocks = new ArrayList<Block>();
+        for (Location l : locs.keySet()) {
+            blocks.add(l.getBlock());
+        }
+        return blocks;
     }
 
     /**

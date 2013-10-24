@@ -2,7 +2,6 @@ package com.github.command;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -10,14 +9,18 @@ import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Game;
-import com.github.aspect.Mainframe;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
 import com.github.event.GameCreateEvent;
-import com.github.event.GamePlayerLeaveEvent;
+import com.github.event.PlayerLeaveGameEvent;
 import com.github.event.bukkit.PlayerInteract;
 import com.github.manager.PermissionManager;
-import com.github.utility.MiscUtil;
+import com.github.queue.inherent.QueuedBarrierCreation;
+import com.github.queue.inherent.QueuedGameObjectRemoval;
+import com.github.queue.inherent.QueuedMobSpawnerCreation;
+import com.github.queue.inherent.QueuedMysteryBoxCreation;
+import com.github.queue.inherent.QueuedPassageCreation;
+import com.github.queue.inherent.QueuedTeleporterCreation;
 
 public class BaseCommand extends CommandUtil implements CommandExecutor {
     private DataContainer data = Ablockalypse.getData();
@@ -62,10 +65,14 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 }
                 String gameName = args[1];
                 if (!data.gameExists(gameName)) {
-                    sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+                    sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za game create <game> to create one.");
                     return true;
                 }
                 Player player = (Player) sender;
+                if (data.isZAPlayer(player)) {
+                    sender.sendMessage(ChatColor.RED + "You are already in a game!");
+                    return true;
+                }
                 ZAPlayer zap = data.getZAPlayer(player, gameName, true);
                 zap.loadPlayerToGame(gameName, true);
                 return true;
@@ -81,7 +88,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 }
                 ZAPlayer zap = data.getZAPlayer(player);
                 Game zag = zap.getGame();
-                GamePlayerLeaveEvent GPLE = new GamePlayerLeaveEvent(zap, zag);
+                PlayerLeaveGameEvent GPLE = new PlayerLeaveGameEvent(zap, zag);
                 Bukkit.getPluginManager().callEvent(GPLE);
                 if (!GPLE.isCancelled()) {
                     sender.sendMessage(ChatColor.AQUA + "Successfully quit the Ablockalypse game: " + ChatColor.GOLD + zag.getName());
@@ -111,16 +118,16 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                         if (!gce.isCancelled()) {
                             sender.sendMessage(ChatColor.GRAY + "You have created a new ZA game called " + gameName);
                         } else {
-                            zag.remove();
+                            zag.remove(true);
                         }
                         return true;
                     } else if (args[1].equalsIgnoreCase("remove")) {
                         if (!data.gameExists(gameName)) {
-                            sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+                            sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za game create <game> to create one.");
                             return true;
                         }
                         Game zag = data.getGame(gameName, true);
-                        zag.remove();
+                        zag.remove(true);
                         sender.sendMessage(ChatColor.GRAY + "You have removed the game " + gameName);
                         return true;
                     }
@@ -159,48 +166,28 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                 if (args.length == 4 && args[1].equalsIgnoreCase("create")) {
                     String gameName = args[3];
                     if (!data.gameExists(gameName)) {
-                        sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za create <game> to create one.");
+                        sender.sendMessage(ChatColor.RED + "This game does not exist! Use /za game create <game> to create one.");
                         return true;
                     }
-                    Game game = data.getGame(gameName, false);
                     if (args[2].equalsIgnoreCase("barrier")) {
-                        PlayerInteract.barrierPlayers.put(player.getName(), data.getGame(gameName, true));
-                        player.sendMessage(ChatColor.GRAY + "Click the center of a 3x3 wall to make a barrier.");
+                        PlayerInteract.queue.add(new QueuedBarrierCreation(player.getName(), gameName));
                     } else if (args[2].equalsIgnoreCase("mainframe")) {
-                        Location loc = MiscUtil.getHighestEmptyBlockUnder(player.getLocation()).getLocation();
-                        game.setMainframe(new Mainframe(game, loc));
-                        sender.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
+                        PlayerInteract.queue.add(new QueuedTeleporterCreation(player.getName(), gameName, true));
+                    } else if (args[2].equalsIgnoreCase("teleporter")) {
+                        PlayerInteract.queue.add(new QueuedTeleporterCreation(player.getName(), gameName, false));
                     } else if (args[2].equalsIgnoreCase("mobspawner")) {
-                        PlayerInteract.spawnerPlayers.put(player.getName(), data.getGame(gameName, true));
-                        sender.sendMessage(ChatColor.GRAY + "Click a block to create a spawner.");
+                        PlayerInteract.queue.add(new QueuedMobSpawnerCreation(player.getName(), gameName));
                     } else if (args[2].equalsIgnoreCase("passage")) {
-                        PlayerInteract.passagePlayers.put(player.getName(), data.getGame(gameName, true));
-                        sender.sendMessage(ChatColor.GRAY + "Click a block to select point 1.");
-                    } else if (args[2].equalsIgnoreCase("mysterychest")) {
-                        PlayerInteract.chestPlayers.put(player.getName(), data.getGame(gameName, true));
-                        sender.sendMessage(ChatColor.GRAY + "Click a chest to turn it into a mystery chest.");
-                    } else if (args[2].equalsIgnoreCase("powerswitch")) {
-                        PlayerInteract.powerSwitchClickers.put(player.getName(), data.getGame(gameName, true));
-                        sender.sendMessage(ChatColor.GRAY + "Click a lever to turn it into a power switch.");
+                        PlayerInteract.queue.add(new QueuedPassageCreation(player.getName(), gameName));
+                    } else if (args[2].equalsIgnoreCase("mysterybox") || args[2].equalsIgnoreCase("mysterychest")) {
+                        //accepts mysterychest, just in case they don't know about the switch in v1.2.9.2
+                        PlayerInteract.queue.add(new QueuedMysteryBoxCreation(player.getName(), gameName));
                     } else {
                         sender.sendMessage(ChatColor.RED + "That is not a valid object! Please try \'/za list objects\'.");
                     }
                     return true;
                 } else if (args.length == 2 && args[1].equalsIgnoreCase("remove")) {
-                    Player p = (Player) sender;
-                    sender.sendMessage(ChatColor.GRAY + "Click a ZA object to remove it.");
-                    PlayerInteract.removers.add(p.getName());
-                    return true;
-                } else if (args.length == 4 && args[1].equalsIgnoreCase("power")) {
-                    String gameName = args[2];
-                    if (!args[3].equalsIgnoreCase("true") && !args[3].equalsIgnoreCase("false")) {
-                        sender.sendMessage(ChatColor.RED + "Incorrect syntax! /za power <game> <true/false> - is correct!");
-                        return true;
-                    }
-                    boolean power = Boolean.parseBoolean(args[3]);
-                    PlayerInteract.powerClickers.put(player.getName(), power);
-                    PlayerInteract.powerClickerGames.put(player.getName(), gameName);
-                    player.sendMessage(ChatColor.GRAY + "Please click on a powerable object to " + (power ? "enable" : "disable") + " power requirement.");
+                    PlayerInteract.queue.add(new QueuedGameObjectRemoval(player.getName()));
                     return true;
                 }
                 OBJECT_MENU.showPage(sender, args1Digit ? Integer.parseInt(args[1]) : 1);

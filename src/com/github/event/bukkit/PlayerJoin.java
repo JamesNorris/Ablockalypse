@@ -11,12 +11,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import com.github.Ablockalypse;
-import com.github.aspect.Game;
-import com.github.aspect.ZAPlayer;
-import com.github.behavior.ZAScheduledTask;
+import com.github.aspect.entity.ZAPlayer;
+import com.github.aspect.intelligent.Game;
 import com.github.enumerated.PlayerStatus;
-import com.github.threading.inherent.RespawnThread;
+import com.github.threading.inherent.RespawnTask;
 
 public class PlayerJoin implements Listener {
     public static HashMap<String, Integer> gameLevels = new HashMap<String, Integer>();
@@ -24,9 +22,9 @@ public class PlayerJoin implements Listener {
     private static HashMap<String, Location> spawnLocations = new HashMap<String, Location>();
 
     public static boolean isQueued(ZAPlayer offlineZAPlayer) {
-        return offlinePlayers.containsKey(offlineZAPlayer.getName());
+        return offlinePlayers.containsKey((String) offlineZAPlayer.getState().getSave().get("name"));
     }
-    
+
     public static List<ZAPlayer> getQueues(Game game) {
         List<ZAPlayer> queues = new ArrayList<ZAPlayer>();
         for (String name : offlinePlayers.keySet()) {
@@ -42,30 +40,23 @@ public class PlayerJoin implements Listener {
         if (offlineZAPlayer.hasBeenSentIntoGame()) {
             return;
         }
-        offlinePlayers.put(offlineZAPlayer.getName(), offlineZAPlayer);
-        spawnLocations.put(offlineZAPlayer.getName(), spawn);
+        offlinePlayers.put((String) offlineZAPlayer.getState().getSave().get("name"), offlineZAPlayer);
+        spawnLocations.put((String) offlineZAPlayer.getState().getSave().get("name"), spawn);
     }
 
     /* Called when a player joins the server.
      * Used mainly for loading game data if it has not already been loaded. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PJE(PlayerJoinEvent event) {
-        final Player p = event.getPlayer();
+        Player p = event.getPlayer();
         if (offlinePlayers.containsKey(p.getName()) && spawnLocations.containsKey(p.getName())) {
             ZAPlayer zap = offlinePlayers.get(p.getName());
             zap.loadSavedVersion();
             zap.setStatus(PlayerStatus.LIMBO);
-            final RespawnThread rt = new RespawnThread(zap.getPlayer(), 5, true, false);
+            zap.getState().update();
+            RespawnTask rt = new RespawnTask(zap.getPlayer(), 5, true, false);
             rt.setSpawnLocation(spawnLocations.get(p.getName()));
-            Ablockalypse.getMainThread().scheduleRepeatingTask(new ZAScheduledTask() {
-
-                @Override public void run() {
-                    if (!Ablockalypse.getData().objects.contains(rt)) {
-                        offlinePlayers.remove(p.getName());
-                        spawnLocations.remove(p.getName());
-                    }
-                }
-                
-            }, 1);
+            offlinePlayers.remove(p.getName());
+            spawnLocations.remove(p.getName());
         }
     }
 }

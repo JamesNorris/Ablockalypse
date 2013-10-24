@@ -7,18 +7,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
 
-import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.aspect.Game;
 import com.github.aspect.PermanentAspect;
+import com.github.aspect.intelligent.Game;
 import com.github.command.BaseCommand;
 import com.github.enumerated.Setting;
 import com.github.event.bukkit.BlockBreak;
 import com.github.event.bukkit.BlockPlace;
+import com.github.event.bukkit.BlockRedstone;
 import com.github.event.bukkit.EntityBreakDoor;
 import com.github.event.bukkit.EntityDamage;
 import com.github.event.bukkit.EntityDamageByEntity;
@@ -28,7 +27,6 @@ import com.github.event.bukkit.EntityTarget;
 import com.github.event.bukkit.PlayerDeath;
 import com.github.event.bukkit.PlayerDropItem;
 import com.github.event.bukkit.PlayerInteract;
-import com.github.event.bukkit.PlayerInteractEntity;
 import com.github.event.bukkit.PlayerJoin;
 import com.github.event.bukkit.PlayerKick;
 import com.github.event.bukkit.PlayerMove;
@@ -39,12 +37,13 @@ import com.github.event.bukkit.PlayerTeleport;
 import com.github.event.bukkit.PlayerToggleSneak;
 import com.github.event.bukkit.ProjectileHit;
 import com.github.event.bukkit.SignChange;
+import com.github.event.bukkit.VehicleExit;
 import com.github.threading.MainThread;
-import com.github.threading.inherent.BarrierBreakTriggerThread;
-import com.github.threading.inherent.HellhoundMaintenanceThread;
-import com.github.threading.inherent.MobClearingThread;
+import com.github.threading.inherent.ServerBarrierActionTask;
+import com.github.threading.inherent.ServerHellhoundActionTask;
+import com.github.threading.inherent.ServerMobClearingTask;
+import com.github.threading.inherent.ServerTeleporterActionTask;
 import com.github.utility.serial.SavedVersion;
-import com.github.zathrus_writer.commandsex.api.XMPPAPI;
 
 public class Ablockalypse extends JavaPlugin {
     private static Ablockalypse instance;
@@ -70,7 +69,7 @@ public class Ablockalypse extends JavaPlugin {
         sb.append("VERSION: " + instance.getDescription().getVersion() + "\n");
         sb.append("BREAK REASON: " + reason + "\n");
         for (int i = 1; i <= 5; i++) {
-            sb.append("CRASH CALL " + i + ": " + stackTraceElements[i] + "\n");
+            sb.append("CRASH TRACE " + i + ": " + stackTraceElements[i] + "\n");
         }
         totalFatality += fatality;
         sb.append("FATALITY: " + fatality);
@@ -81,10 +80,6 @@ public class Ablockalypse extends JavaPlugin {
         }
         sb.append("\n---------------------------[END REPORT]---------------------------\n");
         System.err.println(sb.toString());
-        Plugin comex = Bukkit.getPluginManager().getPlugin("CommandsEX");
-        if (comex != null && comex.isEnabled()) {
-            XMPPAPI.sendMessage("An error occurred!\n" + sb.toString());
-        }
     }
 
     public static BaseCommand getBaseCommandInstance() {
@@ -122,17 +117,23 @@ public class Ablockalypse extends JavaPlugin {
         return mainThread;
     }
 
-    /**
-     * Kills the plugin.
-     */
-    public static void kill() {
+     //Kills the plugin.
+    protected static void kill() {
         Ablockalypse.instance.setEnabled(false);
     }
 
     @Override public void onDisable() {
         for (Game game : data.getObjectsOfType(Game.class)) {
+            game.organizeObjects();
             PermanentAspect.save(game, external.getSavedDataFile(game.getName(), true));
-            game.remove();
+            if ((Boolean) Setting.PRINT_STORAGE_DATA_TO_FILE.getSetting()) {
+                try {
+                    PermanentAspect.printData(game);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            game.remove(false);
         }
         mainThread.cancel();
     }
@@ -147,6 +148,8 @@ public class Ablockalypse extends JavaPlugin {
         }
         commandInstance = new BaseCommand();
         register();
+        initServerThreads(false);
+        maxFatality = (Integer) Setting.MAX_FATALITY.getSetting();
         for (File file : external.getSavedDataFolder().listFiles()) {
             if (file != null) {
                 try {
@@ -161,11 +164,7 @@ public class Ablockalypse extends JavaPlugin {
                 }
             }
         }
-        mainThread = new MainThread(true);
-        new BarrierBreakTriggerThread(true, 20);
-        new MobClearingThread((Boolean) Setting.CLEAR_MOBS.getSetting(), 360);
-        new HellhoundMaintenanceThread(true, 20);
-        maxFatality = (Integer) Setting.MAX_FATALITY.getSetting();
+        mainThread.run();//starts the main thread, which was told not to autorun earlier. Done to prevent NPEs with loading saves, but avoid NPEs with threads.
     }
 
     public boolean update() throws FileNotFoundException, IOException {
@@ -185,6 +184,14 @@ public class Ablockalypse extends JavaPlugin {
         return false;
     }
 
+    protected void initServerThreads(boolean startMain) {
+        mainThread = new MainThread(startMain);
+        new ServerBarrierActionTask(true);
+        new ServerMobClearingTask(360, (Boolean) Setting.CLEAR_MOBS.getSetting());
+        new ServerHellhoundActionTask(20, true);
+        new ServerTeleporterActionTask(20, true);
+    }
+
     protected void register() {
         PluginManager pm = getServer().getPluginManager();
         /* EVENTS */
@@ -193,13 +200,11 @@ public class Ablockalypse extends JavaPlugin {
                 new EntityDamage(),
                 new PlayerDeath(),
                 new PlayerInteract(),
-                new PlayerInteractEntity(),
                 new SignChange(),
                 new EntityDeath(),
                 new PlayerPickupItem(),
                 new ProjectileHit(),
                 new PlayerMove(),
-                new PlayerToggleSneak(),
                 new EntityBreakDoor(),
                 new PlayerTeleport(),
                 new PlayerQuit(),
@@ -211,7 +216,10 @@ public class Ablockalypse extends JavaPlugin {
                 new BlockBreak(),
                 new PlayerDropItem(),
                 new PlayerKick(),
-                new BlockPlace()
+                new BlockPlace(),
+                new VehicleExit(),
+                new BlockRedstone(),
+                new PlayerToggleSneak()
         };
         //@formatter:on
         for (Listener listener : registrations) {

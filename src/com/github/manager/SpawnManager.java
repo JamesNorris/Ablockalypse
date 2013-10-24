@@ -1,22 +1,25 @@
 package com.github.manager;
 
-import org.bukkit.Bukkit;
+import java.util.Random;
+
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
-import com.github.aspect.Barrier;
-import com.github.aspect.Game;
-import com.github.aspect.MobSpawner;
-import com.github.enumerated.GameEntityType;
+import com.github.aspect.block.Barrier;
+import com.github.aspect.block.MobSpawner;
+import com.github.aspect.entity.Hellhound;
+import com.github.aspect.entity.ZAMob;
+import com.github.aspect.entity.Zombie;
+import com.github.aspect.intelligent.Game;
 import com.github.enumerated.Setting;
-import com.github.event.GameMobSpawnEvent;
-import com.github.threading.inherent.MobSpawningThread;
-import com.github.utility.MiscUtil;
+import com.github.threading.inherent.MobSpawningTask;
+import com.github.utility.BukkitUtility;
 import com.github.utility.Pathfinder;
 
 public class SpawnManager {
+    private static Random random = new Random();
+    
     /**
      * Checks if all of the mobs of a game are spawned in to the game for this round.
      * This does not check if they are all alive, just if they have spawned.
@@ -68,14 +71,14 @@ public class SpawnManager {
      * @param loc The location to check for
      * @return The closest spawner
      */
-    public static MobSpawner getClosestSpawner(Game game, Location loc) {
+    public static MobSpawner getClosestSpawner(Game game, Location loc, boolean active) {
         double distanceSquared = Double.MAX_VALUE;
         MobSpawner lp = null;// low priority
         MobSpawner hp = null;// high priority
         for (MobSpawner l1 : game.getObjectsOfType(MobSpawner.class)) {
             Location l = l1.getBukkitLocation();
             double current = loc.distanceSquared(l);
-            if (current < distanceSquared) {
+            if (current < distanceSquared && (!active || l1.isActive())) {
                 distanceSquared = current;
                 lp = l1;
                 if (pathIsClear(loc, l)) {
@@ -92,8 +95,8 @@ public class SpawnManager {
      * @param p The player to check for
      * @return The closest spawner
      */
-    public static MobSpawner getClosestSpawner(Game game, Player p) {
-        return getClosestSpawner(game, p.getLocation());
+    public static MobSpawner getClosestSpawner(Game game, Player p, boolean active) {
+        return getClosestSpawner(game, p.getLocation(), active);
     }
 
     /**
@@ -133,11 +136,20 @@ public class SpawnManager {
     /**
      * Gamespawns a mob at the specified location.
      * 
+     * @param game The game to spawn the mob in
      * @param loc The location to spawn the mob at
      * @param exactLocation Whether or not to spawn right next to the target, or to find a closeby location.
+     * @param percentage The percent chance of a hellhound spawning
      */
-    public static void spawn(Game game, Location loc, boolean exactLocation) {
-        spawn(game, exactLocation ? loc : MiscUtil.getNearbyLocation(loc, 4, 7, 0, 0, 4, 7), game.isWolfRound() ? EntityType.WOLF : EntityType.ZOMBIE);
+    public static ZAMob spawn(Game game, Location loc, boolean exactLocation, int percentage) {
+        return spawn(game, exactLocation ? loc : BukkitUtility.getNearbyLocation(loc, 10, 20, 0, 0, 10, 20), percentage);
+    }
+    
+    public static ZAMob spawn(Game game, Location loc, int percentage) {
+        if (random.nextInt(99) + 1 <= percentage) {
+            return new Hellhound(loc.getWorld(), loc.getWorld().spawnEntity(loc, EntityType.WOLF).getUniqueId(), game);
+        }
+        return new Zombie(loc.getWorld(), loc.getWorld().spawnEntity(loc, EntityType.ZOMBIE).getUniqueId(), game);
     }
 
     /**
@@ -151,7 +163,7 @@ public class SpawnManager {
     }
     
     public static void spawnWave(Game game, int amt) {
-        if (game.getRemainingPlayers() < 1 && game.getMobCount() <= 0) {
+        if (game.getRemainingPlayers().size() < 1 && game.getMobCount() <= 0) {
             game.end(true);
             return;
         }
@@ -159,20 +171,7 @@ public class SpawnManager {
             System.out.println("[Ablockalypse] [DEBUG] Amount of zombies in this wave: (" + game.getName() + ") " + amt);
         }
         for (int i = 1; i <= amt; i++) {
-            new MobSpawningThread(game, i * 80);
-        }
-    }
-
-    protected static void spawn(Game game, Location l, EntityType et) {
-        Entity e = l.getWorld().spawnEntity(l, et);
-        GameEntityType type = GameEntityType.translate(et);
-        GameMobSpawnEvent gmse = new GameMobSpawnEvent(e, game, type);
-        Bukkit.getServer().getPluginManager().callEvent(gmse);
-        game.setMobCountSpawnedInThisRound(game.getMobCountSpawnedInThisRound() + 1);
-        if (!gmse.isCancelled()) {
-            type.instantiate(e, game);
-        } else {
-            e.remove();
+            new MobSpawningTask(game, i * 80, true);
         }
     }
 }

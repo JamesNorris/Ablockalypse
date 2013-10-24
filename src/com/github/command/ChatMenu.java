@@ -15,7 +15,7 @@ public class ChatMenu {
     }
 
     /**
-     * @deprecated
+     * @deprecated Not putting items on a new line tricks the menu into making the page too long.
      */
     @Deprecated public ChatMenu(String menuName, String[] menuItems, boolean itemsOnNewLine) {
         this.menuName = menuName;

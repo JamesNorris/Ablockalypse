@@ -1,11 +1,55 @@
 package com.github.utility;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 
+import com.github.aspect.intelligent.Path;
+
 public class Pathfinder {
+    private static List<Material> softBlocks = new ArrayList<Material>() {
+        private static final long serialVersionUID = 4486955388377524651L;
+        {
+            add(Material.CARPET);
+            add(Material.CROPS);
+            add(Material.GRASS);
+            add(Material.LEVER);
+            add(Material.LONG_GRASS);
+            add(Material.MELON_STEM);
+            add(Material.NETHER_WARTS);
+            add(Material.PAINTING);
+            add(Material.POWERED_RAIL);
+            add(Material.PUMPKIN_STEM);
+            add(Material.RAILS);
+            add(Material.RED_MUSHROOM);
+            add(Material.RED_ROSE);
+            add(Material.REDSTONE);
+            add(Material.REDSTONE_COMPARATOR);
+            add(Material.REDSTONE_WIRE);
+            add(Material.SIGN);
+            add(Material.SIGN_POST);
+            add(Material.SNOW);
+            add(Material.STATIONARY_LAVA);
+            add(Material.STATIONARY_WATER);
+            add(Material.STONE_PLATE);
+            add(Material.STRING);
+            add(Material.SUGAR_CANE_BLOCK);
+            add(Material.TORCH);
+            add(Material.TRIPWIRE);
+            add(Material.VINE);
+            add(Material.WALL_SIGN);
+            add(Material.WATER);
+            add(Material.WEB);
+            add(Material.WHEAT);
+            add(Material.WOOD_PLATE);
+            add(Material.YELLOW_FLOWER);
+        }
+    };
+
     /**
      * Calculates and returns the path to the target from the starting point.
      * This also accounts for pitch and yaw toward the target.
@@ -19,6 +63,7 @@ public class Pathfinder {
         World world = start.getWorld();
         Location current = start.subtract(0, 1, 0);
         locations.put(0, getCoordinates(setLocationDirection(current, target)));
+        double totalHeuristic = 0;
         for (int n = 1; n <= 1000; n++) {
             double H = Double.MAX_VALUE;
             Location correct = null;
@@ -26,7 +71,7 @@ public class Pathfinder {
                 for (int z = -1; z <= 1; z++) {
                     Location check = current.clone().add(x, 0, z);
                     double newH = check.distanceSquared(target);
-                    if (!check.getBlock().isEmpty()) {
+                    if (!check.getBlock().isEmpty() && /*check.getBlock().getType().isOccluding()*/!softBlocks.contains(check.getBlock().getType())) {
                         if (check.clone().add(0, 1, 0).getBlock().isEmpty() && check.clone().add(0, 2, 0).getBlock().isEmpty()) {
                             check = check.clone().add(0, 1, 0);
                             newH = check.distanceSquared(target);
@@ -40,18 +85,19 @@ public class Pathfinder {
                     }
                 }
             }
-            boolean newNode = correct != null && H < Double.MAX_VALUE && !MiscUtil.locationMatch(correct, current);
+            boolean newNode = correct != null && H < Double.MAX_VALUE && !BukkitUtility.locationMatch(correct, current);
             Location found = setLocationDirection(newNode ? correct : current, target);
             locations.put(n, getCoordinates(found));
             if (!newNode) {
                 break;
             }
+            totalHeuristic += H;
             current = correct;
-            if (MiscUtil.locationMatch(target, current, 2)) {
+            if (BukkitUtility.locationMatch(target, current, 2)) {
                 break;// target reached
             }
         }
-        return new Path(world, locations);
+        return new Path(world, locations, totalHeuristic);
     }
 
     /**
@@ -78,7 +124,7 @@ public class Pathfinder {
     public static boolean pathReaches(Path path, Location loc) {
         for (int i = 0; i <= path.getRawNodesMap().keySet().size(); i++) {
             Location node = path.getNode(i);
-            if (node == null || !MiscUtil.locationMatch(loc, node)) {
+            if (node == null || !BukkitUtility.locationMatch(loc, node)) {
                 continue;
             }
             return true;
@@ -92,7 +138,7 @@ public class Pathfinder {
             if (node == null) {
                 continue;
             }
-            if (!MiscUtil.locationMatch(loc, node, radiusDistance)) {
+            if (!BukkitUtility.locationMatch(loc, node, radiusDistance)) {
                 return false;
             }
         }

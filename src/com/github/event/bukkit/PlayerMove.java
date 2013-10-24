@@ -12,10 +12,10 @@ import org.bukkit.event.player.PlayerMoveEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.Barrier;
-import com.github.aspect.ZAPlayer;
+import com.github.aspect.block.Barrier;
+import com.github.aspect.entity.ZAPlayer;
 import com.github.enumerated.ZAPerk;
-import com.github.utility.MiscUtil;
+import com.github.utility.BukkitUtility;
 
 public class PlayerMove implements Listener {
     private DataContainer data = Ablockalypse.getData();
@@ -25,7 +25,7 @@ public class PlayerMove implements Listener {
         Location from = event.getFrom();
         Location to = event.getTo();
         boolean anyX = Math.abs(to.getX() - from.getX()) <= 0;
-        boolean upY = from.getY() - to.getY() <= 0;
+        boolean upY = from.getY() - to.getY() < 0;
         boolean anyZ = Math.abs(to.getZ() - from.getZ()) <= 0;
         return !anyX || !upY || !anyZ;
     }
@@ -53,7 +53,7 @@ public class PlayerMove implements Listener {
             for (Barrier gb : zap.getGame().getObjectsOfType(Barrier.class)) {
                 for (Block b : gb.getBlocks()) {
                     Location l = b.getLocation();
-                    if (MiscUtil.locationMatch(l, to)) {
+                    if (BukkitUtility.locationMatch(l, to)) {
                         p.teleport(from);
                         event.setCancelled(true);
                     }
