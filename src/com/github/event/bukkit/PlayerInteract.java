@@ -165,7 +165,6 @@ public class PlayerInteract implements Listener {
                     short damage = handItem == null ? 1/*hand damage*/ : handItem.getDurability();
                     HitThroughWallShot shotData = new HitThroughWallShot(damage);
                     Shot shot = new Shot(player.getEyeLocation(), shotData);
-                    System.out.println(player.getEyeLocation().getYaw());//TODO remove
                     List<Hit> results = shot.shoot(shot.arrangeClosest(data.getObjectsOfType(HitBox.class)));
                     if (results.isEmpty()) {
                         return;

@@ -37,12 +37,12 @@ public class ZAMob extends PermanentAspect implements GameObject {
     public ZAMob(LivingEntity entity, Game game) {
         this.entity = entity;
         this.game = game;
-        this.hitBox = new EntityHitBox(entity, 1D, 1D, 1D);
-        data.objects.add(hitBox);
         if (entity == null) {
             remove();
             return;
         }
+        this.hitBox = new EntityHitBox(entity, 1D, 1D, 1D);
+        data.objects.add(hitBox);
         data.objects.add(this);
         game.addObject(this);
         game.setMobCountSpawnedInThisRound(game.getMobCountSpawnedInThisRound() + 1);

@@ -6,9 +6,9 @@ import java.util.UUID;
 
 import org.bukkit.Location;
 
-public class HitBox {
+public class HitBox extends Box3D {
     private float yawRotation;
-    private double width, height, length, padding = .001;
+    private double width, height, length;
     private double[][] additions;
     private Location center;
     private Location[] corners = new Location[8];
@@ -50,12 +50,14 @@ public class HitBox {
      * @param height The height (y axis) of the hit box
      * @param yawRotation The rotation around the center of the origin (or any other point)
      */
-    public HitBox(Location center, double length, double width, double height, float yawRotation) {  
+    public HitBox(Location center, double length, double width, double height, float yawRotation) {
+        super(center.clone().add(-1 * width / 2, -1 * height / 2, -1 * length / 2), center.clone().add(width / 2, height / 2, length / 2));
         this.center = new Location(center.getWorld(), center.getX(), center.getY(), center.getZ(), MathUtility.absDegrees(yawRotation), 0);
         corners[0] = this.center.clone().add(-1 * width / 2, -1 * height / 2, -1 * length / 2);
         this.width = width;
         this.height = height;
         this.length = length;
+        System.out.println(center + ", \n" + length + ", " + width + ", " + height);
         rotate(MathUtility.absDegrees(yawRotation));
     }
     //@formatter:on
@@ -65,14 +67,6 @@ public class HitBox {
 
     public Location getCorner(int corner) {
         return corners[corner];
-    }
-    
-    public double getPadding() {
-        return padding;
-    }
-    
-    public void setPadding(double padding) {
-        this.padding = padding;
     }
 
     public Location getOrigin() {
@@ -149,6 +143,7 @@ public class HitBox {
         for (int i = 0; i < 8; i++) {
             corners[i].add(deltaX, deltaY, deltaZ);
         }
+        update(center.clone().add(-1 * width / 2, -1 * height / 2, -1 * length / 2), center.clone().add(width / 2, height / 2, length / 2));
         this.center.add(deltaX, deltaY, deltaZ);
     }
 

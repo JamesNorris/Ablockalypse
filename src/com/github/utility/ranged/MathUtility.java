@@ -13,4 +13,8 @@ public class MathUtility {
         }
         return degrees % 360;
     }
+    
+    public static boolean overlap1D(double low1, double high1, double low2, double high2) {
+        return low1 <= low2 ? low2 <= high1 : low1 <= high2;
+    }
 }
