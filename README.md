@@ -1,9 +1,9 @@
 Ablockalypse
 ============
 
-A fast, powerful, and smooth working Zombie Apocalypse plugin for Bukkit servers. 
+A fast, powerful, and smooth working Zombie Apocalypse plugin for Bukkit servers.  
 All issues, source code, and repository functions are handled by [GitHub](https://github.com/).  
-Downloads, comments, and visuals are handled by [BukkitDev](http://dev.bukkit.org/).
+Downloads, comments, and visuals are handled by [BukkitDev](http://dev.bukkit.org/).  
 Chat, calling, and instant messaging are done via [Skype](http://www.skype.com/en/).
 
 To Download:
@@ -31,4 +31,4 @@ Code requirements:
 Licencing:
 ----------
 
-Ablockalypse is licenced under GPLv3, which can be found in LICENCE.txt.
+Ablockalypse is licenced under GPLv3, which can be found in [LICENCE.txt](https://github.com/JamesNorris/Ablockalypse/blob/master/LICENCE.txt).
