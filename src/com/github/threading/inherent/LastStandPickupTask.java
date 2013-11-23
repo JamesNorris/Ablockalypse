@@ -43,8 +43,9 @@ public class LastStandPickupTask extends RepeatingTask {
 
     @Override public void run() {
         ++ranThrough;
-        if (downed.isInLastStand() && pickupPlayer.getLocation().distanceSquared(downedPlayer.getLocation()) <= 4 /* 4 = 2 squared */&& ranThrough < requirement && pickupPlayer.isSneaking()) {
-            pickupPlayer.setExp(starting + (perRequirement * ranThrough));
+        if (downed.isInLastStand() && pickupPlayer.getLocation().distanceSquared(downedPlayer.getLocation()) <= 4 /* 4 = 2 squared */&& ranThrough < requirement
+                && pickupPlayer.isSneaking()) {
+            pickupPlayer.setExp(starting + perRequirement * ranThrough);
         } else if (ranThrough >= requirement && downed.isInLastStand()) {
             downed.toggleLastStand();
             pickupPlayer.sendMessage(ChatColor.GREEN + "You have picked up " + downedPlayer.getName() + "!");

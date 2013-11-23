@@ -19,7 +19,7 @@ import com.github.utility.Pathfinder;
 
 public class SpawnManager {
     private static Random random = new Random();
-    
+
     /**
      * Checks if all of the mobs of a game are spawned in to the game for this round.
      * This does not check if they are all alive, just if they have spawned.
@@ -144,7 +144,7 @@ public class SpawnManager {
     public static ZAMob spawn(Game game, Location loc, boolean exactLocation, int percentage) {
         return spawn(game, exactLocation ? loc : BukkitUtility.getNearbyLocation(loc, 10, 20, 0, 0, 10, 20), percentage);
     }
-    
+
     public static ZAMob spawn(Game game, Location loc, int percentage) {
         if (random.nextInt(99) + 1 <= percentage) {
             return new Hellhound(loc.getWorld(), loc.getWorld().spawnEntity(loc, EntityType.WOLF).getUniqueId(), game);
@@ -161,7 +161,7 @@ public class SpawnManager {
     public static void spawnWave(Game game) {
         spawnWave(game, getCurrentSpawnAmount(game));
     }
-    
+
     public static void spawnWave(Game game, int amt) {
         if (game.getRemainingPlayers().size() < 1 && game.getMobCount() <= 0) {
             game.end(true);

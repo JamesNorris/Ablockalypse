@@ -9,8 +9,8 @@ import org.bukkit.event.block.BlockRedstoneEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.block.Powerable;
-import com.github.behavior.GameObject;
+import com.github.aspect.NonspecificGameAspect;
+import com.github.behavior.GameAspect;
 import com.github.utility.selection.Cube;
 
 public class BlockRedstone implements Listener {
@@ -22,10 +22,9 @@ public class BlockRedstone implements Listener {
         for (Location loc : cube.getLocations()) {
             Block block = loc.getBlock();
             if (data.isGameObject(block.getLocation())) {
-                GameObject obj = data.getGameObjectByLocation(block.getLocation());
-                if (obj instanceof Powerable) {
-                    Powerable powered = (Powerable) obj;
-                    powered.setPowered(event.getNewCurrent() > 0);
+                GameAspect obj = data.getGameObjectByLocation(block.getLocation());
+                if (obj instanceof NonspecificGameAspect) {
+                    ((NonspecificGameAspect) obj).checkForPower();
                 }
             }
         }

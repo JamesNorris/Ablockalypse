@@ -38,7 +38,8 @@ public class LastStandFallenTask extends RepeatingTask {
         if (warning != null) {
             data.objects.remove(warning);
         }
-        warning = AblockalypseUtility.scheduleNearbyWarning(player.getLocation(), ChatColor.GRAY + "Hold " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up " + player.getName() + ".", 2, 3.5, 2, 10000);
+        warning = AblockalypseUtility.scheduleNearbyWarning(player.getLocation(), ChatColor.GRAY + "Hold " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up "
+                + player.getName() + ".", 2, 3.5, 2, 10000);
         player.damage(.25);
     }
 }

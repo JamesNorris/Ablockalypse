@@ -25,14 +25,19 @@ public class QueuedTeleporterCreation extends QueuedPlayerInteractData {
         super(playerName);
         this.gameName = gameName;
         this.mainframe = mainframe;
-        Bukkit.getPlayer(playerName).sendMessage(ChatColor.GRAY + "Right click a block to turn it into a " + ((mainframe) ? "mainframe" : "teleporter") + ".");
+        Bukkit.getPlayer(playerName).sendMessage(ChatColor.GRAY + "Right click a block to turn it into a " + (mainframe ? "mainframe" : "teleporter") + ".");
     }
 
     @Override public boolean isCompatible(PlayerInteractEvent event) {
         if (mLoc != null) {
-            return event.getPlayer().getName().equals(key) && !data.isZAPlayer(event.getPlayer()) && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK);
+            return event.getPlayer().getName().equals(key) && !data.isZAPlayer(event.getPlayer())
+                    && (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK);
         }
         return event.getClickedBlock() != null && event.getPlayer().getName().equals(key) && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK;
+    }
+
+    @Override public boolean removeAfterRun() {
+        return complete;
     }
 
     @Override public void run() {
@@ -57,7 +62,7 @@ public class QueuedTeleporterCreation extends QueuedPlayerInteractData {
             mLoc.setYaw(player.getLocation().getYaw());
             Teleporter tele = new Teleporter(game, mLoc);
             game.setMainframe(tele);
-            tele.update();
+            tele.checkForPower();
             player.sendMessage(ChatColor.GRAY + "You have set the mainframe for " + gameName);
             return;
         }
@@ -74,9 +79,5 @@ public class QueuedTeleporterCreation extends QueuedPlayerInteractData {
         complete = true;
         new Teleporter(game, block.getLocation());
         player.sendMessage(ChatColor.GRAY + "Teleporter created successfully!");
-    }
-
-    @Override public boolean removeAfterRun() {
-        return complete;
     }
 }

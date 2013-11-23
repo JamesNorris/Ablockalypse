@@ -13,7 +13,7 @@ public class Path {
     public Path(World world, HashMap<Integer, double[]> locations) {
         this(world, locations, -1);
     }
-    
+
     public Path(World world, HashMap<Integer, double[]> locations, double totalHeuristic) {
         this.world = world;
         this.locations = locations;
@@ -45,12 +45,21 @@ public class Path {
         return null;
     }
 
+    public int getNodeAmount() {
+        return locations.size();
+    }
+
     public double getPitch(int nodeNumber) {
         return locations.get(nodeNumber)[4];
     }
 
     public HashMap<Integer, double[]> getRawNodesMap() {
         return locations;
+    }
+
+    // can return -1 if no heuristic arg is provided in the constructor
+    @Deprecated public double getTotalHeuristic() {
+        return totalHeuristic;
     }
 
     public double getX(int nodeNumber) {
@@ -67,14 +76,5 @@ public class Path {
 
     public double getZ(int nodeNumber) {
         return locations.get(nodeNumber)[2];
-    }
-    
-    public int getNodeAmount() {
-        return locations.size();
-    }
-    
-    //can return -1 if no heuristic arg is provided in the constructor
-    @Deprecated public double getTotalHeuristic() {
-        return totalHeuristic;
     }
 }

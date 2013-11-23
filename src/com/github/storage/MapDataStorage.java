@@ -1,7 +1,6 @@
 package com.github.storage;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,38 +86,7 @@ import com.github.utility.serial.SerialLocation;
                 block.setTypeId(id);
                 block.setData(data);
                 BlockState state = block.getState();
-                specificData: {
-                    if (thisSerialBlock.containsKey("INVENTORY_HOLDER")) {
-                        ((InventoryHolder) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
-                    } else if (thisSerialBlock.containsKey("CONTAINER_BLOCK")) {
-                        ((ContainerBlock) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
-                    }
-                    if (thisSerialBlock.containsKey("command")) {
-                        ((CommandBlock) state).setCommand((String) thisSerialBlock.get("command"));
-                    }
-                    if (thisSerialBlock.containsKey("spawnType")) {
-                        CreatureSpawner spawner = (CreatureSpawner) state;
-                        spawner.setSpawnedType(EntityType.valueOf((String) thisSerialBlock.get("spawnType")));
-                        spawner.setDelay((Integer) thisSerialBlock.get("spawnDelay"));
-                    }
-                    if (thisSerialBlock.containsKey("playingRecord")) {
-                        ((Jukebox) state).setPlaying(Material.valueOf((String) thisSerialBlock.get("playingRecord")));
-                    }
-                    if (thisSerialBlock.containsKey("rawNote")) {
-                        ((NoteBlock) state).setRawNote((Byte) thisSerialBlock.get("rawNote"));
-                    }
-                    if (thisSerialBlock.containsKey("signLine0")) {
-                        for (int i = 0; i <= 3; i++) {
-                            ((Sign) state).setLine(i, (String) thisSerialBlock.get("signLine" + i));
-                        }
-                    }
-                    if (thisSerialBlock.containsKey("skullOwner")) {
-                        Skull skull = (Skull) state;
-                        skull.setOwner((String) thisSerialBlock.get("skullOwner"));
-                        skull.setRotation(BlockFace.valueOf((String) thisSerialBlock.get("skullRotation")));
-                        skull.setSkullType(SkullType.valueOf((String) thisSerialBlock.get("skullType")));
-                    }
-                }
+                updateSpecificData(state, thisSerialBlock);
             }
             SavedVersion save = (SavedVersion) External.load(gameFile);
             Region oldRegion = new Region(originalAnchor, originalOpposite);
@@ -134,24 +102,22 @@ import com.github.utility.serial.SerialLocation;
                 mdble.paste(anchor.clone().add(xDif, yDif, zDif));
             }
             return true;
-        } catch (IOException e) {
-            return false;
-        } catch (ClassNotFoundException e) {
+        } catch (Exception ex) {
+            Ablockalypse.getErrorTracker().crash("MapData could not be loaded from " + mapFile.getName() + ".", 35, ex);
             return false;
         }
     }
 
-    @SuppressWarnings("unused") public boolean save(Rectangle rect) {
+    public boolean save(Rectangle rect) {
         try {
             Location anchor = rect.getCorner(1);
             List<Map<String, Object>> serialized = new ArrayList<Map<String, Object>>();
-            gameID: {
-                Map<String, Object> serialGameID = new HashMap<String, Object>();
-                serialGameID.put("gameName", game.getName());
-                serialGameID.put("anchor", new SerialLocation(anchor));
-                serialGameID.put("opposite", new SerialLocation(rect.getCorner(2)));
-                serialized.add(serialGameID);
-            }
+            // game id tag
+            Map<String, Object> serialGameID = new HashMap<String, Object>();
+            serialGameID.put("gameName", game.getName());
+            serialGameID.put("anchor", new SerialLocation(anchor));
+            serialGameID.put("opposite", new SerialLocation(rect.getCorner(2)));
+            serialized.add(serialGameID);
             for (Location loc : rect.getLocations()) {
                 Map<String, Object> thisSerialBlock = new HashMap<String, Object>();
                 Block block = loc.getBlock();
@@ -165,65 +131,17 @@ import com.github.utility.serial.SerialLocation;
                 thisSerialBlock.put("yaw", loc.getYaw());
                 thisSerialBlock.put("pitch", loc.getPitch());
                 thisSerialBlock.put("biome", block.getBiome());// unused
-                specificData: {
-                    if (state instanceof InventoryHolder) {
-                        thisSerialBlock.put("INVENTORY_HOLDER", "NULL");
-                        int i = 1;
-                        for (ItemStack stack : ((InventoryHolder) state).getInventory().getContents()) {
-                            Map<String, Object> serialStack = stack.serialize();
-                            for (String name : serialStack.keySet()) {
-                                Object obj = serialStack.get(name);
-                                serialStack.remove(name);
-                                serialStack.put("MAPDATA_ITEM=" + i++ + "=" + name, obj);
-                            }
-                            thisSerialBlock.putAll(serialStack);
-                        }
-                    } else if (state instanceof ContainerBlock) {
-                        thisSerialBlock.put("CONTAINER_BLOCK", "NULL");
-                        int i = 1;
-                        for (ItemStack stack : ((ContainerBlock) state).getInventory().getContents()) {
-                            Map<String, Object> serialStack = stack.serialize();
-                            for (String name : serialStack.keySet()) {
-                                Object obj = serialStack.get(name);
-                                serialStack.remove(name);
-                                serialStack.put("MAPDATA_ITEM=" + i++ + "=" + name, obj);
-                            }
-                            thisSerialBlock.putAll(serialStack);
-                        }
-                    }
-                    if (state instanceof CommandBlock) {
-                        thisSerialBlock.put("command", ((CommandBlock) state).getCommand());
-                    }
-                    if (state instanceof CreatureSpawner) {
-                        CreatureSpawner spawner = (CreatureSpawner) state;
-                        thisSerialBlock.put("spawnType", spawner.getSpawnedType().toString());
-                        thisSerialBlock.put("spawnDelay", spawner.getDelay());
-                    }
-                    if (state instanceof Jukebox) {
-                        thisSerialBlock.put("playingRecord", ((Jukebox) state).getPlaying().toString());
-                    }
-                    if (state instanceof NoteBlock) {
-                        thisSerialBlock.put("rawNote", ((NoteBlock) state).getRawNote());
-                    }
-                    if (state instanceof Sign) {
-                        for (int i = 0; i <= 3; i++) {
-                            String line = ((Sign) state).getLine(i);
-                            thisSerialBlock.put("signLine" + i, line);
-                        }
-                    }
-                    if (state instanceof Skull) {
-                        Skull skull = (Skull) state;
-                        thisSerialBlock.put("skullOwner", skull.getOwner());
-                        thisSerialBlock.put("skullRotation", skull.getRotation().toString());
-                        thisSerialBlock.put("skullType", skull.getSkullType().toString());
-                    }
+                if (state == null) {
+                    continue;
                 }
+                thisSerialBlock.putAll(getSpecificData(state));
                 serialized.add(thisSerialBlock);
             }
             External.save(serialized, mapFile);
             External.save(game.getSave(), gameFile);
             return true;
-        } catch (IOException e) {
+        } catch (Exception ex) {
+            Ablockalypse.getErrorTracker().crash("MapData could not be saved to " + mapFile.getName() + ".", 35, ex);
             return false;
         }
     }
@@ -248,5 +166,100 @@ import com.github.utility.serial.SerialLocation;
             itemStacks.add(ItemStack.deserialize(serialStack));
         }
         return (ItemStack[]) itemStacks.toArray();
+    }
+
+    private Map<String, Object> getSpecificData(BlockState state) {
+        Map<String, Object> thisSerialBlock = new HashMap<String, Object>();
+        if (state instanceof InventoryHolder && ((InventoryHolder) state).getInventory() != null) {
+            thisSerialBlock.put("INVENTORY_HOLDER", "NULL");
+            int i = 1;
+            for (ItemStack stack : ((InventoryHolder) state).getInventory().getContents()) {
+                if (stack == null) {
+                    continue;
+                }
+                Map<String, Object> serialStack = stack.serialize();
+                for (String name : serialStack.keySet()) {
+                    Object obj = serialStack.get(name);
+                    serialStack.remove(name);
+                    serialStack.put("MAPDATA_ITEM=" + i++ + "=" + name, obj);
+                }
+                thisSerialBlock.putAll(serialStack);
+            }
+        } else if (state instanceof ContainerBlock && ((ContainerBlock) state).getInventory() != null) {
+            thisSerialBlock.put("CONTAINER_BLOCK", "NULL");
+            int i = 1;
+            for (ItemStack stack : ((ContainerBlock) state).getInventory().getContents()) {
+                if (stack == null) {
+                    continue;
+                }
+                Map<String, Object> serialStack = stack.serialize();
+                for (String name : serialStack.keySet()) {
+                    Object obj = serialStack.get(name);
+                    serialStack.remove(name);
+                    serialStack.put("MAPDATA_ITEM=" + i++ + "=" + name, obj);
+                }
+                thisSerialBlock.putAll(serialStack);
+            }
+        }
+        if (state instanceof CommandBlock && ((CommandBlock) state).getCommand() != null) {
+            thisSerialBlock.put("command", ((CommandBlock) state).getCommand());
+        }
+        if (state instanceof CreatureSpawner && ((CreatureSpawner) state).getSpawnedType() != null) {
+            CreatureSpawner spawner = (CreatureSpawner) state;
+            thisSerialBlock.put("spawnType", spawner.getSpawnedType().toString());
+            thisSerialBlock.put("spawnDelay", spawner.getDelay());
+        }
+        if (state instanceof Jukebox && ((Jukebox) state).getPlaying() != null) {
+            thisSerialBlock.put("playingRecord", ((Jukebox) state).getPlaying().toString());
+        }
+        if (state instanceof NoteBlock) {
+            thisSerialBlock.put("rawNote", ((NoteBlock) state).getRawNote());
+        }
+        if (state instanceof Sign) {
+            for (int i = 0; i < 4; i++) {
+                String line = ((Sign) state).getLine(i);
+                thisSerialBlock.put("signLine" + i, line);
+            }
+        }
+        if (state instanceof Skull && ((Skull) state).getOwner() != null && ((Skull) state).getRotation() != null && ((Skull) state).getSkullType() != null) {
+            Skull skull = (Skull) state;
+            thisSerialBlock.put("skullOwner", skull.getOwner());
+            thisSerialBlock.put("skullRotation", skull.getRotation().toString());
+            thisSerialBlock.put("skullType", skull.getSkullType().toString());
+        }
+        return thisSerialBlock;
+    }
+
+    private void updateSpecificData(BlockState state, Map<String, Object> thisSerialBlock) {
+        if (thisSerialBlock.containsKey("INVENTORY_HOLDER")) {
+            ((InventoryHolder) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
+        } else if (thisSerialBlock.containsKey("CONTAINER_BLOCK")) {
+            ((ContainerBlock) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
+        }
+        if (thisSerialBlock.containsKey("command")) {
+            ((CommandBlock) state).setCommand((String) thisSerialBlock.get("command"));
+        }
+        if (thisSerialBlock.containsKey("spawnType")) {
+            CreatureSpawner spawner = (CreatureSpawner) state;
+            spawner.setSpawnedType(EntityType.valueOf((String) thisSerialBlock.get("spawnType")));
+            spawner.setDelay((Integer) thisSerialBlock.get("spawnDelay"));
+        }
+        if (thisSerialBlock.containsKey("playingRecord")) {
+            ((Jukebox) state).setPlaying(Material.valueOf((String) thisSerialBlock.get("playingRecord")));
+        }
+        if (thisSerialBlock.containsKey("rawNote")) {
+            ((NoteBlock) state).setRawNote((Byte) thisSerialBlock.get("rawNote"));
+        }
+        if (thisSerialBlock.containsKey("signLine0")) {
+            for (int i = 0; i <= 3; i++) {
+                ((Sign) state).setLine(i, (String) thisSerialBlock.get("signLine" + i));
+            }
+        }
+        if (thisSerialBlock.containsKey("skullOwner")) {
+            Skull skull = (Skull) state;
+            skull.setOwner((String) thisSerialBlock.get("skullOwner"));
+            skull.setRotation(BlockFace.valueOf((String) thisSerialBlock.get("skullRotation")));
+            skull.setSkullType(SkullType.valueOf((String) thisSerialBlock.get("skullType")));
+        }
     }
 }

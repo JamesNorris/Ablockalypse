@@ -15,7 +15,7 @@ public class RespawnTask extends RepeatingTask {
     private static final int INTERVAL = 20;
     private DataContainer data = Ablockalypse.getData();
     private Player player;
-    private boolean  messageSent = false, respawn = true;
+    private boolean messageSent = false, respawn = true;
     private int time, level;
     private Location spawn;
     private ZAPlayer zap;
@@ -70,7 +70,7 @@ public class RespawnTask extends RepeatingTask {
                     }
                 }
                 zap.teleport(spawn, "Respawn");
-                zap.setStatus(PlayerStatus.NORMAL);//just in case the player had already been sent into the game
+                zap.setStatus(PlayerStatus.NORMAL);// just in case the player had already been sent into the game
                 cancel();
                 return;
             } else {

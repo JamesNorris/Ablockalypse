@@ -14,11 +14,11 @@ import org.bukkit.scoreboard.Scoreboard;
 import com.github.Ablockalypse;
 import com.github.DataContainer;
 import com.github.aspect.entity.ZAPlayer;
-import com.github.behavior.GameObject;
+import com.github.behavior.GameAspect;
 import com.github.enumerated.Setting;
 import com.github.threading.RepeatingTask;
 
-public class GameScoreboard implements GameObject {
+public class GameScoreboard implements GameAspect {
     private Game game;
     private Scoreboard board;
     private Objective points, health;
@@ -40,9 +40,34 @@ public class GameScoreboard implements GameObject {
         data.objects.add(this);
     }
 
+    @Override public Block getDefiningBlock() {
+        return null;
+    }
+
+    @Override public ArrayList<Block> getDefiningBlocks() {
+        return null;
+    }
+
     @Override public Game getGame() {
         return game;
     }
+
+    @Override public int getLoadPriority() {
+        return 3;
+    }
+
+    @Override public void onGameEnd() {}
+
+    @Override public void onGameStart() {}
+
+    @Override public void onLevelEnd() {}
+
+    @Override public void onNextLevel() {}
+
+    @Override public void remove() {
+        game.removeObject(this);
+        data.objects.remove(this);
+    }// board should be removed onDisable
 
     public void startScan() {
         new RepeatingTask(20, true) {
@@ -80,30 +105,5 @@ public class GameScoreboard implements GameObject {
                 player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
             }
         };
-    }
-
-    @Override public void remove() {
-        game.removeObject(this);
-        data.objects.remove(this);
-    }//board should be removed onDisable
-
-    @Override public void onGameEnd() {}
-
-    @Override public void onGameStart() {}
-
-    @Override public void onNextLevel() {}
-
-    @Override public void onLevelEnd() {}
-
-    @Override public Block getDefiningBlock() {
-        return null;
-    }
-
-    @Override public ArrayList<Block> getDefiningBlocks() {
-        return null;
-    }
-
-    @Override public int getLoadPriority() {
-        return 3;
     }
 }

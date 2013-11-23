@@ -59,7 +59,8 @@ public class ChatMenu {
     public void showPage(CommandSender user, int page) {
         int pageOffset = page * ITEMS_PER_PAGE - ITEMS_PER_PAGE;
         String dashLine = getDashLine(page);
-        user.sendMessage(dashLine + " " + menuName + ChatColor.RESET + " - pg " + ChatColor.LIGHT_PURPLE + page + ChatColor.DARK_PURPLE + "/" + pages + ChatColor.RESET + " " + dashLine);
+        user.sendMessage(dashLine + " " + menuName + ChatColor.RESET + " - pg " + ChatColor.LIGHT_PURPLE + page + ChatColor.DARK_PURPLE + "/" + pages + ChatColor.RESET + " "
+                + dashLine);
         if (page < 1 || page > pages) {
             user.sendMessage(ChatColor.RED + "EMPTY PAGE");
             return;

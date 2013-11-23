@@ -20,7 +20,8 @@ public enum Setting {
     DEBUG("DEBUG", Boolean.class), 
     DEFAULT_FRIENDLY_FIRE_MODE("defaultFriendlyFireMode", Boolean.class), 
     DISPLAY_PLAYER_HEALTH("displayPlayerHealth", Boolean.class),
-    ENABLE_AUTO_UPDATE("ENABLE_AUTO_UPDATE", Boolean.class), 
+    ENABLE_AUTO_UPDATE("ENABLE_AUTO_UPDATE", Boolean.class),
+    ENABLE_UPDATE_CHECK("ENABLE_UPDATE_CHECK", Boolean.class),
     END_ON_LAST_PLAYER_LAST_STAND("endOnLastPlayerLastStand", Boolean.class),
     EXPLOSIVE_KILL_PAY("explosivePointIncrease", Integer.class), 
     EXTRA_EFFECTS("addedEffects", Boolean.class), 
@@ -50,7 +51,6 @@ public enum Setting {
     STARTING_POINTS("startPoints", Integer.class),
     TELEPORT_TIME("teleportTime", Integer.class), 
     TELEPORTERS_REQUIRE_POWER("teleportersRequirePower", Boolean.class),
-    UPDATE_VERSION("UPDATE_VERSION", String.class), 
     WOLF_LEVELS("wolfLevels", String[].class);
 	//@formatter:on
     //
@@ -79,7 +79,7 @@ public enum Setting {
         this.type = type;
         object = Ablockalypse.getInstance().getConfig().get(name);
         if (object == null) {
-            Ablockalypse.crash("The value for <" + toString() + ">, which uses the value of <" + name + "> in the configuration is null and/or missing!", 100 / values().length);
+            Ablockalypse.getErrorTracker().crash("The value for <" + toString() + ">, which uses the value of <" + name + "> in the configuration is null and/or missing!", 100 / values().length);
         }
     }
 

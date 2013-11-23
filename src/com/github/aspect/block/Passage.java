@@ -5,54 +5,52 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
 import com.github.Ablockalypse;
-import com.github.DataContainer;
+import com.github.aspect.SpecificGameAspect;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.Blinkable;
-import com.github.behavior.GameObject;
 import com.github.behavior.MapDatable;
-import com.github.enumerated.Setting;
 import com.github.enumerated.ZAEffect;
 import com.github.enumerated.ZASound;
-import com.github.threading.inherent.BlinkerTask;
 import com.github.utility.selection.Rectangle;
 import com.github.utility.serial.SavedVersion;
 import com.github.utility.serial.SerialLocation;
 
-public class Passage extends Powerable implements GameObject, Blinkable, MapDatable {
-    private BlinkerTask bt;
-    private DataContainer data = Ablockalypse.getData();
+public class Passage extends SpecificGameAspect implements MapDatable {
     private Location loc1, loc2;
     private ArrayList<BlockState> states = new ArrayList<BlockState>();
     private boolean opened;
     private Rectangle rectangle;
-    private Game zag;
+    private Game game;
     private UUID uuid = UUID.randomUUID();
 
     /**
      * Creates a new Passage instance that is represented by a rectangular prism.
      * 
-     * @param zag The game that should use this passage
+     * @param game The game that should use this passage
      * @param loc1 The first corner of the rectangular prism
      * @param loc2 The second corner of the rectangular prism
      */
-    public Passage(Game game, Location loc1, Location loc2) {
-        super(new Rectangle(loc1, loc2).getBlocks());
+    @SuppressWarnings("serial") public Passage(Game game, final Location loc1, final Location loc2) {
+        super(game, new ArrayList<Location>() {
+            {
+                add(loc1);
+                add(loc2);
+            }
+        });
         rectangle = new Rectangle(loc1, loc2);
-        data.objects.add(this);
         this.loc1 = loc1;
         this.loc2 = loc2;
-        zag = game;
+        this.game = game;
         opened = false;
-        createStates();
-        zag.addObject(this);
-        initBlinker();
+        for (Location l : rectangle.getLocations()) {
+            states.add(l.getBlock().getState());
+        }
+        setBlinking(!game.hasStarted());
     }
 
     public Passage(SavedVersion savings) {
@@ -72,34 +70,9 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
     public void close() {
         opened = false;
         for (BlockState state : states) {
-            // Block b = l.getBlock();
-            // b.setType(locs.get(l));
-            // b.setData(locdata.get(l));
             ZAEffect.SMOKE.play(state.getLocation());
             state.update(true, true);
         }
-    }
-
-    /**
-     * Gets the BlinkerThread attached to this instance.
-     * 
-     * @return The BlinkerThread attached to this instance
-     */
-    @Override public BlinkerTask getBlinkerThread() {
-        return bt;
-    }
-
-    /**
-     * Gets a list of blocks for this passage.
-     * 
-     * @return A list of blocks for this passage
-     */
-    public ArrayList<Block> getBlocks() {
-        ArrayList<Block> bls = new ArrayList<Block>();
-        for (Location loc : rectangle.getLocations()) {
-            bls.add(loc.getBlock());
-        }
-        return bls;
     }
 
     /**
@@ -111,30 +84,8 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
         return rectangle.get3DBorder();
     }
 
-    @Override public Block getDefiningBlock() {
-        return loc1.getBlock();
-    }
-
-    /**
-     * Gets the blocks that defines this object as an object.
-     * 
-     * @return The blocks assigned to this object
-     */
-    @Override public ArrayList<Block> getDefiningBlocks() {
-        return getBlocks();
-    }
-
-    /**
-     * Gets the game this passage is assigned to.
-     * 
-     * @return The game this passage is assigned to
-     */
-    @Override public Game getGame() {
-        return zag;
-    }
-
-    @Override public String getHeader() {
-        return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
+    @Override public int getLoadPriority() {
+        return 2;
     }
 
     /**
@@ -166,7 +117,7 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
         savings.put("location_1", loc1 == null ? null : new SerialLocation(loc1));
         savings.put("location_2", loc2 == null ? null : new SerialLocation(loc2));
         savings.put("is_open", opened);
-        savings.put("game_name", zag.getName());
+        savings.put("game_name", game.getName());
         return new SavedVersion(getHeader(), savings, getClass());
     }
 
@@ -183,8 +134,13 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
         return opened;
     }
 
-    @Override public boolean isPowered() {
-        return opened;
+    @Override public void onGameEnd() {
+        close();
+        setBlinking(true);
+    }
+
+    @Override public void onGameStart() {
+        setBlinking(false);
     }
 
     /**
@@ -201,23 +157,14 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
 
     @Override public void paste(Location pointClosestToOrigin) {
         Location old = getPointClosestToOrigin();
-        Location toLoc1 = pointClosestToOrigin.add(loc1.getX() - old.getX(), loc1.getY() - old.getY(), loc1.getZ() - old.getZ());
-        Location toLoc2 = pointClosestToOrigin.add(loc2.getX() - old.getX(), loc2.getY() - old.getY(), loc2.getZ() - old.getZ());
-        loc1 = toLoc1;
-        loc2 = toLoc2;
+        loc1 = pointClosestToOrigin.add(loc1.getX() - old.getX(), loc1.getY() - old.getY(), loc1.getZ() - old.getZ());
+        loc2 = pointClosestToOrigin.add(loc2.getX() - old.getX(), loc2.getY() - old.getY(), loc2.getZ() - old.getZ());
         close();
-        createStates();
-        bt.cancel();
-        initBlinker();
-    }
-
-    @Override public void setPowered(boolean power) {
-        if (!opened && power) {
-            open();
-        } else if (opened && !power) {
-            close();
+        states.clear();
+        for (Location l : rectangle.getLocations()) {
+            states.add(l.getBlock().getState());
         }
-        super.setPowered(power);
+        refreshBlinker();
     }
 
     /**
@@ -225,22 +172,7 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
      */
     @Override public void remove() {
         close();
-        if (zag != null) {
-            zag.removeObject(this);
-        }
-        bt.cancel();
-        data.objects.remove(this);
-        data.objects.remove(bt);
-        zag = null;
-    }
-
-    /**
-     * Stops/Starts the blinker for this barrier.
-     * 
-     * @param tf Whether or not this barrier should blink
-     */
-    @Override public void setBlinking(boolean tf) {
-        bt.setRunning(tf);
+        super.remove();
     }
 
     /**
@@ -260,36 +192,12 @@ public class Passage extends Powerable implements GameObject, Blinkable, MapData
         }
     }
 
-    private void createStates() {
-        for (Location l : rectangle.getLocations()) {
-            // locs.put(l, l.getBlock().getType());
-            // locdata.put(l, l.getBlock().getData());
-            states.add(l.getBlock().getState());
+    @Override public void setPowered(boolean power) {
+        if (!opened && power) {
+            open();
+        } else if (opened && !power) {
+            close();
         }
-    }
-
-    @SuppressWarnings("deprecation") private void initBlinker() {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Location l : rectangle.get3DBorder()) {
-            blocks.add(l.getBlock());
-        }
-        bt = new BlinkerTask(blocks, DyeColor.BLUE, 30, (Boolean) Setting.BLINKERS.getSetting());
-    }
-
-    @Override public void onGameEnd() {
-        close();
-        setBlinking(true);
-    }
-
-    @Override public void onGameStart() {
-        setBlinking(false);
-    }
-
-    @Override public void onNextLevel() {}
-
-    @Override public void onLevelEnd() {}
-
-    @Override public int getLoadPriority() {
-        return 2;
+        super.setPowered(power);
     }
 }

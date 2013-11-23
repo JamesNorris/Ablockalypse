@@ -18,7 +18,7 @@ public class PlaceholderEntity {
         entity = loc.getWorld().spawnEntity(loc, type);
         entity.setTicksLived(Integer.MAX_VALUE);
     }
-    
+
     public Entity getEntity() {
         return entity;
     }

@@ -7,13 +7,13 @@ import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import com.github.aspect.NonspecificGameObject;
+import com.github.aspect.NonspecificGameAspect;
 import com.github.enumerated.ZAEffect;
 import com.github.event.bukkit.EntityExplode;
 import com.github.threading.RepeatingTask;
 import com.github.utility.AblockalypseUtility;
 
-public class Grenade extends NonspecificGameObject {// does not need to be a gameobject, as the explosion is linked to the player that throws the grenade.
+public class Grenade extends NonspecificGameAspect {// does not need to be a gameobject, as the explosion is linked to the player that throws the grenade.
     private float yield = 2F;// Can be changed to make a larger explosion.
     private Entity entity;
     private ZAPlayer owner;
@@ -40,11 +40,35 @@ public class Grenade extends NonspecificGameObject {// does not need to be a gam
         triggerPhysics(countdownTicks);
     }
 
-    public void remove() {
+    public Entity getGrenadeEntity() {
+        return entity;
+    }
+
+    public ZAPlayer getOwner() {
+        return owner;
+    }
+
+    public float getYield() {
+        return yield;
+    }
+
+    public boolean isLive() {
+        return live;
+    }
+
+    @Override public void remove() {
         if (entity != null) {
             entity.remove();
             entity = null;
         }
+    }
+
+    public void setLive(boolean live) {
+        this.live = live;
+    }
+
+    public void setYield(float yield) {
+        this.yield = yield;
     }
 
     private Item createGroundGrenade() {
@@ -62,18 +86,6 @@ public class Grenade extends NonspecificGameObject {// does not need to be a gam
             int time = ticks;
             RepeatingTask warning;
 
-            @Override public void run() {
-                --time;
-                if (time <= 0 || entity == null) {
-                    cancel();
-                    return;
-                }
-                if (warning != null) {
-                    warning.cancel();
-                }
-                warning = AblockalypseUtility.scheduleNearbyWarning(groundGrenade.getLocation(), ChatColor.GRAY + "Press " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up grenade.", 2, 3.5, 2, 10000);
-            }
-
             @Override public void cancel() {
                 if (!sticky) {// TODO if sticky, stick to the hit object, and follow it while it is moving
                     if (entity != null) {
@@ -90,30 +102,19 @@ public class Grenade extends NonspecificGameObject {// does not need to be a gam
                 groundGrenade.remove();
                 grenade.remove();
             }
+
+            @Override public void run() {
+                --time;
+                if (time <= 0 || entity == null) {
+                    cancel();
+                    return;
+                }
+                if (warning != null) {
+                    warning.cancel();
+                }
+                warning = AblockalypseUtility.scheduleNearbyWarning(groundGrenade.getLocation(), ChatColor.GRAY + "Press " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY
+                        + " to pick up grenade.", 2, 3.5, 2, 10000);
+            }
         };
-    }
-
-    public ZAPlayer getOwner() {
-        return owner;
-    }
-
-    public void setYield(float yield) {
-        this.yield = yield;
-    }
-
-    public float getYield() {
-        return yield;
-    }
-
-    public Entity getGrenadeEntity() {
-        return entity;
-    }
-
-    public boolean isLive() {
-        return live;
-    }
-
-    public void setLive(boolean live) {
-        this.live = live;
     }
 }

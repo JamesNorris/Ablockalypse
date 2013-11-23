@@ -12,7 +12,7 @@ public class JavaUtility {
         }
         return null;
     }
-    
+
     public static String getLastMethodCalls(Thread thread, int number) {
         StackTraceElement[] stackTraceElements = thread.getStackTrace();
         StringBuilder sb = new StringBuilder();
@@ -22,7 +22,7 @@ public class JavaUtility {
         }
         return sb.toString();
     }
-    
+
     public static Method getMethod(Class<?> cl, String methodName) {
         for (Method m : cl.getMethods()) {
             if (m.getName().equals(methodName)) {
@@ -31,7 +31,7 @@ public class JavaUtility {
         }
         return null;
     }
-    
+
     public static <T> T getObject(Class<T> type, Object cast) {
         if (type.isInstance(cast)) {
             return type.cast(cast);

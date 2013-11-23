@@ -20,6 +20,7 @@ import com.github.aspect.entity.ZAMob;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.enumerated.Setting;
 import com.github.threading.inherent.LastStandPickupTask;
+import com.github.utility.Pathfinder;
 
 public class EntityDamageByEntity implements Listener {
     public static ArrayList<UUID> instakillids = new ArrayList<UUID>();
@@ -46,7 +47,7 @@ public class EntityDamageByEntity implements Listener {
 
     /* Used to separate mob damage from player damage.
      * This is the mob version. */
-    public void mobDamage(EntityDamageByEntityEvent event, LivingEntity damager, LivingEntity e, double evtdmg) {
+    @SuppressWarnings("deprecation") public void mobDamage(EntityDamageByEntityEvent event, LivingEntity damager, LivingEntity e, double evtdmg) {
         ZAMob zam = data.getZAMob(e);
         if (damager instanceof Fireball) {
             Fireball f = (Fireball) damager;
@@ -74,6 +75,9 @@ public class EntityDamageByEntity implements Listener {
             Player p = (Player) damager;
             if (data.isZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);
+                if (Pathfinder.calculate(e.getLocation(), p.getLocation()).getTotalHeuristic() >= e.getLocation().distance(p.getLocation()) * 3) {
+                    zam.getTargetter().panic(120);
+                }
                 if (zap.hasInstaKill()) {
                     event.setDamage(zam.getEntity().getHealth() * 5);
                 } else {

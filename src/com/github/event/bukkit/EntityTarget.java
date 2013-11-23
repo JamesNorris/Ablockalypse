@@ -20,7 +20,7 @@ public class EntityTarget implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST) public void ETE(EntityTargetEvent event) {
         Entity target = event.getTarget();
         Entity entity = event.getEntity();
-        if (target instanceof Player && entity instanceof LivingEntity) {
+        if (entity instanceof LivingEntity && target instanceof Player) {
             Player p = (Player) target;
             if (data.isZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);

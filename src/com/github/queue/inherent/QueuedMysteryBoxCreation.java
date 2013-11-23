@@ -26,7 +26,8 @@ public class QueuedMysteryBoxCreation extends QueuedPlayerInteractData {
     }
 
     @Override public boolean isCompatible(PlayerInteractEvent event) {
-        return event.getClickedBlock() != null && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.CHEST;
+        return event.getClickedBlock() != null && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK
+                && event.getClickedBlock().getType() == Material.CHEST;
     }
 
     @Override public void run() {

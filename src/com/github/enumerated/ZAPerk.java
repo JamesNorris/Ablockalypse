@@ -12,25 +12,47 @@ public enum ZAPerk {
     DEADSHOT_DAIQUIRI(1, Local.PERK_DEADSHOT_DAIQUIRI_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.DEADSHOT_DAIQUIRI_COST.getSetting(), (Integer) Setting.DEADSHOT_DAIQUIRI_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
             zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, getDuration(), 1));
-            zap.addToPerkList(this);
+            zap.addPerk(this);
+        }
+
+        @Override public void removePerk(ZAPlayer zap) {
+            zap.getPlayer().removePotionEffect(PotionEffectType.INCREASE_DAMAGE);
+            zap.removePerk(this);
         }
     },
     JUGGERNOG(2, Local.PERK_JUGGERNOG_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.JUGGERNOG_COST.getSetting(), (Integer) Setting.JUGGERNOG_LEVEL.getSetting()) {
+        private double oldAbsorption;
+
         @Override public void givePerk(ZAPlayer zap) {
+            oldAbsorption = zap.getHitAbsorption();
             zap.setHitAbsorption(1);// 1 full heart per hit
-            zap.addToPerkList(this);
+            zap.addPerk(this);
+        }
+
+        @Override public void removePerk(ZAPlayer zap) {
+            zap.setHitAbsorption(oldAbsorption);
+            zap.removePerk(this);
         }
     },
     PHD_FLOPPER(3, Local.PERK_PHD_FLOPPER_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.PHD_FLOPPER_COST.getSetting(), (Integer) Setting.PHD_FLOPPER_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
             // PlayerMove.java does all the work
-            zap.addToPerkList(this);
+            zap.addPerk(this);
+        }
+
+        @Override public void removePerk(ZAPlayer zap) {
+            zap.removePerk(this);
         }
     },
     STAMINUP(4, Local.PERK_STAMINUP_STRING.getSetting(), (Integer) Setting.PERK_DURATION.getSetting(), (Integer) Setting.STAMINUP_COST.getSetting(), (Integer) Setting.STAMINUP_LEVEL.getSetting()) {
         @Override public void givePerk(ZAPlayer zap) {
             zap.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, getDuration(), 1));
-            zap.addToPerkList(this);
+            zap.addPerk(this);
+        }
+
+        @Override public void removePerk(ZAPlayer zap) {
+            zap.getPlayer().removePotionEffect(PotionEffectType.SPEED);
+            zap.removePerk(this);
         }
     };
     private int id, duration, cost, level;
@@ -78,4 +100,6 @@ public enum ZAPerk {
     }
 
     public abstract void givePerk(ZAPlayer zap);
+
+    public abstract void removePerk(ZAPlayer zap);
 }

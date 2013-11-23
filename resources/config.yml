@@ -127,23 +127,25 @@ nearbyMobClearingRadius: 32
 
 #################################################### MAINTENANCE ####################################################
 
-ENABLE_AUTO_UPDATE: false
-# Enables automatic updating for Ablockalypse.
-
 MAX_FATALITY: 100
 # The most fatality points that Ablockalypse can take before shutting down. This is used to help
 # stop looping errors cause by Ablockalypse.
-
-UPDATE_VERSION: latest
-# Which version to download if enabled. The version can be in one of two formats, 
-# for example, you can use "1.0.0" to download that version, or you can use "latest" 
-# to download the most recent version.
 
 PRINT_STORAGE_DATA_TO_FILE: true
 # Whether or not to print all game storage data to a file. A file will be printed
 # per game on disable, allowing the owner to view (but not change) the game settings.
 # Setting this to false may save some speed when disabling the plugin.
 # This can be used to help debug the game, and may be helpful in a bug report.
+
+ENABLE_UPDATE_CHECK: true
+# Allows the plugin to check for updates.
+# This only allows the plugin to check for possible updates if true.
+# The plugin will not update or check whatsoever if false.
+
+ENABLE_AUTO_UPDATE: true
+# Whether or not auto-update should be enabled.
+# Disabling this will NOT prevent the plugin from even warning you about an available update
+# This is dependent on 'ENABLE_UPDATE_CHECK' being true.
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.

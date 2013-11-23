@@ -50,17 +50,17 @@ public class Rectangle {
         return border3D;
     }
 
-    public Location getCorner(int corner) {
-        Location[] corners = new Location[] {loc1, loc2, loc3, loc4};
-        return corners[corner - 1];
-    }
-
     public List<Block> getBlocks() {
         List<Block> blocks = new ArrayList<Block>();
         for (Location l : locs.keySet()) {
             blocks.add(l.getBlock());
         }
         return blocks;
+    }
+
+    public Location getCorner(int corner) {
+        Location[] corners = new Location[] {loc1, loc2, loc3, loc4};
+        return corners[corner - 1];
     }
 
     /**

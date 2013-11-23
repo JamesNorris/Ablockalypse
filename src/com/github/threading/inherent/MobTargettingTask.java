@@ -11,13 +11,14 @@ import org.bukkit.entity.Player;
 import com.github.Ablockalypse;
 import com.github.DataContainer;
 import com.github.aspect.intelligent.Path;
+import com.github.threading.DelayedTask;
 import com.github.threading.RepeatingTask;
 import com.github.utility.BukkitUtility;
 import com.github.utility.Pathfinder;
 
-
 public class MobTargettingTask extends RepeatingTask {
     private static final int INTERVAL = 1;
+    private boolean ignoreRegularPathfinder = false;
     private LivingEntity entity;
     private DataContainer data = Ablockalypse.getData();
     private int nodeNum = 0, standStill = 0, stillTime = 5;
@@ -54,6 +55,26 @@ public class MobTargettingTask extends RepeatingTask {
         return target;
     }
 
+    public boolean ignoresRegularPathfinder() {
+        return ignoreRegularPathfinder;
+    }
+
+    public void panic(int ticks) {
+        ignoreRegularPathfinder = true;
+        final Location tempTarget = target != null ? target : entity.getLocation();
+        new RepeatingTask(ticks / 10, true) {
+            @Override public void run() {
+                setTarget(BukkitUtility.getNearbyLocation(tempTarget, 5, 15, 0, 0, 5, 15));
+            }
+        };
+        new DelayedTask(ticks, true) {
+            @Override public void run() {
+                setTarget(tempTarget);
+                ignoreRegularPathfinder = false;
+            }
+        };
+    }
+
     @Override public void run() {
         if (entity == null || entity.isDead()) {
             cancel();
@@ -80,13 +101,18 @@ public class MobTargettingTask extends RepeatingTask {
                 closestPlayer = player;
             }
         }
-        boolean distantBarrierTarget = target instanceof Location && data.isBarrier(target) && !(data.getBarrier(target).getCenter().distanceSquared(creatureLoc) < 4);//within 2 blocks
-        boolean usingRegularPathfinder = closestPlayer != null && creatureLoc.distanceSquared(closestPlayer.getLocation()) <= 225 /* 15 squared */&& (!(entity instanceof Creature) || ((Creature) entity).getTarget() != null && !((Creature) entity).getTarget().isDead());
+        boolean distantBarrierTarget = target instanceof Location && data.isBarrier(target) && !(data.getBarrier(target).getCenter().distanceSquared(creatureLoc) < 4);// within 2
+                                                                                                                                                                       // // blocks
+        boolean usingRegularPathfinder = !ignoreRegularPathfinder && closestPlayer != null && creatureLoc.distanceSquared(closestPlayer.getLocation()) <= 225 /* 15 squared */
+                && (!(entity instanceof Creature) || ((Creature) entity).getTarget() != null && !((Creature) entity).getTarget().isDead());
         double[] coords = locations.get(nodeNum);
         if (coords != null && (!usingRegularPathfinder || distantBarrierTarget)) {
             previous = creatureLoc;
             double[] futureCoords = locations.get(nodeNum + 1);
             double Xadd = 0, Yadd = 0, Zadd = 0, pitchAdd = 0, yawAdd = 0;
+            if (data.isBarrier(target) && data.getBarrier(target).getCenter().distance(creatureLoc) < .25) {
+                futureCoords = null;// cancel movement for this tick
+            }
             if (futureCoords != null) {
                 Xadd = (futureCoords[0] - coords[0]) * activeNodesPerTick;
                 Yadd = (futureCoords[1] - coords[1]) * activeNodesPerTick;
@@ -105,6 +131,10 @@ public class MobTargettingTask extends RepeatingTask {
             standStill = 0;
             recalculate(creatureLoc, target);
         }
+    }
+
+    public void setIgnoreRegularPathfinder(boolean ignore) {
+        ignoreRegularPathfinder = ignore;
     }
 
     public void setNodesPerTick(double nodesPerTick) {

@@ -8,7 +8,6 @@ import java.util.Random;
 import java.util.UUID;
 
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -17,29 +16,24 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.Ablockalypse;
-import com.github.DataContainer;
-import com.github.aspect.PermanentAspect;
+import com.github.aspect.SpecificGameAspect;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.aspect.intelligent.BuyableItemData;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.Blinkable;
-import com.github.behavior.GameObject;
 import com.github.behavior.MapDatable;
 import com.github.enumerated.Setting;
 import com.github.enumerated.ZAEffect;
 import com.github.enumerated.ZASound;
 import com.github.threading.DelayedTask;
-import com.github.threading.inherent.BlinkerTask;
+import com.github.utility.AblockalypseUtility;
 import com.github.utility.BukkitUtility;
 import com.github.utility.selection.Region;
 import com.github.utility.serial.SavedVersion;
 import com.github.utility.serial.SerialLocation;
 
-public class MysteryBox extends PermanentAspect implements GameObject, Blinkable, MapDatable {
+public class MysteryBox extends SpecificGameAspect implements MapDatable {
     private boolean active = true;
-    private BlinkerTask bt;
     private Object chest;
-    private DataContainer data = Ablockalypse.getData();
     private Game game;
     private Location loc;
     private Location[] locs;
@@ -56,16 +50,15 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
      * @param active Whether or not this chest should be active
      */
     public MysteryBox(Game game, Location loc, boolean active) {
+        super(game, loc);
         this.loc = loc;
-        data.objects.add(this);
         Block b2 = BukkitUtility.getSecondChest(loc.getBlock());
         locs = b2 != null ? new Location[] {loc, b2.getLocation()} : new Location[] {loc};
         chest = loc.getBlock().getState();
         this.game = game;
-        game.addObject(this);
         this.active = active;
         uses = rand.nextInt(8) + 2;
-        initBlinker();
+        setBlinking(!game.hasStarted());
     }
 
     public MysteryBox(SavedVersion savings) {
@@ -85,15 +78,6 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
     }
 
     /**
-     * Gets the BlinkerThread attached to this instance.
-     * 
-     * @return The BlinkerThread attached to this instance
-     */
-    @Override public BlinkerTask getBlinkerThread() {
-        return bt;
-    }
-
-    /**
      * Gets the chest associated with this instance.
      * 
      * @return The chest associated with this instance
@@ -105,34 +89,8 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
         return null;
     }
 
-    @Override public Block getDefiningBlock() {
-        return loc.getBlock();
-    }
-
-    /**
-     * Gets the blocks that defines this object as an object.
-     * 
-     * @return The blocks assigned to this object
-     */
-    @Override public ArrayList<Block> getDefiningBlocks() {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        for (Location loc : locs) {
-            blocks.add(loc.getBlock());
-        }
-        return blocks;
-    }
-
-    /**
-     * Gets the game that this MysteryChest is attached to.
-     * 
-     * @return The game that uses this chest
-     */
-    @Override public Game getGame() {
-        return game;
-    }
-
-    @Override public String getHeader() {
-        return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
+    @Override public int getLoadPriority() {
+        return 2;
     }
 
     /**
@@ -140,7 +98,7 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
      * 
      * @return The location of the chest
      */
-    public Location getLocation() {
+    @Override public Location getLocation() {
         return locs[0];
     }
 
@@ -196,7 +154,7 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
                     BukkitUtility.setChestOpened(players, loc.getBlock(), false);
                 }
             };
-            BukkitUtility.dropItemAtPlayer(topView, item, p, 40, 60);
+            AblockalypseUtility.dropItemAtPlayer(topView, item, p, 40, 60);
             new DelayedTask(40, true) {
                 @Override public void run() {
                     i.remove();
@@ -230,10 +188,17 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
         return active;
     }
 
+    @Override public void onGameEnd() {
+        setBlinking(true);
+    }
+
+    @Override public void onGameStart() {
+        setBlinking(false);
+    }
+
     @Override public void paste(Location pointClosestToOrigin) {
         loc = pointClosestToOrigin;
-        bt.cancel();
-        initBlinker();
+        refreshBlinker();
     }
 
     /**
@@ -241,17 +206,12 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
      */
     @Override public void remove() {
         setActive(false);
-        game.removeObject(this);
-        data.objects.remove(this);
         List<MysteryBox> chests = game.getObjectsOfType(MysteryBox.class);
         int size = chests.size();
         if (size >= 1) {
             game.setActiveMysteryChest(chests.get(rand.nextInt(size)));
         }
-        setBlinking(false);
-        bt.cancel();
-        data.objects.remove(bt);
-        game = null;
+        super.remove();
     }
 
     /**
@@ -275,36 +235,5 @@ public class MysteryBox extends PermanentAspect implements GameObject, Blinkable
      */
     public void setActiveUses(int i) {
         uses = i;
-    }
-
-    /**
-     * Stops/Starts the blinker for this barrier.
-     * 
-     * @param tf Whether or not this barrier should blink
-     */
-    @Override public void setBlinking(boolean tf) {
-        bt.setRunning(tf);
-    }
-
-    private void initBlinker() {
-        ArrayList<Block> blocks = getDefiningBlocks();
-        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerTask(blocks, DyeColor.BLUE, 30, blinkers);
-    }
-    
-    @Override public void onGameEnd() {
-        setBlinking(true);
-    }
-
-    @Override public void onGameStart() {
-        setBlinking(false);
-    }
-
-    @Override public void onNextLevel() {}
-
-    @Override public void onLevelEnd() {}
-    
-    @Override public int getLoadPriority() {
-        return 2;
     }
 }

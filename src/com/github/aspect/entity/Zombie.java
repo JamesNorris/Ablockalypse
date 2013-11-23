@@ -32,15 +32,15 @@ public class Zombie extends ZAMob {
         fireproof = true;
     }
 
+    public org.bukkit.entity.Zombie getBukkitZombie() {
+        return (org.bukkit.entity.Zombie) entity;
+    }
+
     @Override public SavedVersion getSave() {
         Map<String, Object> savings = new HashMap<String, Object>();
         savings.putAll(super.getSave());
         savings.put("is_fireproof", fireproof);
         return new SavedVersion(getHeader(), savings, getClass());
-    }
-    
-    public org.bukkit.entity.Zombie getBukkitZombie() {
-        return (org.bukkit.entity.Zombie) entity;
     }
 
     /**

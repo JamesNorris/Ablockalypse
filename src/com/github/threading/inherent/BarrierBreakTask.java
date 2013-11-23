@@ -50,6 +50,9 @@ public class BarrierBreakTask extends RepeatingTask {
         ZASound.BARRIER_BREAK.play(center);
         ZAEffect.WOOD_BREAK.play(center);
         if (barrier.getHP() == 0) {
+            if (data.isZAMob(entity)) {
+                data.getZAMob(entity).retarget();
+            }
             barrier.breakPanels();
             cancel();
         }

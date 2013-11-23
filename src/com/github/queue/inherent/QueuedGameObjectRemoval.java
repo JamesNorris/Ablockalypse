@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.behavior.GameObject;
+import com.github.behavior.GameAspect;
 import com.github.queue.QueuedPlayerInteractData;
 
 public class QueuedGameObjectRemoval extends QueuedPlayerInteractData {
@@ -34,7 +34,7 @@ public class QueuedGameObjectRemoval extends QueuedPlayerInteractData {
         Block block = event.getClickedBlock();
         event.setUseInteractedBlock(Result.DENY);
         event.setUseItemInHand(Result.DENY);
-        GameObject removal = data.getGameObjectByLocation(block.getLocation());
+        GameAspect removal = data.getGameObjectByLocation(block.getLocation());
         if (removal == null) {
             player.sendMessage(ChatColor.GRAY + "Removal: " + ChatColor.RED + "UNSUCCESSFUL");
             return;

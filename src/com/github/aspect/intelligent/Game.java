@@ -22,7 +22,7 @@ import com.github.aspect.block.MysteryBox;
 import com.github.aspect.block.Teleporter;
 import com.github.aspect.entity.ZAMob;
 import com.github.aspect.entity.ZAPlayer;
-import com.github.behavior.GameObject;
+import com.github.behavior.GameAspect;
 import com.github.enumerated.Setting;
 import com.github.enumerated.ZASound;
 import com.github.event.GameEndEvent;
@@ -44,35 +44,11 @@ public class Game extends PermanentAspect {
     private GameScoreboard scoreBoard;
     private String name;
     private NextLevelTask nlt;
-    private CopyOnWriteArrayList<GameObject> objects = new CopyOnWriteArrayList<GameObject>();
+    private CopyOnWriteArrayList<GameAspect> objects = new CopyOnWriteArrayList<GameAspect>();
     private HashMap<Integer, Integer> wolfLevels = new HashMap<Integer, Integer>();
     private boolean wolfRound, armorRound, paused, started;// TODO armorRound not used (should it be?)
     private Random rand = new Random();
     private UUID uuid = UUID.randomUUID();
-
-    // only to be used onEnable or onDisable
-    public void organizeObjects() {
-        CopyOnWriteArrayList<GameObject> newObjects = new CopyOnWriteArrayList<GameObject>();
-        int[][] priorities = new int[objects.size()][2];
-        for (int i = 0; i < priorities.length; i++) {
-            GameObject obj = objects.get(i);
-            priorities[i][0] = i;
-            priorities[i][1] = obj == null ? Integer.MAX_VALUE : obj.getLoadPriority();
-        }
-        for (int j = 1; j < priorities.length; j++) {
-            int[] temp = priorities[j];
-            int current = j - 1;
-            while (current >= 0 && priorities[current][1] > temp[1]) {
-                priorities[current + 1] = priorities[current];
-                current--;
-            }
-            priorities[current + 1] = temp;
-        }
-        for (int k = 0; k < priorities.length; k++) {
-            newObjects.add(objects.get(priorities[k][0]));
-        }
-        objects = newObjects;
-    }
 
     public Game(SavedVersion savings) {
         this((String) savings.get("game_name"));
@@ -123,20 +99,12 @@ public class Game extends PermanentAspect {
         data.objects.add(this);
     }
 
-    public GameScoreboard getGameScoreboard() {
-        return scoreBoard;
-    }
-
-    public void setGameScoreboard(GameScoreboard scoreBoard) {
-        this.scoreBoard = scoreBoard;
-    }
-
     /**
      * Attaches an area to this game.
      * 
      * @param ga The area to load into this game
      */
-    public void addObject(GameObject obj) {
+    public void addObject(GameAspect obj) {
         if (obj != null && !objects.contains(obj) && !overlapsAnotherObject(obj)) {
             objects.add(obj);
         }
@@ -150,10 +118,10 @@ public class Game extends PermanentAspect {
      */
     public void addPlayer(Player player) {
         ZAPlayer zap = data.getZAPlayer(player, name, true);
-        addObject(zap);
         if (!player.isOnline() && !PlayerJoin.isQueued(zap)) {
-            PlayerJoin.queuePlayer(zap, mainframe.getLocation());
+            return;
         }
+        addObject(zap);
         if (!data.isZAPlayer(player)) {
             zap.setPoints(startpoints);
         }
@@ -232,7 +200,7 @@ public class Game extends PermanentAspect {
             GameEndEvent GEE = new GameEndEvent(this, points);
             Bukkit.getPluginManager().callEvent(GEE);
             if (!GEE.isCancelled()) {
-                for (GameObject obj : objects) {
+                for (GameAspect obj : objects) {
                     obj.onGameEnd();
                 }
                 spawnedInThisRound = 0;
@@ -256,12 +224,28 @@ public class Game extends PermanentAspect {
         return active;
     }
 
-    public CopyOnWriteArrayList<GameObject> getObjects() {
-        return objects;
+    public Player getClosestLivingPlayer(Location location) {
+        if (getRemainingPlayers().size() >= 1) {
+            Player closest = getRandomLivingPlayer();
+            Double distanceSquared = Double.MAX_VALUE;
+            for (ZAPlayer zap : getPlayers()) {
+                double currentDSq = zap.getPlayer().getLocation().distanceSquared(location);
+                if (!zap.getPlayer().isDead() && !zap.isInLastStand() && !zap.isInLimbo() && currentDSq < distanceSquared) {
+                    closest = zap.getPlayer();
+                    distanceSquared = currentDSq;
+                }
+            }
+            return closest;
+        }
+        return null;
     }
 
     public MysteryBoxFakeBeaconTask getFakeBeaconThread() {
         return beacons;
+    }
+
+    public GameScoreboard getGameScoreboard() {
+        return scoreBoard;
     }
 
     @Override public String getHeader() {
@@ -317,6 +301,10 @@ public class Game extends PermanentAspect {
         return name;
     }
 
+    public CopyOnWriteArrayList<GameAspect> getObjects() {
+        return objects;
+    }
+
     @SuppressWarnings("unchecked") public <T extends Object> List<T> getObjectsOfType(Class<T> type) {
         ArrayList<T> list = new ArrayList<T>();
         for (Object obj : objects) {
@@ -353,22 +341,6 @@ public class Game extends PermanentAspect {
                 }
             }
             return zaps.get(rand.nextInt(zaps.size())).getPlayer();
-        }
-        return null;
-    }
-
-    public Player getClosestLivingPlayer(Location location) {
-        if (getRemainingPlayers().size() >= 1) {
-            Player closest = getRandomLivingPlayer();
-            Double distanceSquared = Double.MAX_VALUE;
-            for (ZAPlayer zap : getPlayers()) {
-                double currentDSq = zap.getPlayer().getLocation().distanceSquared(location);
-                if (!zap.getPlayer().isDead() && !zap.isInLastStand() && !zap.isInLimbo() && currentDSq < distanceSquared) {
-                    closest = zap.getPlayer();
-                    distanceSquared = currentDSq;
-                }
-            }
-            return closest;
         }
         return null;
     }
@@ -426,6 +398,17 @@ public class Game extends PermanentAspect {
         return uuid;
     }
 
+    public int getWolfPercentage() {
+        return getWolfPercentage(level);
+    }
+
+    public int getWolfPercentage(int level) {
+        if (!wolfLevels.containsKey(level)) {
+            return 0;
+        }
+        return wolfLevels.get(level);
+    }
+
     public boolean hasMob(ZAMob mob) {
         return getMobs().contains(mob);
     }
@@ -461,12 +444,6 @@ public class Game extends PermanentAspect {
         return wolfRound;
     }
 
-    public void start() {
-        started = false;
-        level = 0;
-        nextLevel();
-    }
-
     /**
      * Starts the next level for the game, and adds a level to all players in this game.
      * Then, spawns a wave of zombies, and starts the thread for the next level.
@@ -487,7 +464,7 @@ public class Game extends PermanentAspect {
                 MysteryBox mc = chests.get(rand.nextInt(chests.size()));
                 setActiveMysteryChest(mc);
             }
-            for (GameObject obj : objects) {
+            for (GameAspect obj : objects) {
                 obj.onGameStart();
             }
             started = true;
@@ -498,9 +475,33 @@ public class Game extends PermanentAspect {
         paused = false;
         nlt = new NextLevelTask(this, true);
         spawnWave(SpawnManager.getCurrentSpawnAmount(this) - spawnedInThisRound);
-        for (GameObject obj : objects) {
+        for (GameAspect obj : objects) {
             obj.onNextLevel();
         }
+    }
+
+    // only to be used onEnable or onDisable
+    public void organizeObjects() {
+        CopyOnWriteArrayList<GameAspect> newObjects = new CopyOnWriteArrayList<GameAspect>();
+        int[][] priorities = new int[objects.size()][2];
+        for (int i = 0; i < priorities.length; i++) {
+            GameAspect obj = objects.get(i);
+            priorities[i][0] = i;
+            priorities[i][1] = obj == null ? Integer.MAX_VALUE : obj.getLoadPriority();
+        }
+        for (int j = 1; j < priorities.length; j++) {
+            int[] temp = priorities[j];
+            int current = j - 1;
+            while (current >= 0 && priorities[current][1] > temp[1]) {
+                priorities[current + 1] = priorities[current];
+                current--;
+            }
+            priorities[current + 1] = temp;
+        }
+        for (int k = 0; k < priorities.length; k++) {
+            newObjects.add(objects.get(priorities[k][0]));
+        }
+        objects = newObjects;
     }
 
     /**
@@ -523,7 +524,7 @@ public class Game extends PermanentAspect {
      */
     public void remove(boolean permanently) {
         end(false);
-        for (GameObject object : getObjects()) {
+        for (GameAspect object : getObjects()) {
             object.remove();
         }
         if (beacons != null) {
@@ -541,7 +542,7 @@ public class Game extends PermanentAspect {
      * 
      * @param ga The area to be unloaded from this game
      */
-    public void removeObject(GameObject obj) {
+    public void removeObject(GameAspect obj) {
         if (obj != null && objects.contains(obj)) {
             objects.remove(obj);
         }
@@ -588,6 +589,10 @@ public class Game extends PermanentAspect {
 
     public void setFakeBeaconThread(MysteryBoxFakeBeaconTask thread) {
         beacons = thread;
+    }
+
+    public void setGameScoreboard(GameScoreboard scoreBoard) {
+        this.scoreBoard = scoreBoard;
     }
 
     /**
@@ -649,22 +654,17 @@ public class Game extends PermanentAspect {
         started = true;
     }
 
-    public int getWolfPercentage() {
-        return getWolfPercentage(level);
+    public void start() {
+        started = false;
+        level = 0;
+        nextLevel();
     }
 
-    public int getWolfPercentage(int level) {
-        if (!wolfLevels.containsKey(level)) {
-            return 0;
-        }
-        return wolfLevels.get(level);
-    }
-
-    private boolean overlapsAnotherObject(GameObject obj) {
+    private boolean overlapsAnotherObject(GameAspect obj) {
         if (obj.getDefiningBlocks() == null) {
             return false;
         }
-        for (GameObject object : getObjects()) {
+        for (GameAspect object : getObjects()) {
             if (object == null || object.getDefiningBlocks() == null) {
                 continue;
             }

@@ -180,7 +180,7 @@ public class BaseCommand extends CommandUtil implements CommandExecutor {
                     } else if (args[2].equalsIgnoreCase("passage")) {
                         PlayerInteract.queue.add(new QueuedPassageCreation(player.getName(), gameName));
                     } else if (args[2].equalsIgnoreCase("mysterybox") || args[2].equalsIgnoreCase("mysterychest")) {
-                        //accepts mysterychest, just in case they don't know about the switch in v1.2.9.2
+                        // accepts mysterychest, just in case they don't know about the switch in v1.2.9.2
                         PlayerInteract.queue.add(new QueuedMysteryBoxCreation(player.getName(), gameName));
                     } else {
                         sender.sendMessage(ChatColor.RED + "That is not a valid object! Please try \'/za list objects\'.");

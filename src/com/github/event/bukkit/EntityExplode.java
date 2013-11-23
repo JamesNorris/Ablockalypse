@@ -29,7 +29,7 @@ public class EntityExplode implements Listener {
         for (Entity ent : BukkitUtility.getNearbyEntities(loc, yield, yield, yield)) {
             EntityDamageEvent lastDamage = ent.getLastDamageCause();
             if (ent instanceof LivingEntity && !(ent instanceof Player) && lastDamage != null && lastDamage.getCause() == DamageCause.ENTITY_EXPLOSION) {
-                EntityDeath.behaveLikeKill(zap.getPlayer(), (LivingEntity) ent);
+                EntityDeath.behaveLikeKill(zap.getPlayer(), ent);
             }
         }
     }

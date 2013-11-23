@@ -13,7 +13,8 @@ import com.github.External;
 import com.github.utility.serial.SavedVersion;
 
 public class PermanentAspect {
-    public static final String[][] replacement = new String[][] {{"\\", ""}, {"/", ""}, {":", "="}, {"*", ""}, {"?", ""}, {"\"", ""}, {"<", "("}, {">", ")"}, {"|", ""}};
+    public static final String[][] replacement = new String[][] { {"\\", ""}, {"/", ""}, {":", "="}, {"*", ""}, {"?", ""}, {"\"", ""}, {"<", "("}, {">", ")"}, {"|", ""}};
+
     public static Object load(Class<?> cast, SavedVersion version) {
         try {
             Constructor<?> constr = cast.getConstructor(SavedVersion.class);
@@ -26,7 +27,7 @@ public class PermanentAspect {
         }
         return null;
     }
-    
+
     public static String modifyForCompliance(String header) {
         String modHeader = header;
         for (int i = 0; i < replacement.length; i++) {

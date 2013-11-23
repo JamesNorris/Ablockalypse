@@ -13,6 +13,12 @@ import com.github.enumerated.Setting;
 import com.github.threading.RepeatingTask;
 
 public class BlinkerTask extends RepeatingTask {
+    public static void restartAll() {
+        for (BlinkerTask bt : data.getObjectsOfType(BlinkerTask.class)) {
+            bt.restart();
+        }
+    }
+
     private ArrayList<BlockState> blockStates = new ArrayList<BlockState>();
     private DyeColor color;
     private boolean colored = false;
@@ -36,20 +42,14 @@ public class BlinkerTask extends RepeatingTask {
         colored = false;
         BlinkerTask.restartAll();
     }
-    
-    public static void restartAll() {
-        for (BlinkerTask bt : data.getObjectsOfType(BlinkerTask.class)) {
-            bt.restart();
-        }
-    }
-    
-    public void restart() {
-        setCount(0);
-    }
 
     @Override public void cancel() {
         revertBlocks();
         data.objects.remove(this);
+    }
+
+    public void restart() {
+        setCount(0);
     }
 
     /**
@@ -103,12 +103,6 @@ public class BlinkerTask extends RepeatingTask {
             }
         }
     }
-    
-    @Override public void setRunning(boolean running) {
-        BlinkerTask.restartAll();
-        revertBlocks();
-        super.setRunning(running);
-    }
 
     /**
      * Sets the color of the blinker.
@@ -117,5 +111,11 @@ public class BlinkerTask extends RepeatingTask {
      */
     public void setColor(DyeColor color) {
         this.color = color;
+    }
+
+    @Override public void setRunning(boolean running) {
+        BlinkerTask.restartAll();
+        revertBlocks();
+        super.setRunning(running);
     }
 }

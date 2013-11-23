@@ -4,7 +4,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class Seat extends PlaceholderEntity {
-
     public Seat(Location loc) {
         super(loc);
     }

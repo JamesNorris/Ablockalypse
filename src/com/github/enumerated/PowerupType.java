@@ -58,14 +58,14 @@ public enum PowerupType {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
             game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.");
             for (ZAPlayer zap : game.getPlayers()) {
-                zap.setPointGainMod(2);
+                zap.setPointGainModifier(2);
                 timedReverse(this, game, player, cause, data, 450);
             }
         }
 
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
             for (ZAPlayer zap : game.getPlayers()) {
-                zap.setPointGainMod(1);
+                zap.setPointGainModifier(1);
             }
         }
     },

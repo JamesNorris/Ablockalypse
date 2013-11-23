@@ -26,7 +26,7 @@ import com.github.aspect.entity.ZAMob;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.aspect.entity.Zombie;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.GameObject;
+import com.github.behavior.GameAspect;
 import com.github.threading.Task;
 import com.github.utility.BukkitUtility;
 
@@ -59,12 +59,12 @@ public class DataContainer {
     public Claymore getClaymore(Location loc) {
         return getGameObjectByLocation(Claymore.class, loc);
     }
-    
-    public <O extends GameObject> O getClosest(Class<O> type, Location loc) {
+
+    public <O extends GameAspect> O getClosest(Class<O> type, Location loc) {
         return getClosest(type, loc, Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
     }
-    
-    public <O extends GameObject> O getClosest(Class<O> type, Location loc, double distX, double distY, double distZ) {
+
+    public <O extends GameAspect> O getClosest(Class<O> type, Location loc, double distX, double distY, double distZ) {
         O object = null;
         double lowestDist = Double.MAX_VALUE;
         for (O obj : getObjectsOfType(type)) {
@@ -102,7 +102,7 @@ public class DataContainer {
         return correctGame != null ? correctGame : force ? new Game(name) : null;
     }
 
-    public <O extends GameObject> O getGameObjectByLocation(Class<O> type, Location loc) {
+    public <O extends GameAspect> O getGameObjectByLocation(Class<O> type, Location loc) {
         for (O obj : getObjectsOfType(type)) {
             if (obj.getDefiningBlocks() == null) {
                 continue;
@@ -116,10 +116,10 @@ public class DataContainer {
         return null;
     }
 
-    public GameObject getGameObjectByLocation(Location loc) {
-        return getGameObjectByLocation(GameObject.class, loc);
+    public GameAspect getGameObjectByLocation(Location loc) {
+        return getGameObjectByLocation(GameAspect.class, loc);
     }
-    
+
     public Grenade getGrenade(Entity entity) {
         for (Grenade grenade : getObjectsOfType(Grenade.class)) {
             if (grenade.getLocation() != null && grenade.getGrenadeEntity() != null && grenade.getGrenadeEntity().getUniqueId().compareTo(entity.getUniqueId()) == 0) {
@@ -169,10 +169,6 @@ public class DataContainer {
         return spawners;
     }
 
-    public Teleporter getTeleporter(Location loc) {
-        return getGameObjectByLocation(Teleporter.class, loc);
-    }
-
     @SuppressWarnings("unchecked") public <T extends Task> List<T> getTasksOfType(Class<T> type) {
         ArrayList<T> list = new ArrayList<T>();
         for (Task thread : getObjectsOfType(Task.class)) {
@@ -183,8 +179,8 @@ public class DataContainer {
         return list;
     }
 
-    public Zombie getZombie(LivingEntity e) {
-        return (Zombie) getZAMobByEntity(e);
+    public Teleporter getTeleporter(Location loc) {
+        return getGameObjectByLocation(Teleporter.class, loc);
     }
 
     public ZAMob getZAMob(LivingEntity e) {
@@ -220,6 +216,10 @@ public class DataContainer {
         return null;
     }
 
+    public Zombie getZombie(LivingEntity e) {
+        return (Zombie) getZAMobByEntity(e);
+    }
+
     public boolean isBarrier(Location loc) {
         return getBarrier(loc) != null;
     }
@@ -235,7 +235,7 @@ public class DataContainer {
     public boolean isGameObject(Location loc) {
         return getGameObjectByLocation(loc) != null;
     }
-    
+
     public boolean isGrenade(Entity entity) {
         return getGrenade(entity) != null;
     }

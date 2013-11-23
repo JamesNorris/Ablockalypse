@@ -50,6 +50,7 @@ public class Pathfinder {
         }
     };
 
+    // TODO end the path where it cannot go any farther
     /**
      * Calculates and returns the path to the target from the starting point.
      * This also accounts for pitch and yaw toward the target.
@@ -71,8 +72,9 @@ public class Pathfinder {
                 for (int z = -1; z <= 1; z++) {
                     Location check = current.clone().add(x, 0, z);
                     double newH = check.distanceSquared(target);
-                    if (!check.getBlock().isEmpty() && /*check.getBlock().getType().isOccluding()*/!softBlocks.contains(check.getBlock().getType())) {
-                        if (check.clone().add(0, 1, 0).getBlock().isEmpty() && check.clone().add(0, 2, 0).getBlock().isEmpty()) {
+                    if (!check.getBlock().isEmpty() && /* check.getBlock().getType().isOccluding() */!softBlocks.contains(check.getBlock().getType())) {
+                        if (check.clone().add(0, 1, 0).getBlock().isEmpty() || softBlocks.contains(check.clone().add(0, 1, 0).getBlock().getType())
+                                && (check.clone().add(0, 2, 0).getBlock().isEmpty() || softBlocks.contains(check.clone().add(0, 2, 0).getBlock().getType()))) {
                             check = check.clone().add(0, 1, 0);
                             newH = check.distanceSquared(target);
                         } else {

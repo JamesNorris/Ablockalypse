@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import com.github.manager.ItemFileManager;
@@ -34,17 +35,7 @@ public class External {
         return true;
     }
 
-    public static <O extends Object> O load(File file) throws IOException, ClassNotFoundException {
-        ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
-        return load(is);
-    }
-
-    public static <O extends Object> O load(String path) throws IOException, ClassNotFoundException {
-        ObjectInputStream is = new ObjectInputStream(new FileInputStream(path));
-        return load(is);
-    }
-
-    public static boolean newVersionAvailable(URL url, File file) {
+    public static boolean isNewVersionAvailable(URL url, File file) {
         try {
             URLConnection connection = url.openConnection();
             long lastmodURL = connection.getLastModified();
@@ -53,6 +44,16 @@ public class External {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public static <O extends Object> O load(File file) throws IOException, ClassNotFoundException {
+        ObjectInputStream is = new ObjectInputStream(new FileInputStream(file));
+        return load(is);
+    }
+
+    public static <O extends Object> O load(String path) throws IOException, ClassNotFoundException {
+        ObjectInputStream is = new ObjectInputStream(new FileInputStream(path));
+        return load(is);
     }
 
     public static <O extends Object> void save(O object, File file) throws IOException {
@@ -77,7 +78,7 @@ public class External {
         os.close();
     }
 
-    private File configuration, localization, items, savedData, mapData, printedSettings;
+    private File configuration, localization, items, savedData, savedPlayerData, mapData, printedSettings;
     private ItemFileManager itemsManager;
 
     public External(Plugin instance) {
@@ -90,6 +91,8 @@ public class External {
         ensureExistence(instance.getResource("items.yml"), items);
         savedData = new File(dataFolder, "saved_data");
         ensureDirectory(savedData);
+        savedPlayerData = new File(savedData, "player_data");
+        ensureDirectory(savedPlayerData);
         mapData = new File(dataFolder, "map_data");
         ensureDirectory(mapData);
         printedSettings = new File(dataFolder, "printed_settings");
@@ -127,7 +130,7 @@ public class External {
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.crash("The block mapdata file: <mapdata" + File.separatorChar + mapname + ".map> could not be found or created.", 5);
+            Ablockalypse.getErrorTracker().crash("The block mapdata file: <mapdata" + File.separatorChar + mapname + ".map> could not be found or created.", 5);
         }
         return null;
     }
@@ -150,11 +153,11 @@ public class External {
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.crash("The game object mapdata file: <mapdata" + File.separatorChar + mapname + ".objects> could not be found or created.", 5);
+            Ablockalypse.getErrorTracker().crash("The game object mapdata file: <mapdata" + File.separatorChar + mapname + ".objects> could not be found or created.", 5);
         }
         return null;
     }
-    
+
     public File getPrintedSettingsFolder() {
         return printedSettings;
     }
@@ -173,13 +176,37 @@ public class External {
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.crash("The save file: <saved_data" + File.separatorChar + gamename + ".bin> could not be found or created.", 5);
+            Ablockalypse.getErrorTracker().crash("The save file: <saved_data" + File.separatorChar + gamename + ".bin> could not be found or created.", 5);
         }
         return null;
     }
 
     public File getSavedDataFolder() {
         return savedData;
+    }
+
+    public File getSavedPlayerDataFile(Player player, boolean force) {
+        try {
+            String path = "player_data" + File.separatorChar + player.getName() + ".bin";
+            File saveFile = new File(savedData, path);
+            if (force) {
+                if (!saveFile.getParentFile().exists()) {
+                    saveFile.getParentFile().mkdirs();
+                }
+                if (!saveFile.exists()) {
+                    saveFile.createNewFile();
+                }
+            }
+            return saveFile;
+        } catch (IOException e) {
+            Ablockalypse.getErrorTracker().crash("The save file: <saved_data" + File.separatorChar + "player_data" + File.separatorChar + player.getName()
+                    + ".bin> could not be found or created.", 5);
+        }
+        return null;
+    }
+
+    public File getSavedPlayerDataFolder() {
+        return savedPlayerData;
     }
 
     protected void ensureDirectory(File file) {
@@ -199,7 +226,7 @@ public class External {
                 download(resource, new FileOutputStream(file));
             }
         } catch (IOException e) {
-            Ablockalypse.crash("Existence could not be ensured for file: <" + file.getAbsolutePath() + ">. This is probably due to an InputStream issue.", 5);
+            Ablockalypse.getErrorTracker().crash("Existence could not be ensured for file: <" + file.getAbsolutePath() + ">. This is probably due to an InputStream issue.", 5);
         }
     }
 }

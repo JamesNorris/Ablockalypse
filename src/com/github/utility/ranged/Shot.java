@@ -6,20 +6,6 @@ import java.util.List;
 import org.bukkit.Location;
 
 public class Shot { // possible hit
-    private final int[] orderClockwise = new int[] {0, 1, 4, 3};
-    private final Location from, to;
-    private ShotData data;
-
-    public Shot(Location from, ShotData data) {
-        this.from = from;
-        this.to = from.clone().add(data.getDistanceToTravel() * Math.sin(Math.toRadians(from.getYaw() * -1)), data.getDistanceToTravel() * Math.sin(Math.toRadians(from.getPitch() * -1)), data.getDistanceToTravel() * Math.cos(Math.toRadians(from.getYaw() * -1)));
-        this.data = data;
-    }
-
-    public List<HitBox> arrangeClosest(List<HitBox> hitBoxes) {
-        return arrangeClosest(from, hitBoxes);
-    }
-
     public static List<HitBox> arrangeClosest(Location from, List<HitBox> hitBoxes) {
         List<HitBox> arranged = new ArrayList<HitBox>();
         for (int i = 0; i < hitBoxes.size(); i++) {
@@ -28,10 +14,6 @@ public class Shot { // possible hit
             arranged.add(closest);
         }
         return arranged;
-    }
-
-    public HitBox getClosest(List<HitBox> hitBoxes) {
-        return getClosest(from, hitBoxes);
     }
 
     public static HitBox getClosest(Location from, List<HitBox> hitBoxes) {
@@ -43,11 +25,7 @@ public class Shot { // possible hit
         }
         return closest;
     }
-    
-    public Location getClosestCorner(HitBox hitBox) {
-        return getClosestCorner(from, hitBox);
-    }
-    
+
     public static Location getClosestCorner(Location from, HitBox hitBox) {
         Location closest = hitBox.getCenter();
         for (Location corner : hitBox.getCorners()) {
@@ -58,30 +36,27 @@ public class Shot { // possible hit
         return closest;
     }
 
-    /* TODO Checking for obstacles
-     * TODO Only allow parts of the HitBox to be hit that are in range
-     * TODO Speed in Blocks Per Second, as contained in ShotData
-     * TODO Projectile penetration */
-    public List<Hit> shoot(List<HitBox> hitBoxes) {
-        List<Hit> hits = new ArrayList<Hit>();
-        for (HitBox hitBox : hitBoxes) {
-            hitBox.update();
-            if (getClosestCorner(hitBox).distanceSquared(from) > Math.pow(data.getDistanceToTravel(), 2)) {
-                continue;
-            }
-            int index = getLeftViewCornerIndex(hitBox);
-            Location[] entEx = new Location[] {hitBox.getCorner(index), hitBox.getCorner((index + 2) % 3)};
-//            Location[] entEx = getComplexEntranceAndExit(hitBox);
-//            if (!hits(hitBox, entEx)) {
-//                continue;
-//            }
-            if (!hitBox.intersect(new Ray3D(from, to))) {
-                continue;
-            }
-            System.out.println("hit!");// TODO remove
-            hits.add(new Hit(from, entEx[0], entEx[1], hitBox, data));
-        }
-        return hits;
+    private final int[] orderClockwise = new int[] {0, 3, 4, 1};
+    private final Location from, to;
+    private ShotData data;
+
+    public Shot(Location from, ShotData data) {
+        this.from = from;
+        to = from.clone().add(data.getDistanceToTravel() * Math.sin(Math.toRadians(from.getYaw() * -1)), data.getDistanceToTravel()
+                * Math.sin(Math.toRadians(from.getPitch() * -1)), data.getDistanceToTravel() * Math.cos(Math.toRadians(from.getYaw() * -1)));
+        this.data = data;
+    }
+
+    public List<HitBox> arrangeClosest(List<HitBox> hitBoxes) {
+        return arrangeClosest(from, hitBoxes);
+    }
+
+    public HitBox getClosest(List<HitBox> hitBoxes) {
+        return getClosest(from, hitBoxes);
+    }
+
+    public Location getClosestCorner(HitBox hitBox) {
+        return getClosestCorner(from, hitBox);
     }
 
     /**
@@ -116,6 +91,9 @@ public class Shot { // possible hit
         return new Location[] {entrance, exit};
     }
 
+    // public Location[] getSimpleEntranceAndExit(HitBox hitBox) {
+    // return getSimpleEntranceAndExit(new LineSegment3D(from, to), hitBox);
+    // }
     /**
      * Gets the entrance and exit of a direct (straight) projectile through a hit box.<br>
      * This returns a Location array, containing entrance at the index of 0 and exit at the index of 1.<br>
@@ -125,6 +103,23 @@ public class Shot { // possible hit
      * @return A Location array containing entrance (0) and exit (1)
      */
     public Location[] getSimpleEntranceAndExit(HitBox hitBox) {
+        // Location from = shot.getStart();
+        // Location[] hits = new Location[2];
+        // for (Plane3D plane : hitBox.getPlanes()) {
+        // Location intersect = plane.getIntersect(shot);
+        // if (intersect == null || intersect.getX() == Double.NaN || intersect.getY() == Double.NaN || intersect.getZ() == Double.NaN) {
+        // continue;
+        // }
+        // if (hits[0] == null || intersect.distanceSquared(from) < hits[0].distanceSquared(from)) {
+        // if (hits[0] != null) {
+        // hits[1] = hits[0];
+        // }
+        // hits[0] = intersect;
+        // }
+        // if (hits[1] == null) {
+        // hits[1] = intersect;
+        // }
+        // }
         int leftViewCornerIndex = getLeftViewCornerIndex(hitBox);
         Location origin = new Location(from.getWorld(), 0, 0, 0, 0, 0);
         double originFromDistance = origin.distance(from);
@@ -195,8 +190,48 @@ public class Shot { // possible hit
         }
         Location entrance = closeXZIntersect != null && closeDYIntersect != null ? new Location(from.getWorld(), closeXZIntersect.getX(), closeDYIntersect.getY(), closeXZIntersect.getY(), from.getYaw(), from.getPitch()) : null;
         Location exit = farXZIntersect != null && farDYIntersect != null ? new Location(from.getWorld(), farXZIntersect.getX(), farDYIntersect.getY(), farXZIntersect.getY(), from.getYaw(), from.getPitch()) : null;
-        System.out.println(entrance + ", \n" + hitBox.getCenter() + ", \n" + exit);// TODO remove
         return new Location[] {entrance, exit};
+    }
+
+    public boolean hits(HitBox hitBox, Location entrance, Location exit) {
+        if (hitBox == null || entrance == null || exit == null) {
+            return false;
+        }
+        Location mid = new Location(entrance.getWorld(), (entrance.getX() + exit.getX()) / 2, (entrance.getY() + exit.getY()) / 2, (entrance.getZ() + exit.getZ()) / 2, entrance.getYaw(), entrance.getPitch());
+        boolean Xs = MathUtility.overlap1D(hitBox.getLowestX(), hitBox.getHighestX(), mid.getX(), mid.getX());
+        boolean Ys = MathUtility.overlap1D(hitBox.getLowestY(), hitBox.getHighestY(), mid.getY(), mid.getY());
+        boolean Zs = MathUtility.overlap1D(hitBox.getLowestZ(), hitBox.getHighestZ(), mid.getZ(), mid.getZ());
+        return Xs && Ys && Zs;
+    }
+
+    public boolean hits(HitBox hitBox, Location[] entEx) {
+        if (entEx == null) {
+            return false;
+        }
+        return hits(hitBox, entEx[0], entEx[1]);
+    }
+
+    /* TODO Checking for obstacles
+     * TODO Only allow parts of the HitBox to be hit that are in range
+     * TODO Speed in Blocks Per Second, as contained in ShotData
+     * TODO Projectile penetration */
+    public List<Hit> shoot(List<HitBox> hitBoxes) {
+        List<Hit> hits = new ArrayList<Hit>();
+        for (HitBox hitBox : hitBoxes) {
+            hitBox.update();
+            if (getClosestCorner(hitBox).distanceSquared(from) > Math.pow(data.getDistanceToTravel(), 2)) {
+                continue;
+            }
+            Location[] entEx = getSimpleEntranceAndExit(hitBox);// TODO complex
+            // if (!hits(hitBox, entEx)) {
+            // continue;
+            // }
+            if (entEx[0] == null) {
+                continue;
+            }
+            hits.add(new Hit(from, entEx[0], entEx[1], hitBox, data));
+        }
+        return hits;
     }
 
     private Location2D[] getCloseAndFarIntersect(Location2D from, LineSegment2D shotPath, LineSegment2D[] outline) {
@@ -209,6 +244,11 @@ public class Shot { // possible hit
                 continue;
             }
             double currentDistSq = from.distanceSquared(intersect);
+            if (farIntersect != null && from.distanceSquared(farIntersect) <= distSq) {
+                Location2D temporary = closeIntersect;
+                closeIntersect = farIntersect;
+                farIntersect = temporary;
+            }
             if (currentDistSq < distSq) {
                 distSq = currentDistSq;
                 farIntersect = closeIntersect;

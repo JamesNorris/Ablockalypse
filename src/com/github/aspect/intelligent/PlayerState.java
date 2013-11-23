@@ -9,6 +9,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -17,6 +18,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.util.Vector;
 
+import com.github.Ablockalypse;
 import com.github.aspect.PermanentAspect;
 import com.github.utility.serial.SavedVersion;
 import com.github.utility.serial.SerialLocation;
@@ -84,62 +86,6 @@ public class PlayerState extends PermanentAspect {
         gameMode = player.getGameMode();
     }
 
-    public void update() {
-        Player player = Bukkit.getPlayer(name);
-        update(player);
-    }
-
-    @SuppressWarnings("deprecation") public void update(Player player) {
-        player.setLevel(level);
-        player.setHealth(health);
-        player.setFoodLevel(foodLevel);
-        player.setFireTicks(fireTicks);
-        player.setLastDamage(lastDamage);
-        player.setMaxHealth(maxHealth);
-        player.setMaximumAir(maxAir);
-        player.setMaximumNoDamageTicks(maxNoDamageTicks);
-        player.setNoDamageTicks(noDamageTicks);
-        player.setRemainingAir(remainingAir);
-        player.getInventory().clear();
-        player.getInventory().setContents(inventoryContents);
-        player.getInventory().setArmorContents(armorContents);
-        player.setExp(exp);
-        player.setSaturation(saturation);
-        player.setFallDistance(fallDistance);
-        player.setExhaustion(exhaustion);
-        player.setFlySpeed(flySpeed);
-        player.setWalkSpeed(walkSpeed);
-        player.teleport(location);
-        player.setBedSpawnLocation(bedSpawn);
-        player.setCompassTarget(compassTarget);
-        player.setSleepingIgnored(sleepingIgnored);
-        player.setAllowFlight(allowFlight);
-        player.setCanPickupItems(canPickupItems);
-        player.setFlying(flying);
-        player.setBanned(banned);
-        player.setOp(op);
-        player.setSneaking(sneaking);
-        player.setSprinting(sprinting);
-        player.setWhitelisted(whitelisted);
-        player.addPotionEffects(potionEffects);
-        player.setCustomName(customName);
-        player.setDisplayName(displayName);
-        player.setPlayerListName(listName);
-        player.getInventory().setHeldItemSlot(heldSlot);
-        player.setItemInHand(itemInHand);// returned to normal by setting the inventory contents, this only messes it up
-        player.setLastDamageCause(lastDamageCause);
-        player.setPlayerTime(time, true);
-        player.setPlayerWeather(weather);
-        if (scoreboard != null) {
-            player.setScoreboard(scoreboard);
-        }
-        if (velocity != null) {
-            player.setVelocity(velocity);
-        }
-        player.setGameMode(gameMode);
-        player.updateInventory();
-    }
-
     @SuppressWarnings("unchecked") public PlayerState(SavedVersion save) {
         level = (Integer) save.get("level");
         foodLevel = (Integer) save.get("food_level");
@@ -199,6 +145,23 @@ public class PlayerState extends PermanentAspect {
         time = (Long) save.get("time");
         weather = save.get("weather_name") == null ? WeatherType.CLEAR : WeatherType.valueOf((String) save.get("weather_name"));// common null pointer
         gameMode = GameMode.getByValue((Integer) save.get("game_mode"));
+    }
+
+    @Override public String getHeader() {
+        return this.getClass().getSimpleName() + " <PLAYER: " + name + ">";
+    }
+
+    public OfflinePlayer getPlayer() {
+        OfflinePlayer player = Bukkit.getPlayer(name);
+        if (player == null) {
+            player = Bukkit.getOfflinePlayer(name);
+        }
+        if (player == null || !player.hasPlayedBefore()) {
+            // npes will be thrown... player doesnt exist and never did (why was it saved?)
+            Ablockalypse.getErrorTracker().crash("A PlayerState attempted to get a player that never existed!", 20);
+            return null;
+        }
+        return player;
     }
 
     @Override public SavedVersion getSave() {
@@ -268,7 +231,59 @@ public class PlayerState extends PermanentAspect {
         return new SavedVersion(getHeader(), save, getClass());
     }
 
-    @Override public String getHeader() {
-        return this.getClass().getSimpleName() + " <PLAYER: " + name + ">";
+    public void update() {
+        Player player = Bukkit.getPlayer(name);
+        update(player);
+    }
+
+    @SuppressWarnings("deprecation") public void update(Player player) {
+        player.setLevel(level);
+        player.setHealth(health);
+        player.setFoodLevel(foodLevel);
+        player.setFireTicks(fireTicks);
+        player.setLastDamage(lastDamage);
+        player.setMaxHealth(maxHealth);
+        player.setMaximumAir(maxAir);
+        player.setMaximumNoDamageTicks(maxNoDamageTicks);
+        player.setNoDamageTicks(noDamageTicks);
+        player.setRemainingAir(remainingAir);
+        player.getInventory().clear();
+        player.getInventory().setContents(inventoryContents);
+        player.getInventory().setArmorContents(armorContents);
+        player.setExp(exp);
+        player.setSaturation(saturation);
+        player.setFallDistance(fallDistance);
+        player.setExhaustion(exhaustion);
+        player.setFlySpeed(flySpeed);
+        player.setWalkSpeed(walkSpeed);
+        player.teleport(location);
+        player.setBedSpawnLocation(bedSpawn);
+        player.setCompassTarget(compassTarget);
+        player.setSleepingIgnored(sleepingIgnored);
+        player.setAllowFlight(allowFlight);
+        player.setCanPickupItems(canPickupItems);
+        player.setFlying(flying);
+        player.setBanned(banned);
+        player.setOp(op);
+        player.setSneaking(sneaking);
+        player.setSprinting(sprinting);
+        player.setWhitelisted(whitelisted);
+        player.addPotionEffects(potionEffects);
+        player.setCustomName(customName);
+        player.setDisplayName(displayName);
+        player.setPlayerListName(listName);
+        player.getInventory().setHeldItemSlot(heldSlot);
+        player.setItemInHand(itemInHand);// returned to normal by setting the inventory contents, this only messes it up
+        player.setLastDamageCause(lastDamageCause);
+        player.setPlayerTime(time, true);
+        player.setPlayerWeather(weather);
+        if (scoreboard != null) {
+            player.setScoreboard(scoreboard);
+        }
+        if (velocity != null) {
+            player.setVelocity(velocity);
+        }
+        player.setGameMode(gameMode);
+        player.updateInventory();
     }
 }

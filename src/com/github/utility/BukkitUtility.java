@@ -12,13 +12,9 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-
-import com.github.Ablockalypse;
-import com.github.threading.DelayedTask;
 
 public class BukkitUtility {
     public static int[] swords = new int[] {268, 283, 272, 267, 276};
@@ -28,54 +24,6 @@ public class BukkitUtility {
         String bukkitVersion = Bukkit.getVersion();
         String cleanedVersion = bukkitVersion.split(Pattern.quote("(MC:"))[1].split(Pattern.quote(")"))[0].trim();
         nms_version = "v" + cleanedVersion;
-    }
-    
-    public static Location fromString(String loc) {
-        loc = loc.substring(loc.indexOf("{") + 1);
-        loc = loc.substring(loc.indexOf("{") + 1);
-        String worldName = loc.substring(loc.indexOf("=") + 1, loc.indexOf("}"));
-        loc = loc.substring(loc.indexOf(",") + 1);
-        String xCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
-        loc = loc.substring(loc.indexOf(",") + 1);
-        String yCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
-        loc = loc.substring(loc.indexOf(",") + 1);
-        String zCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
-        loc = loc.substring(loc.indexOf(",") + 1);
-        String pitch = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
-        loc = loc.substring(loc.indexOf(",") + 1);
-        String yaw = loc.substring(loc.indexOf("=") + 1, loc.indexOf("}"));
-        return new Location(Bukkit.getWorld(worldName), Double.parseDouble(xCoord), Double.parseDouble(yCoord), Double.parseDouble(zCoord), Float.parseFloat(yaw), Float.parseFloat(pitch));
-    }
-    
-    public static List<Entity> getNearbyEntities(Location loc, double x, double y, double z) {
-        List<Entity> entities = new ArrayList<Entity>();
-        for (Entity entity : loc.getWorld().getEntities()) {
-            Location entLoc = entity.getLocation();
-            boolean nearX = Math.abs(entLoc.getX() - loc.getX()) <= x;
-            boolean nearY = Math.abs(entLoc.getY() - loc.getY()) <= y;
-            boolean nearZ = Math.abs(entLoc.getZ() - loc.getZ()) <= z;
-            if (nearX && nearY && nearZ) {
-                entities.add(entity);
-            }
-        }
-        return entities;
-    }
-
-    public static void dropItemAtPlayer(final Location from, final ItemStack item, final Player player, final int dropDelay, final int removalDelay) {
-        new DelayedTask(dropDelay, true) {
-            @Override public void run() {
-                Item i = from.getWorld().dropItem(from, item);
-                i.setPickupDelay(Integer.MAX_VALUE);
-                final ItemStack is = i.getItemStack();
-                final Item finali = i;
-                new DelayedTask(removalDelay, true) {
-                    @Override public void run() {
-                        finali.remove();
-                        Ablockalypse.getExternal().getItemFileManager().giveItem(player, is);
-                    }
-                };
-            }
-        };
     }
 
     public static Location floorLivingEntity(LivingEntity entity) {
@@ -92,6 +40,23 @@ public class BukkitUtility {
         return eyeLoc.clone().subtract(0, eyeLoc.getY() - floor.getY() - 2 * eyeHeight, 0);
     }
 
+    public static Location fromString(String loc) {
+        loc = loc.substring(loc.indexOf("{") + 1);
+        loc = loc.substring(loc.indexOf("{") + 1);
+        String worldName = loc.substring(loc.indexOf("=") + 1, loc.indexOf("}"));
+        loc = loc.substring(loc.indexOf(",") + 1);
+        String xCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
+        loc = loc.substring(loc.indexOf(",") + 1);
+        String yCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
+        loc = loc.substring(loc.indexOf(",") + 1);
+        String zCoord = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
+        loc = loc.substring(loc.indexOf(",") + 1);
+        String pitch = loc.substring(loc.indexOf("=") + 1, loc.indexOf(","));
+        loc = loc.substring(loc.indexOf(",") + 1);
+        String yaw = loc.substring(loc.indexOf("=") + 1, loc.indexOf("}"));
+        return new Location(Bukkit.getWorld(worldName), Double.parseDouble(xCoord), Double.parseDouble(yCoord), Double.parseDouble(zCoord), Float.parseFloat(yaw), Float.parseFloat(pitch));
+    }
+
     public static Block getHighestEmptyBlockUnder(Location loc) {
         for (int y = loc.getBlockY(); y > 0; y--) {
             Location floor = new Location(loc.getWorld(), loc.getX(), y, loc.getZ(), loc.getYaw(), loc.getPitch());
@@ -103,20 +68,25 @@ public class BukkitUtility {
         return loc.getBlock();
     }
 
+    public static List<Entity> getNearbyEntities(Location loc, double x, double y, double z) {
+        List<Entity> entities = new ArrayList<Entity>();
+        for (Entity entity : loc.getWorld().getEntities()) {
+            Location entLoc = entity.getLocation();
+            boolean nearX = Math.abs(entLoc.getX() - loc.getX()) <= x;
+            boolean nearY = Math.abs(entLoc.getY() - loc.getY()) <= y;
+            boolean nearZ = Math.abs(entLoc.getZ() - loc.getZ()) <= z;
+            if (nearX && nearY && nearZ) {
+                entities.add(entity);
+            }
+        }
+        return entities;
+    }
+
     public static Location getNearbyLocation(Location loc, int minXdif, int maxXdif, int minYdif, int maxYdif, int minZdif, int maxZdif) {
         int modX = difInRandDirection(maxXdif, minXdif);
         int modY = difInRandDirection(maxXdif, minXdif);
         int modZ = difInRandDirection(maxXdif, minXdif);
         return loc.clone().add(modX, modY, modZ);
-    }
-
-    private static int difInRandDirection(int max, int min) {
-        try {
-            return (rand.nextBoolean() ? 1 : -1) * (rand.nextInt(Math.abs(max - min)) + min);
-        } catch (IllegalArgumentException e) {
-            // nothing, the number to change by is 0, throwing the exception because on rand.nextInt(n <= 0).
-        }
-        return 0;
     }
 
     public static String getNMSVersionSlug() {
@@ -158,14 +128,14 @@ public class BukkitUtility {
         return nearX && nearY && nearZ;
     }
 
-    public static boolean locationMatch(Location loc1, Location loc2, int distance) {//TODO this method is exact, fix
+    public static boolean locationMatch(Location loc1, Location loc2, int distance) {// TODO this method is exact, fix
         return Math.abs(loc1.getX() - loc2.getX()) <= distance && Math.abs(loc1.getY() - loc2.getY()) <= distance && Math.abs(loc1.getZ() - loc2.getZ()) <= distance;
     }
-    
+
     public static boolean locationMatchExact(Location loc1, Location loc2) {
         return locationMatchExact(loc1, loc2, 0);
     }
-    
+
     public static boolean locationMatchExact(Location loc1, Location loc2, double distance) {
         return loc1.distanceSquared(loc2) <= Math.pow(distance, 2);
     }
@@ -192,5 +162,9 @@ public class BukkitUtility {
         if (isDoubleChest(block)) {
             player.playNote(getSecondChest(block).getLocation(), (byte) 1, open);
         }
+    }
+
+    private static int difInRandDirection(int max, int min) {
+        return (rand.nextBoolean() ? 1 : -1) * (rand.nextInt(Math.abs(max - min)) + min);
     }
 }

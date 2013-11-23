@@ -21,7 +21,7 @@ public class MathUtility {
         }
         return listLevels.toArray(new Integer[listLevels.size()]);
     }
-    
+
     public static int parsePercentage(String line) throws NumberFormatException {
         if (line.isEmpty()) {
             throw new IllegalArgumentException("Line cannot be null!");

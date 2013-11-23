@@ -1,5 +1,8 @@
 package com.github.event.bukkit;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,10 +14,12 @@ import com.github.Ablockalypse;
 import com.github.DataContainer;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.aspect.intelligent.Game;
+import com.github.aspect.intelligent.PlayerState;
 import com.github.event.PlayerLeaveGameEvent;
 
 public class PlayerQuit implements Listener {
     private DataContainer data = Ablockalypse.getData();
+    public static Map<Player, PlayerState> playerSaves = new HashMap<Player, PlayerState>();
 
     /* Called when a player leaves the server.
      * Used for removing a player from the ZAGame when they leave. */
@@ -26,6 +31,7 @@ public class PlayerQuit implements Listener {
             PlayerLeaveGameEvent GPLE = new PlayerLeaveGameEvent(zap, zag);
             Bukkit.getPluginManager().callEvent(GPLE);
             if (!GPLE.isCancelled()) {
+                playerSaves.put(p, zap.getState());
                 zag.removePlayer(p);
                 zap.remove();
             }

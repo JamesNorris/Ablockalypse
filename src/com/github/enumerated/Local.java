@@ -9,7 +9,7 @@ import com.github.Ablockalypse;
 import com.google.common.collect.Maps;
 
 public enum Local {
-  //@formatter:off
+    //@formatter:off
     BASE_ENCHANTMENT_STRING("enchantmentString"), 
     BASE_JOIN_STRING("joinString"), 
     BASE_PASSAGE_STRING("passageString"), 
@@ -29,7 +29,7 @@ public enum Local {
     static {
         FileConfiguration local = YamlConfiguration.loadConfiguration(Ablockalypse.getExternal().getLocalizationFile());
         if (local == null) {
-            Ablockalypse.crash("The localization (local.yml) file cound not be reached.", 80);
+            Ablockalypse.getErrorTracker().crash("The localization (local.yml) file cound not be reached.", 80);
         }
         int id = 0;
         for (Local setting : values()) {

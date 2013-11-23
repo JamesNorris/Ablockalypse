@@ -45,14 +45,15 @@ import com.github.queue.QueuedPlayerInteractData;
 import com.github.storage.MapDataStorage;
 import com.github.threading.inherent.TeleportTask;
 import com.github.threading.inherent.TeleporterLinkageTimerTask;
+import com.github.utility.AblockalypseUtility;
 import com.github.utility.BukkitUtility;
 import com.github.utility.ranged.Hit;
 import com.github.utility.ranged.HitBox;
 import com.github.utility.ranged.Shot;
 import com.github.utility.ranged.type.EntityHitBox;
 import com.github.utility.ranged.type.HitThroughWallShot;
-import com.github.utility.selection.Rectangle;
 import com.github.utility.selection.Cube;
+import com.github.utility.selection.Rectangle;
 
 public class PlayerInteract implements Listener {
     public static ArrayList<Game> fireSale = new ArrayList<Game>();// TODO queue all of these remaining lists/maps
@@ -68,7 +69,7 @@ public class PlayerInteract implements Listener {
 
     public boolean isPassage(Block block) {
         for (Passage passage : data.getObjectsOfType(Passage.class)) {
-            if (passage.getBlocks().contains(block)) {
+            if (passage.getDefiningBlocks().contains(block)) {
                 return true;
             }
         }
@@ -92,28 +93,29 @@ public class PlayerInteract implements Listener {
         }
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
-        Action a = event.getAction();
+        Action action = event.getAction();
         if (block != null) {
             Location loc = block.getLocation();
-            if (!data.isZAPlayer(player) && mapDataSavePlayers.containsKey(player.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+            if (!data.isZAPlayer(player) && mapDataSavePlayers.containsKey(player.getName()) && action == Action.RIGHT_CLICK_BLOCK) {
                 if (!mapDataPoint1SaveClickers.containsKey(player.getName())) {
                     mapDataPoint1SaveClickers.put(player.getName(), block.getLocation());
                     player.sendMessage(ChatColor.GRAY + "Please click the other corner of the map.");
+                    return;
                 } else {
                     boolean saved = new MapDataStorage(mapDataSavePlayers.get(player.getName())).save(new Rectangle(mapDataPoint1SaveClickers.get(player.getName()), block.getLocation()));
                     mapDataPoint1SaveClickers.remove(player.getName());
                     mapDataSavePlayers.remove(player.getName());
                     String successful = saved ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
-                    player.sendMessage(ChatColor.GRAY + "Mapdata saved " + successful + ".");
+                    player.sendMessage(ChatColor.GRAY + "Mapdata saved " + successful + ChatColor.GRAY + ".");
                 }
-            } else if (!data.isZAPlayer(player) && mapDataLoadPlayers.containsKey(player.getName()) && a == Action.RIGHT_CLICK_BLOCK) {
+            } else if (!data.isZAPlayer(player) && mapDataLoadPlayers.containsKey(player.getName()) && action == Action.RIGHT_CLICK_BLOCK) {
                 boolean loaded = MapDataStorage.getFromGame(mapDataLoadPlayers.get(player.getName())).load(block.getLocation());
                 mapDataLoadPlayers.remove(player.getName());
                 String successful = loaded ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
                 player.sendMessage(ChatColor.GRAY + "Mapdata loaded " + successful + ".");
             } else if (!data.isZAPlayer(player) && data.isGameObject(loc)) {
                 event.setCancelled(true);
-            } else if ((block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) && a == Action.RIGHT_CLICK_BLOCK) {
+            } else if ((block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) && action == Action.RIGHT_CLICK_BLOCK) {
                 Sign s = (Sign) block.getState();
                 if (s.getLine(0).equalsIgnoreCase(Local.BASE_STRING.getSetting())) {
                     event.setUseInteractedBlock(Result.DENY);
@@ -127,7 +129,7 @@ public class PlayerInteract implements Listener {
                 }
                 ZAPlayer zap = data.getZAPlayer(player);
                 Game game = zap.getGame();
-                if (block.getType() == Material.CHEST && a == Action.RIGHT_CLICK_BLOCK) {
+                if (block.getType() == Material.CHEST && action == Action.RIGHT_CLICK_BLOCK) {
                     Location l = block.getLocation();
                     if (data.isMysteryChest(l)) {
                         MysteryBox mc = data.getMysteryChest(l);
@@ -141,7 +143,7 @@ public class PlayerInteract implements Listener {
                     }
                 } else if (block.getType() == Material.WOOD_DOOR || block.getType() == Material.IRON_DOOR) {
                     event.setCancelled(true);
-                } else if (block.getType() == Material.LEVER && a == Action.RIGHT_CLICK_BLOCK) {
+                } else if (block.getType() == Material.LEVER && action == Action.RIGHT_CLICK_BLOCK) {
                     Lever lever = (Lever) block.getState().getData();
                     if (lever.isPowered()) {
                         player.sendMessage(lever.isPowered() ? ChatColor.GRAY + "The switch is on." : ChatColor.RED + "That switch is in use by another game!");
@@ -151,8 +153,8 @@ public class PlayerInteract implements Listener {
                         return;
                     }
                     new PowerSwitch(game, loc, lever);
-                } else if (/*!block.getType().isOccluding()TODO not working for fences? &&*/ (a == Action.LEFT_CLICK_AIR || a == Action.LEFT_CLICK_BLOCK)) {
-                    //timer, half a second between through-wall hits per player
+                } else if ((!block.getType().isOccluding() || block.getType() == Material.FENCE) && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)) {
+                    // timer, half a second between through-wall hits per player
                     if (hitThroughWallTimers.containsKey(player.getUniqueId())) {
                         if (System.currentTimeMillis() - hitThroughWallTimers.get(player.getUniqueId()) < 500) {
                             return;
@@ -162,7 +164,7 @@ public class PlayerInteract implements Listener {
                     hitThroughWallTimers.put(player.getUniqueId(), System.currentTimeMillis());
                     // through-fence damage
                     ItemStack handItem = player.getItemInHand();
-                    short damage = handItem == null ? 1/*hand damage*/ : handItem.getDurability();
+                    short damage = handItem == null ? 1/* hand damage */: handItem.getDurability();
                     HitThroughWallShot shotData = new HitThroughWallShot(damage);
                     Shot shot = new Shot(player.getEyeLocation(), shotData);
                     List<Hit> results = shot.shoot(shot.arrangeClosest(data.getObjectsOfType(HitBox.class)));
@@ -181,12 +183,12 @@ public class PlayerInteract implements Listener {
                     if (!zam.getGame().getUUID().equals(zap.getGame().getUUID())) {
                         return;
                     }
-//                    if (closestHit.getZones().isEmpty()) {
-//                        return;
-//                    }
+                    // if (closestHit.getZones().isEmpty()) {
+                    // return;
+                    // }
                     zam.getEntity().damage(shotData.getDamage(0), player);
                     return;
-                } else if (a == Action.RIGHT_CLICK_BLOCK) {
+                } else if (action == Action.RIGHT_CLICK_BLOCK) {
                     if (block.getType() == Material.CHEST) {
                         event.setUseInteractedBlock(Result.DENY);
                     }
@@ -245,7 +247,7 @@ public class PlayerInteract implements Listener {
                             time = time == -1 ? (int) (loc.distanceSquared(game.getMainframe().getLocation()) * .1) : time;// 1 second per block difference (4.5 approx sqrt 20)
                             tele.setLinkTime(time);
                             PlayerInteract.mainframeLinkers.put(zap, tele);
-                            PlayerInteract.mainframeLinkers_Timers.put(zap, new TeleporterLinkageTimerTask(game.getMainframe(), zap, ((int) time) * 20, true)); // difference
+                            PlayerInteract.mainframeLinkers_Timers.put(zap, new TeleporterLinkageTimerTask(game.getMainframe(), zap, (int) time * 20, true)); // difference
                             player.sendMessage(ChatColor.GRAY + "You now have " + time + " seconds to link the teleporter to the mainframe!");
                         }
                     }
@@ -304,7 +306,7 @@ public class PlayerInteract implements Listener {
         try {
             cost = Integer.parseInt(l3);
         } catch (Exception e) {
-            Ablockalypse.crash("The sign at " + sign.getLocation().toString() + " does not have a cost value on line 4.", 0);
+            Ablockalypse.getErrorTracker().crash("The sign at " + sign.getLocation().toString() + " does not have a cost value on line 4.", 0);
             player.sendMessage(ChatColor.RED + "That sign is incorrectly formatted.\nThe server has already been alerted.");
             return;
         }
@@ -365,7 +367,7 @@ public class PlayerInteract implements Listener {
                 zap.subtractPoints(ench.getCost());
                 player.sendMessage(ChatColor.BOLD + "You have bought " + l3 + " for " + ench.getCost() + " points!");
                 ZAEffect.POTION_BREAK.play(sign.getLocation());
-                BukkitUtility.dropItemAtPlayer(sign.getLocation(), hand, player, 1, 1);
+                AblockalypseUtility.dropItemAtPlayer(sign.getLocation(), hand, player, 1, 1);
                 return;
             }
         }
@@ -381,7 +383,7 @@ public class PlayerInteract implements Listener {
                     player.sendMessage(ChatColor.RED + "You have " + points + " / " + cost + " points to buy this.");
                     return;
                 }
-                BukkitUtility.dropItemAtPlayer(sign.getLocation(), map.toItemStack(), player, 1, 1);
+                AblockalypseUtility.dropItemAtPlayer(sign.getLocation(), map.toItemStack(), player, 1, 1);
                 if (fireSale.contains(zap.getGame())) {
                     cost = 10;
                 }

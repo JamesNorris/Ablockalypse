@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.bukkit.ChatColor;
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,13 +16,10 @@ import org.bukkit.entity.LivingEntity;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.PermanentAspect;
+import com.github.aspect.SpecificGameAspect;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.Blinkable;
-import com.github.behavior.GameObject;
 import com.github.behavior.MapDatable;
-import com.github.enumerated.Setting;
 import com.github.enumerated.ZAEffect;
 import com.github.enumerated.ZASound;
 import com.github.threading.Task;
@@ -36,7 +32,7 @@ import com.github.utility.selection.Cube;
 import com.github.utility.serial.SavedVersion;
 import com.github.utility.serial.SerialLocation;
 
-public class Barrier extends PermanentAspect implements GameObject, Blinkable, MapDatable {
+public class Barrier extends SpecificGameAspect implements MapDatable {
     private CopyOnWriteArrayList<BlockState> states = new CopyOnWriteArrayList<BlockState>();
     private BlinkerTask bt;
     private Location center, spawnloc;
@@ -54,18 +50,18 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
      * @param game The game to involve this barrier in
      */
     public Barrier(Location center, Game game) {
+        super(game, new Cube(center, 1).getLocations());
         this.center = center;
         this.game = game;
-        findSpawnLoc();
-        game.addObject(this);
+        spawnloc = BukkitUtility.getNearbyLocation(center, 2, 5, 0, 0, 2, 5);
         for (Location loc : new Cube(center, 1).getLocations()) {
             Block b = loc.getBlock();
             if (b != null && !b.isEmpty() && b.getType() != null) {
                 states.add(b.getState());
             }
         }
-        initBlinker();
-        data.objects.add(this);
+        setBlinking(!game.hasStarted());
+        setIsCorrectlySetup(states.size() >= 9);
     }
 
     public Barrier(SavedVersion savings) {
@@ -75,7 +71,7 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
         for (SerialLocation serialLoc : serialBlockLocations) {
             blocks.add(serialLoc.getWorld().getBlockAt(SerialLocation.returnLocation(serialLoc)).getState());
         }
-        this.states = (CopyOnWriteArrayList<BlockState>) blocks;
+        states = (CopyOnWriteArrayList<BlockState>) blocks;
         center = SerialLocation.returnLocation((SerialLocation) savings.get("center_location"));
         spawnloc = SerialLocation.returnLocation((SerialLocation) savings.get("spawn_location"));
         correct = (Boolean) savings.get("setup_is_correct");
@@ -121,22 +117,13 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
     }
 
     /**
-     * Gets the BlinkerThread attached to this instance.
-     * 
-     * @return The BlinkerThread attached to this instance
-     */
-    @Override public BlinkerTask getBlinkerThread() {
-        return bt;
-    }
-
-    /**
      * Returns the list of blocks in the barrier.
      * 
      * @return A list of blocks located in the barrier
      */
     public CopyOnWriteArrayList<Block> getBlocks() {
         CopyOnWriteArrayList<Block> blocks = new CopyOnWriteArrayList<Block>();
-        for (BlockState state : this.states) {
+        for (BlockState state : states) {
             blocks.add(state.getBlock());
         }
         return blocks;
@@ -168,17 +155,12 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
         return blockArray;
     }
 
-    /**
-     * Gets the game this barrier is involved in.
-     * 
-     * @return The game this barrier is attached to
-     */
-    @Override public Game getGame() {
-        return game;
+    public int getHP() {
+        return hp;
     }
 
-    @Override public String getHeader() {
-        return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
+    @Override public int getLoadPriority() {
+        return 2;
     }
 
     @Override public Location getPointClosestToOrigin() {
@@ -242,13 +224,21 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
         return correct;
     }
 
+    @Override public void onGameEnd() {
+        replacePanels();
+        setBlinking(true);
+    }
+
+    @Override public void onGameStart() {
+        setBlinking(false);
+    }
+
     @Override public void paste(Location pointClosestToOrigin) {
         Location old = getPointClosestToOrigin();
         Location toLoc = pointClosestToOrigin.add(center.getX() - old.getX(), center.getY() - old.getY(), center.getZ() - old.getZ());
         center = toLoc;
-        findSpawnLoc();
-        bt.cancel();
-        initBlinker();
+        spawnloc = BukkitUtility.getNearbyLocation(center, 2, 5, 0, 0, 2, 5);
+        refreshBlinker();
     }
 
     /**
@@ -256,13 +246,10 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
      */
     @Override public void remove() {
         replacePanels();
-        setBlinking(false);
         if (warning != null) {
             data.objects.remove(warning);
         }
-        game.removeObject(this);
-        data.objects.remove(this);
-        game = null;
+        super.remove();
     }
 
     /**
@@ -277,19 +264,6 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
         hp = 5;
     }
 
-    /**
-     * Stops/Starts the blinker for this barrier.
-     * 
-     * @param tf Whether or not this barrier should blink
-     */
-    @Override public void setBlinking(boolean tf) {
-        bt.setRunning(tf);
-    }
-
-    public int getHP() {
-        return hp;
-    }
-
     public void setHP(int hp) {
         if (hp < 0) {
             hp = 0;
@@ -302,39 +276,5 @@ public class Barrier extends PermanentAspect implements GameObject, Blinkable, M
             warning = AblockalypseUtility.scheduleNearbyWarning(center, ChatColor.GRAY + "Hold " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to fix barrier.", 2, 3, 2, 10000);
         }
         this.hp = hp;
-    }
-
-    private void findSpawnLoc() {
-        spawnloc = BukkitUtility.getNearbyLocation(center, 2, 5, 0, 0, 2, 5);
-        if (!spawnloc.getBlock().isEmpty() && spawnloc.getBlock().getType() != Material.AIR) {
-            findSpawnLoc();
-        }
-    }
-
-    private void initBlinker() {
-        ArrayList<Block> blockArray = new ArrayList<Block>();
-        blockArray.add(center.getBlock());
-        boolean blinkers = (Boolean) Setting.BLINKERS.getSetting();
-        bt = new BlinkerTask(blockArray, DyeColor.BLUE, 30, blinkers);
-        DyeColor color = states.size() >= 9 ? DyeColor.BLUE : DyeColor.RED;
-        correct = color == DyeColor.BLUE;
-        bt.setColor(color);
-    }
-
-    @Override public void onGameEnd() {
-        replacePanels();
-        setBlinking(true);
-    }
-
-    @Override public void onGameStart() {
-        setBlinking(false);
-    }
-
-    @Override public void onNextLevel() {}
-
-    @Override public void onLevelEnd() {}
-    
-    @Override public int getLoadPriority() {
-        return 2;
     }
 }

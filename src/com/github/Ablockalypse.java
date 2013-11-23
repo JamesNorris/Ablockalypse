@@ -3,16 +3,17 @@ package com.github;
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URL;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.github.Updater.UpdateType;
 import com.github.aspect.PermanentAspect;
 import com.github.aspect.intelligent.Game;
+import com.github.aspect.intelligent.PlayerState;
 import com.github.command.BaseCommand;
 import com.github.enumerated.Setting;
 import com.github.event.bukkit.BlockBreak;
@@ -45,79 +46,49 @@ import com.github.threading.inherent.ServerMobClearingTask;
 import com.github.threading.inherent.ServerTeleporterActionTask;
 import com.github.utility.serial.SavedVersion;
 
+/* MAIN TODO 's
+ * 
+ * 1) Fix MapData problems -Error messages added
+ * 2) Replace the Gravity Updater.java with my own version
+ * 3) A spectator ability (invisible and uncollidable players) -WIP, FUTURE
+ * 4) Firesale opening all mystery chests
+ * 5) Improved mob movement
+ * 6) Slowly crawling last stand -TEST
+ * 7) Update to MCShot 
+ * 8) Custom ammo and fix durability settings for max ammo */
 public class Ablockalypse extends JavaPlugin {
     private static Ablockalypse instance;
     private static DataContainer data = new DataContainer();
     private static MainThread mainThread;
     private static External external;
     private static BaseCommand commandInstance;
-    private static int totalFatality = 0, maxFatality = 100;
-
-    /**
-     * Called when something is not working, and the plugin needs to be monitored.
-     * 
-     * @param reason The reason for the exception
-     * @param disable Whether or not the Ablockalypse plugin should stop working
-     */
-    public static void crash(String reason, int fatality) {
-        StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-        /* Everything in this method should be static, except for strings */
-        StringBuilder sb = new StringBuilder();
-        sb.append("An aspect of Ablockalypse is broken, please report at: \n");
-        sb.append("https://github.com/JamesNorris/Ablockalypse/issues\n");
-        sb.append("--------------------------[ERROR REPORT]--------------------------\n");
-        sb.append("VERSION: " + instance.getDescription().getVersion() + "\n");
-        sb.append("BREAK REASON: " + reason + "\n");
-        for (int i = 1; i <= 5; i++) {
-            sb.append("CRASH TRACE " + i + ": " + stackTraceElements[i] + "\n");
-        }
-        totalFatality += fatality;
-        sb.append("FATALITY: " + fatality);
-        sb.append("\nTOTAL FATALITY: " + totalFatality + "/" + maxFatality);
-        if (totalFatality >= maxFatality) {
-            Ablockalypse.kill();
-            sb.append("\nA TOTAL FATALITY LEVEL OF " + totalFatality + " HAS KILLED ABLOCKALYPSE FOR SAFETY");
-        }
-        sb.append("\n---------------------------[END REPORT]---------------------------\n");
-        System.err.println(sb.toString());
-    }
+    private static ErrorTracker errorTracker;
 
     public static BaseCommand getBaseCommandInstance() {
         return commandInstance;
     }
 
-    /**
-     * Gets a single DataManipulator instance to prevent duplication.
-     * 
-     * @return The DataManipulator used by Ablockalypse
-     */
     public static DataContainer getData() {
         return data;
+    }
+
+    public static ErrorTracker getErrorTracker() {
+        return errorTracker;
     }
 
     public static External getExternal() {
         return external;
     }
 
-    /**
-     * Gets the Ablockalypse instance.
-     * 
-     * @return The Ablockalypse instance
-     */
     public static Ablockalypse getInstance() {
         return Ablockalypse.instance;
     }
 
-    /**
-     * Gets the main thread of this plugin, which ticks every 20th of a second, and is in sync with the MC ticks.
-     * 
-     * @return The MainThread run by Ablockalypse
-     */
     public static MainThread getMainThread() {
         return mainThread;
     }
 
-     //Kills the plugin.
+    // Kills the plugin.
     protected static void kill() {
         Ablockalypse.instance.setEnabled(false);
     }
@@ -135,23 +106,32 @@ public class Ablockalypse extends JavaPlugin {
             }
             game.remove(false);
         }
+        for (PlayerState state : PlayerJoin.toLoad) {
+            PlayerQuit.playerSaves.put(state.getPlayer().getPlayer(), state);
+        }
+        for (Player player : PlayerQuit.playerSaves.keySet()) {
+            PlayerState state = PlayerQuit.playerSaves.get(player);
+            PermanentAspect.save(state, external.getSavedPlayerDataFile(player, true));
+        }
         mainThread.cancel();
     }
 
     @Override public void onEnable() {
         Ablockalypse.instance = this;
         external = new External(this);
-        try {
-            update();
-        } catch (Exception ex) {
-            Ablockalypse.crash("The update either failed to find the version provided in config.yml, or there is an internal issue with the system.", 5);
+        errorTracker = new ErrorTracker("Ablockalypse", getDescription().getVersion(), "https://github.com/JamesNorris/Ablockalypse/issues", (Integer) Setting.MAX_FATALITY.getSetting());
+        if ((Boolean) Setting.ENABLE_UPDATE_CHECK.getSetting()) {
+            try {
+                update();
+            } catch (Exception ex) {
+                errorTracker.crash("The update either failed to find the version provided in config.yml, or there is an internal issue with the system.", 5);
+            }
         }
         commandInstance = new BaseCommand();
         register();
         initServerThreads(false);
-        maxFatality = (Integer) Setting.MAX_FATALITY.getSetting();
         for (File file : external.getSavedDataFolder().listFiles()) {
-            if (file != null) {
+            if (file != null && !file.isDirectory()) {
                 try {
                     SavedVersion save = (SavedVersion) External.load(file);
                     PermanentAspect.load(Game.class, save);
@@ -164,24 +144,48 @@ public class Ablockalypse extends JavaPlugin {
                 }
             }
         }
-        mainThread.run();//starts the main thread, which was told not to autorun earlier. Done to prevent NPEs with loading saves, but avoid NPEs with threads.
+        for (File file : external.getSavedPlayerDataFolder().listFiles()) {
+            if (file != null && !file.isDirectory()) {
+                try {
+                    SavedVersion save = (SavedVersion) External.load(file);
+                    PlayerJoin.toLoad.add((PlayerState) PermanentAspect.load(PlayerState.class, save));
+                    file.delete();
+                } catch (EOFException e) {
+                    // nothing, the file is empty and no data was saved
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        mainThread.run();// starts the main thread, which was told not to autorun earlier. Done to prevent NPEs with loading saves, but avoid NPEs with threads.
     }
 
     public boolean update() throws FileNotFoundException, IOException {
-        String address = "http://api.bukget.org/3/plugins/bukkit/zombie-ablockalypse/" + (String) Setting.UPDATE_VERSION.getSetting() + "/download";
-        String pathTo = "plugins" + File.separator + "Ablockalypse.jar";
-        URL url = new URL(address);
-        File file = new File(pathTo);
-        boolean updateAvailable = External.newVersionAvailable(url, file);
-        if ((Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() && updateAvailable) {
-            System.out.println("[Ablockalypse] Checking for updates...");
-            External.download(url.openConnection().getInputStream(), new FileOutputStream(file));
-            System.out.println("[Ablockalypse] An update has occurred, please restart the server to enable it!");
-            getServer().getPluginManager().disablePlugin(this);
-            return true;
+        Updater updater = new Updater(this, 42258, getFile(), (Boolean) Setting.ENABLE_AUTO_UPDATE.getSetting() ? UpdateType.DEFAULT : UpdateType.NO_DOWNLOAD, false);
+        switch (updater.getResult()) {
+            case DISABLED:
+                return false;
+            case FAIL_APIKEY:
+            case FAIL_BADID:
+            case FAIL_DBO:
+            case FAIL_DOWNLOAD:
+            case FAIL_NOVERSION:
+                System.err.println("[Ablockalyse] Failed to update! " + updater.getResult().toString());
+                return false;
+            case NO_UPDATE:
+                System.out.println("[Ablockalypse] No updates found.");
+                return false;
+            case SUCCESS:
+                System.out.println("[Ablockalypse] Update success!");
+                return true;
+            case UPDATE_AVAILABLE:
+                System.out.println("[Ablockalypse] Update found, but not completed. If you want to update, please switch 'ENABLE_AUTO_UPDATE' in the configuration to 'true'.");
+                return false;
+            default:
+                return false;
         }
-        System.out.println("[Ablockalypse] No updates found.");
-        return false;
     }
 
     protected void initServerThreads(boolean startMain) {

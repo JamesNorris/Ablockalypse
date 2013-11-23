@@ -22,11 +22,15 @@ public class PlayerMove implements Listener {
     private HashMap<String, Double> PHDPlayers = new HashMap<String, Double>();
 
     public boolean isMoving(PlayerMoveEvent event) {
+        return isMoving(event, 0);
+    }
+    
+    public boolean isMoving(PlayerMoveEvent event, double threshold) {
         Location from = event.getFrom();
         Location to = event.getTo();
-        boolean anyX = Math.abs(to.getX() - from.getX()) <= 0;
-        boolean upY = from.getY() - to.getY() < 0;
-        boolean anyZ = Math.abs(to.getZ() - from.getZ()) <= 0;
+        boolean anyX = Math.abs(to.getX() - from.getX()) <= threshold;
+        boolean upY = from.getY() - to.getY() < threshold;
+        boolean anyZ = Math.abs(to.getZ() - from.getZ()) <= threshold;
         return !anyX || !upY || !anyZ;
     }
 
@@ -47,14 +51,14 @@ public class PlayerMove implements Listener {
                     PHDPlayers.remove(name);
                 }
             }
-            if (data.getZAPlayer(p).isInLastStand() && isMoving(event)) {
+            if (data.getZAPlayer(p).isInLastStand() && isMoving(event, .2)) {//TODO test threshold on moving speed
                 event.setCancelled(true);
             }
             for (Barrier gb : zap.getGame().getObjectsOfType(Barrier.class)) {
                 for (Block b : gb.getBlocks()) {
                     Location l = b.getLocation();
                     if (BukkitUtility.locationMatch(l, to)) {
-                        p.teleport(from);
+//                        p.teleport(from);
                         event.setCancelled(true);
                     }
                 }

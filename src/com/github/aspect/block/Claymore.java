@@ -1,6 +1,5 @@
 package com.github.aspect.block;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -9,15 +8,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 import com.github.Ablockalypse;
 import com.github.DataContainer;
-import com.github.aspect.PermanentAspect;
+import com.github.aspect.SpecificGameAspect;
 import com.github.aspect.entity.ZAPlayer;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.GameObject;
 import com.github.event.bukkit.EntityExplode;
 import com.github.threading.Task;
 import com.github.threading.inherent.ClaymoreActionTask;
@@ -25,7 +22,7 @@ import com.github.utility.AblockalypseUtility;
 import com.github.utility.serial.SavedVersion;
 import com.github.utility.serial.SerialLocation;
 
-public class Claymore extends PermanentAspect implements GameObject {
+public class Claymore extends SpecificGameAspect {
     private Location beamLoc = null;
     private Location location;
     private DataContainer data = Ablockalypse.getData();
@@ -36,11 +33,10 @@ public class Claymore extends PermanentAspect implements GameObject {
     private Task warning;
 
     public Claymore(Location location, Game game, ZAPlayer placer) {
+        super(game, location);
         this.game = game;
         this.location = location;
         this.placer = placer;
-        data.objects.add(this);
-        game.addObject(this);
         placeBeam();
         warning = AblockalypseUtility.scheduleNearbyWarning(location, ChatColor.GRAY + "Press " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up claymore.", 2, 2, 2, 10000);
     }
@@ -72,25 +68,11 @@ public class Claymore extends PermanentAspect implements GameObject {
         return beamLoc;
     }
 
-    @Override public Block getDefiningBlock() {
-        return location.getBlock();
+    @Override public int getLoadPriority() {
+        return 2;
     }
 
-    @Override public ArrayList<Block> getDefiningBlocks() {
-        ArrayList<Block> blocks = new ArrayList<Block>();
-        blocks.add(location.getBlock());
-        return blocks;
-    }
-
-    @Override public Game getGame() {
-        return game;
-    }
-
-    @Override public String getHeader() {
-        return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
-    }
-
-    public Location getLocation() {
+    @Override public Location getLocation() {
         return location;
     }
 
@@ -116,6 +98,10 @@ public class Claymore extends PermanentAspect implements GameObject {
         return loc.distanceSquared(beamLoc) <= 4;// 2 blocks (squared)
     }
 
+    @Override public void onGameEnd() {
+        remove();
+    }
+
     @Override public void remove() {
         location.getBlock().setType(Material.AIR);
         if (beamLoc != null) {
@@ -124,9 +110,10 @@ public class Claymore extends PermanentAspect implements GameObject {
                 trigger.cancel();
             }
         }
-        data.objects.remove(warning);
-        game.removeObject(this);
-        data.objects.remove(this);
+        if (warning != null) {
+            data.objects.remove(warning);
+        }
+        super.remove();
     }
 
     public void trigger() {
@@ -152,19 +139,5 @@ public class Claymore extends PermanentAspect implements GameObject {
         }
         Location attempt = location.clone().add(modX, 0, modZ);
         attemptBeamPlacement(attempt);
-    }
-    
-    @Override public void onGameEnd() {
-        remove();
-    }
-
-    @Override public void onGameStart() {}
-
-    @Override public void onNextLevel() {}
-
-    @Override public void onLevelEnd() {}
-    
-    @Override public int getLoadPriority() {
-        return 2;
     }
 }

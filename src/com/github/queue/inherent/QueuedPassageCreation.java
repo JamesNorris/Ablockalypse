@@ -31,6 +31,10 @@ public class QueuedPassageCreation extends QueuedPlayerInteractData {
         return event.getClickedBlock() != null && event.getPlayer().getName().equals(key) && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK;
     }
 
+    @Override public boolean removeAfterRun() {
+        return shouldRemove;
+    }
+
     @Override public void run() {
         if (!hasImportedPIE()) {
             return;
@@ -57,9 +61,5 @@ public class QueuedPassageCreation extends QueuedPlayerInteractData {
             new Passage(game, loc1, block.getLocation());
             player.sendMessage(ChatColor.GRAY + "Passage created!");
         }
-    }
-    
-    @Override public boolean removeAfterRun() {
-        return shouldRemove;
     }
 }

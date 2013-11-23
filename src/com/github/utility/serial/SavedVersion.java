@@ -20,6 +20,11 @@ public class SavedVersion implements Serializable, Map<String, Object> {
         serialization.clear();
     }
 
+    public SavedVersion combine(SavedVersion other) {
+        serialization.putAll(other.getRawMap());
+        return this;
+    }
+
     @Override public boolean containsKey(Object key) {
         return serialization.containsKey(key);
     }

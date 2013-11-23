@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import com.github.Ablockalypse;
 import com.github.DataContainer;
 import com.github.aspect.intelligent.Game;
-import com.github.behavior.GameObject;
+import com.github.behavior.GameAspect;
 import com.github.enumerated.Setting;
 import com.github.enumerated.ZASound;
 import com.github.manager.SpawnManager;
@@ -39,7 +39,7 @@ public class NextLevelTask extends RepeatingTask {
             if (!played) {
                 played = true;
                 if (game.getLevel() != 0) {
-                    for (GameObject obj : game.getObjects()) {
+                    for (GameAspect obj : game.getObjects()) {
                         obj.onLevelEnd();
                     }
                 }

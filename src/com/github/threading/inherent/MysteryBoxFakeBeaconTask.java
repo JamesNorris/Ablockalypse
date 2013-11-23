@@ -25,7 +25,6 @@ public class MysteryBoxFakeBeaconTask extends RepeatingTask {
     private MysteryBox active;
     private Game game;
 
-
     public MysteryBoxFakeBeaconTask(Game game, int interval, boolean autorun) {
         super(interval, autorun);
         this.game = game;

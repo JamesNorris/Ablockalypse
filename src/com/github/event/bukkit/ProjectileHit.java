@@ -25,7 +25,6 @@ import com.github.aspect.entity.ZAPlayer;
 import com.github.enumerated.ZAEffect;
 
 public class ProjectileHit implements Listener {
-
     private DataContainer data = Ablockalypse.getData();
 
     /* Called when a player throws an object.

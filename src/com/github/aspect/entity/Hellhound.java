@@ -9,7 +9,6 @@ import com.github.aspect.intelligent.Game;
 import com.github.utility.AblockalypseUtility;
 
 public class Hellhound extends ZAMob {
-
     /**
      * Creates a new instance of the GameWolf for ZA.
      * 

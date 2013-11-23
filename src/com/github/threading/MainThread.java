@@ -20,7 +20,7 @@ public class MainThread {
 
     public void run() {
         if (id != -1) {
-            Ablockalypse.crash("The main thread has been run several times over. Ablockalypse will now stop to prevent serious issues.", Integer.MAX_VALUE);
+            Ablockalypse.getErrorTracker().crash("The main thread has been run several times over. Ablockalypse will now stop to prevent serious issues.", Integer.MAX_VALUE);
             return;
         }
         id = Bukkit.getScheduler().scheduleSyncRepeatingTask(Ablockalypse.getInstance(), new Runnable() {

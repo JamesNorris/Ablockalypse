@@ -12,7 +12,7 @@ import com.github.DataContainer;
 
 public class VehicleExit implements Listener {
     private DataContainer data = Ablockalypse.getData();
-    
+
     @EventHandler(priority = EventPriority.HIGHEST) public void VEE(VehicleExitEvent event) {
         LivingEntity ent = event.getExited();
         if (ent instanceof Player && data.isZAPlayer((Player) ent) && data.getZAPlayer((Player) ent).isInLastStand()) {
