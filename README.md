@@ -1,10 +1,10 @@
 Ablockalypse
 ============
 
-Extreme Zombie Ablockalypse plugin for bukkit servers.  
-All issues, source code, and repository functions are handled by GitHub.  
-Downloads, comments, and visuals are handled by BukkitDev. (dev.bukkit.org)  
-Chat, calling, and instant messaging are done via Skype.
+A fast, powerful, and smooth working Zombie Apocalypse plugin for Bukkit servers. 
+All issues, source code, and repository functions are handled by [GitHub](https://github.com/).  
+Downloads, comments, and visuals are handled by [BukkitDev](http://dev.bukkit.org/).
+Chat, calling, and instant messaging are done via [Skype](http://www.skype.com/en/).
 
 To Download:
 ------------
