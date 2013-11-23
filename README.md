@@ -1,18 +1,15 @@
 Ablockalypse
 ============
 
-Extreme Zombie Ablockalypse plugin for bukkit servers.
-
-All issues, source code, and repository functions are handled by GitHub.
-
-Downloads, comments, and visuals are handled by BukkitDev. (dev.bukkit.org)
-
+Extreme Zombie Ablockalypse plugin for bukkit servers.  
+All issues, source code, and repository functions are handled by GitHub.  
+Downloads, comments, and visuals are handled by BukkitDev. (dev.bukkit.org)  
 Chat, calling, and instant messaging are done via Skype.
 
 To Download:
 ------------
 
-1. Download Ablockalypse.jar at http://dev.bukkit.org/bukkit-plugins/zombie-ablockalypse/
+1. Download [Ablockalypse.jar](http://dev.bukkit.org/bukkit-plugins/zombie-ablockalypse/).
 2. Place this Jar in the "plugins" folder of your Bukkit server.
 3. Run the plugin.
 
@@ -27,7 +24,7 @@ Guidelines:
 
 Code requirements:
 
-1. Make sure to follow the Oracle Code Conventions found at http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html.
+1. Make sure to follow the [Oracle Code Conventions](http://www.oracle.com/technetwork/java/javase/documentation/codeconvtoc-136057.html).
 2. No trailing whitespace is allowed.
 3. Imports are organized alphabetically and grouped by package.
 
