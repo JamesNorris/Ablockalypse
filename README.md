@@ -10,7 +10,7 @@ To Download:
 ------------
 
 1. Download [Ablockalypse.jar](http://dev.bukkit.org/bukkit-plugins/zombie-ablockalypse/).
-2. Place this Jar in the "plugins" folder of your Bukkit server.
+2. Place this JAR in the "plugins" folder of your Bukkit server.
 3. Run the plugin.
 
 Pull Requests:
@@ -28,7 +28,7 @@ Code requirements:
 2. No trailing whitespace is allowed.
 3. Imports are organized alphabetically and grouped by package.
 
-Licencing:
+Licensing:
 ----------
 
-Ablockalypse is licenced under GPLv3, which can be found in [LICENCE.txt](https://github.com/JamesNorris/Ablockalypse/blob/master/LICENCE.txt).
+Ablockalypse is licensed under GPLv3, which can be found in [LICENSE.txt](https://github.com/JamesNorris/Ablockalypse/blob/master/LICENSE.txt).
