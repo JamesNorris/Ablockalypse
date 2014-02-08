@@ -2,8 +2,8 @@ package com.github.jamesnorris.ablockalypse.threading.inherent;
 
 import org.bukkit.ChatColor;
 
-import com.github.jamesnorris.ablockalypse.aspect.block.Teleporter;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.Teleporter;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.event.bukkit.PlayerInteract;
 import com.github.jamesnorris.ablockalypse.threading.DelayedTask;
 

@@ -6,12 +6,21 @@
 # NOTES:
 #   * The ender pearl (grenade), bow, and flower pot (claymore) will always be renamed
 #   * The bow comes with 1 arrow, and is enchanted with infinite arrows
+#   * Ammo regeneration (Max Ammo) regenerates melee weapons by default
+
+##################AMMO##################
+#  '368':                             The id number of the item
+#    amount: 2                        The amount of the item given
+
+ammo:
+   '368':
+     amount: 2
 
 #############STARTING ITEMS#############
 #  '268':                             The id number of the item
-#    amount: 5                        The amount of the item given
+#    amount: 1                        The amount of the item given
 
-gameStartItems:
+start:
   '268':
     amount: 1
 
@@ -23,7 +32,7 @@ gameStartItems:
 #    amount: 1                        The amount of the item given per price paid
 #    level: 10                        The level required to buy/use this item/weapon
 
-signItems:
+sign:
   '268':
     name: [WOOD_SWORD]
     upgraded_name: Raid
@@ -58,7 +67,7 @@ signItems:
     name: [GRENADE]
     upgraded_name: Grenade
     cost: 200
-    amount: 5
+    amount: 2
     level: 0
   '261':
     name: [BOW]

@@ -8,8 +8,8 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.PlayerStatus;
 
 public class PlayerDeath implements Listener {

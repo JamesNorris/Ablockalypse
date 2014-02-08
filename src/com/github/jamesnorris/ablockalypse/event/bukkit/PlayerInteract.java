@@ -3,8 +3,9 @@ package com.github.jamesnorris.ablockalypse.event.bukkit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -26,14 +27,14 @@ import org.bukkit.material.Lever;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.MysteryBox;
-import com.github.jamesnorris.ablockalypse.aspect.block.Passage;
-import com.github.jamesnorris.ablockalypse.aspect.block.PowerSwitch;
-import com.github.jamesnorris.ablockalypse.aspect.block.Teleporter;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAMob;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.BuyableItemData;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.MapData;
+import com.github.jamesnorris.ablockalypse.aspect.MysteryBox;
+import com.github.jamesnorris.ablockalypse.aspect.Passage;
+import com.github.jamesnorris.ablockalypse.aspect.PowerSwitch;
+import com.github.jamesnorris.ablockalypse.aspect.Teleporter;
+import com.github.jamesnorris.ablockalypse.aspect.ZAMob;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.Local;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 import com.github.jamesnorris.ablockalypse.enumerated.ZAEffect;
@@ -42,14 +43,14 @@ import com.github.jamesnorris.ablockalypse.enumerated.ZAPerk;
 import com.github.jamesnorris.ablockalypse.event.GameCreateEvent;
 import com.github.jamesnorris.ablockalypse.event.GameSignClickEvent;
 import com.github.jamesnorris.ablockalypse.queue.QueuedPlayerInteractData;
-import com.github.jamesnorris.ablockalypse.storage.MapDataStorage;
 import com.github.jamesnorris.ablockalypse.threading.inherent.TeleportTask;
 import com.github.jamesnorris.ablockalypse.threading.inherent.TeleporterLinkageTimerTask;
 import com.github.jamesnorris.ablockalypse.utility.AblockalypseUtility;
 import com.github.jamesnorris.ablockalypse.utility.BukkitUtility;
-import com.github.jamesnorris.ablockalypse.utility.ranged.HitThroughWallShot;
-import com.github.jamesnorris.ablockalypse.utility.selection.Cube;
-import com.github.jamesnorris.ablockalypse.utility.selection.Cuboid;
+import com.github.jamesnorris.ablockalypse.utility.BuyableItemData;
+import com.github.jamesnorris.ablockalypse.utility.Cube;
+import com.github.jamesnorris.ablockalypse.utility.Cuboid;
+import com.github.jamesnorris.ablockalypse.utility.HitThroughWallShot;
 import com.github.jamesnorris.mcshot.Hit;
 import com.github.jamesnorris.mcshot.HitBox;
 import com.github.jamesnorris.mcshot.Shot;
@@ -63,9 +64,8 @@ public class PlayerInteract implements Listener {
     public static HashMap<String, String> mapDataSavePlayers = new HashMap<String, String>();
     private static HashMap<String, Location> mapDataPoint1SaveClickers = new HashMap<String, Location>();
     public static HashMap<String, String> mapDataLoadPlayers = new HashMap<String, String>();
-    private static HashMap<UUID, Long> hitThroughWallTimers = new HashMap<UUID, Long>();
     private DataContainer data = Ablockalypse.getData();
-    public static CopyOnWriteArrayList<QueuedPlayerInteractData> queue = new CopyOnWriteArrayList<QueuedPlayerInteractData>();
+    public static BlockingQueue<QueuedPlayerInteractData> queue = new LinkedBlockingQueue<QueuedPlayerInteractData>();
 
     public boolean isPassage(Block block) {
         for (Passage passage : data.getObjectsOfType(Passage.class)) {
@@ -102,14 +102,14 @@ public class PlayerInteract implements Listener {
                     player.sendMessage(ChatColor.GRAY + "Please click the other corner of the map.");
                     return;
                 } else {
-                    boolean saved = new MapDataStorage(mapDataSavePlayers.get(player.getName())).save(new Cuboid(mapDataPoint1SaveClickers.get(player.getName()), block.getLocation()));
+                    boolean saved = new MapData(mapDataSavePlayers.get(player.getName())).save(new Cuboid(mapDataPoint1SaveClickers.get(player.getName()), block.getLocation()));
                     mapDataPoint1SaveClickers.remove(player.getName());
                     mapDataSavePlayers.remove(player.getName());
                     String successful = saved ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
                     player.sendMessage(ChatColor.GRAY + "Mapdata saved " + successful + ChatColor.GRAY + ".");
                 }
             } else if (!data.isZAPlayer(player) && mapDataLoadPlayers.containsKey(player.getName()) && action == Action.RIGHT_CLICK_BLOCK) {
-                boolean loaded = MapDataStorage.getFromGame(mapDataLoadPlayers.get(player.getName())).load(block.getLocation());
+                boolean loaded = MapData.getFromGame(mapDataLoadPlayers.get(player.getName())).load(block.getLocation());
                 mapDataLoadPlayers.remove(player.getName());
                 String successful = loaded ? ChatColor.GREEN + "successfully" + ChatColor.RESET : ChatColor.RED + "unsuccessfully" + ChatColor.RESET;
                 player.sendMessage(ChatColor.GRAY + "Mapdata loaded " + successful + ".");
@@ -130,11 +130,12 @@ public class PlayerInteract implements Listener {
                 ZAPlayer zap = data.getZAPlayer(player);
                 Game game = zap.getGame();
                 if (block.getType() == Material.CHEST && action == Action.RIGHT_CLICK_BLOCK) {
+                    event.setUseInteractedBlock(Result.DENY);
                     Location l = block.getLocation();
                     if (data.isMysteryChest(l)) {
                         MysteryBox mc = data.getMysteryChest(l);
                         if (mc != null && mc.isActive()) {
-                            mc.giveRandomItem(zap);
+                            mc.openToRandomItem(zap);
                         } else {
                             player.sendMessage(ChatColor.RED + "That chest is not active!");
                             event.setCancelled(true);
@@ -153,18 +154,11 @@ public class PlayerInteract implements Listener {
                         return;
                     }
                     new PowerSwitch(game, loc, lever);
-                } else if ((!block.getType().isOccluding() || block.getType() == Material.FENCE) && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)) {
-                    // timer, half a second between through-wall hits per player
-                    if (hitThroughWallTimers.containsKey(player.getUniqueId())) {
-                        if (System.currentTimeMillis() - hitThroughWallTimers.get(player.getUniqueId()) < 500) {
-                            return;
-                        }
-                        hitThroughWallTimers.remove(player.getUniqueId());
-                    }
-                    hitThroughWallTimers.put(player.getUniqueId(), System.currentTimeMillis());
+                } else if (!block.getType().isOccluding() && (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK)) {
                     // through-fence damage
                     ItemStack handItem = player.getItemInHand();
-                    short damage = handItem == null ? 1/* hand damage */: handItem.getDurability();
+                    short damage = handItem == null ? 1/* hand damage */
+                    : handItem.getDurability();
                     HitThroughWallShot shotData = new HitThroughWallShot(damage);
                     Shot shot = new Shot(player.getEyeLocation(), shotData);
                     List<Hit> results = shot.shoot(shot.arrangeClosest(data.getObjectsOfType(HitBox.class)));
@@ -172,10 +166,10 @@ public class PlayerInteract implements Listener {
                         return;
                     }
                     Hit closestHit = results.get(0);
-                    if (closestHit == null || !(closestHit.getHitBox() instanceof EntityHitBox)) {
+                    if (closestHit == null || !(closestHit.getBoxHit() instanceof EntityHitBox)) {
                         return;
                     }
-                    Entity hitBoxEntity = ((EntityHitBox) closestHit.getHitBox()).getEntity();
+                    Entity hitBoxEntity = ((EntityHitBox) closestHit.getBoxHit()).getEntity();
                     if (!(hitBoxEntity instanceof LivingEntity)) {
                         return;
                     }
@@ -183,9 +177,6 @@ public class PlayerInteract implements Listener {
                     if (!zam.getGame().getUUID().equals(zap.getGame().getUUID())) {
                         return;
                     }
-                    // if (closestHit.getZones().isEmpty()) {
-                    // return;
-                    // }
                     zam.getEntity().damage(shotData.getDamage(0), player);
                     return;
                 } else if (action == Action.RIGHT_CLICK_BLOCK) {
@@ -306,7 +297,7 @@ public class PlayerInteract implements Listener {
         try {
             cost = Integer.parseInt(l3);
         } catch (Exception e) {
-            Ablockalypse.getErrorTracker().crash("The sign at " + sign.getLocation().toString() + " does not have a cost value on line 4.", 0);
+            Ablockalypse.getTracker().error("The sign at " + sign.getLocation().toString() + " does not have a cost value on line 4.", 0);
             player.sendMessage(ChatColor.RED + "That sign is incorrectly formatted.\nThe server has already been alerted.");
             return;
         }
@@ -374,9 +365,9 @@ public class PlayerInteract implements Listener {
     }
 
     private void giveItem(Sign sign, Player player, ZAPlayer zap, String l3, int points) {
-        HashMap<Integer, BuyableItemData> maps = Ablockalypse.getExternal().getItemFileManager().getSignItemMaps();
-        for (int id : maps.keySet()) {
-            BuyableItemData map = maps.get(id);
+        Map<Integer, BuyableItemData> items = Ablockalypse.getExternal().getItemFileManager().getSignItemMap();
+        for (int id : items.keySet()) {
+            BuyableItemData map = items.get(id);
             int cost = sign.getLine(3).isEmpty() ? map.getCost() : Integer.parseInt(sign.getLine(3));
             if (l3.equalsIgnoreCase(map.getName()) && zap.getGame().getLevel() >= map.getRequiredLevel()) {
                 if (points < cost) {

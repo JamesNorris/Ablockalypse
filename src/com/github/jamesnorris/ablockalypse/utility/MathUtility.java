@@ -37,4 +37,28 @@ public class MathUtility {
         }
         return Integer.parseInt(totalDigits);
     }
+
+    public static double absDegrees(double degrees) {
+        if (degrees < 0) {
+            for (int i = (int) Math.round(degrees / -360); i >= 0; i--) {
+                degrees += 360;;
+            }
+        }
+        return degrees % 360;
+    }
+
+    public static double refAngle(double degrees) {
+        if (degrees < 0 || degrees > 360) {
+            degrees = absDegrees(degrees);
+        }
+        if (degrees < 90) {
+            return degrees;
+        } else if (degrees < 180) {
+            return 180 - degrees;
+        } else if (degrees < 270) {
+            return degrees - 180;
+        } else {
+            return 360 - degrees;
+        }
+    }
 }

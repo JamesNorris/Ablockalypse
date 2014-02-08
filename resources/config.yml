@@ -44,6 +44,11 @@ displayPlayerHealth: true
 teleportersRequirePower: true
 # Whether or not teleporters need to be powered before being linked.
 
+maxPathfinderNodes: 64
+# The maximum number of blocks which a pathfinder can calculate.
+# This stops the pathfinder at a certain amount, preventing speed issues.
+# If a mob must reach a target which is too far for this number, it will teleport closer to the target.
+
 wolfLevels:
      - '[5, 5] 100%'
      - '[11, 11] 100%'
@@ -73,14 +78,14 @@ pointsGivenOnAtomBomb: 600
 defaultFriendlyFireMode: false
 # The default setting for all games concerning friendly fire.
 
-lastStandThreshold: 10
+lastStandThreshold: 6.0
 # The amount of health left before a player is put in last stand.
-# Max health is 20, so 10 health = 5 hearts.
+# NOTE: 2 health per heart.
 
 endOnLastPlayerLastStand: true
 # If the game should end when the last player goes into last stand.
 
-powerupChance: 5
+powerupChance: 5.0
 # The chances for the 3 powerups. (atom bomb, barrier fix, weapon fix)
 
 blinkers: true
@@ -109,7 +114,8 @@ movingChests: true
 # Moves the active chest around, instead of all chests being active at once.
 
 chestBeacons: true
-# Adds FIREWORKS (the beacon effect is client-side) above chests to let players see where the active chest is.
+# Adds mobspawner flames (the beacon effect is client-side, and doesn't travel through blocks) above chests to let 
+# players see where the active chest is.
 
 levelTransitionTime: 10
 # The time, in seconds, before transitioning to the next level after finishing the previous one.
@@ -117,9 +123,8 @@ levelTransitionTime: 10
 preventNearbySpawning: true
 preventNearbySpawningRadius: 50
 # If enabled, prevents all non-ablockalypse mobs near za players from spawning.
-# This has an advantage over clearing them:
-# It affects slimes
-# It won't disturb other players
+# Preventing mobs from spawning is more effective than simply removing the mobs after being spawned
+# because it is faster, affects slimes, and doesn't cause mobs to appear and disappear.
 
 clearNearbyMobs: false
 nearbyMobClearingRadius: 32
@@ -129,23 +134,13 @@ nearbyMobClearingRadius: 32
 
 MAX_FATALITY: 100
 # The most fatality points that Ablockalypse can take before shutting down. This is used to help
-# stop looping errors cause by Ablockalypse.
+# stop looping errors caused by Ablockalypse.
 
 PRINT_STORAGE_DATA_TO_FILE: true
 # Whether or not to print all game storage data to a file. A file will be printed
 # per game on disable, allowing the owner to view (but not change) the game settings.
 # Setting this to false may save some speed when disabling the plugin.
 # This can be used to help debug the game, and may be helpful in a bug report.
-
-ENABLE_UPDATE_CHECK: true
-# Allows the plugin to check for updates.
-# This only allows the plugin to check for possible updates if true.
-# The plugin will not update or check whatsoever if false.
-
-ENABLE_AUTO_UPDATE: true
-# Whether or not auto-update should be enabled.
-# Disabling this will NOT prevent the plugin from even warning you about an available update
-# This is dependent on 'ENABLE_UPDATE_CHECK' being true.
 
 DEBUG: false
 # Setting this true will make the console spit out a lot of info at you.

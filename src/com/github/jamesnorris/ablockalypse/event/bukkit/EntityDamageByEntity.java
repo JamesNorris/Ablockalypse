@@ -1,6 +1,8 @@
 package com.github.jamesnorris.ablockalypse.event.bukkit;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import org.bukkit.entity.Arrow;
@@ -16,16 +18,19 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAMob;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAMob;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 import com.github.jamesnorris.ablockalypse.threading.inherent.LastStandPickupTask;
-import com.github.jamesnorris.ablockalypse.utility.Pathfinder;
+import com.github.jamesnorris.ablockalypse.utility.AblockalypseUtility;
+import com.github.jamesnorris.mcpath.PathNode;
+import com.github.jamesnorris.mcpath.Pathfinder;
 
 public class EntityDamageByEntity implements Listener {
     public static ArrayList<UUID> instakillids = new ArrayList<UUID>();
     private DataContainer data = Ablockalypse.getData();
     public static final double MIN_FIREBALL_DMG = 5, MIN_ARROW_DMG = 8, MIN_HIT_DMG = 1.5, MIN_FRIENDLY_FIRE_DMG = 1;
+    private static final Random RAND = new Random();
 
     /* Called when an entity damaged another entity.
      * Used mostly for picking someone out of last stand, changing damage, and cancelling damage. */
@@ -47,7 +52,7 @@ public class EntityDamageByEntity implements Listener {
 
     /* Used to separate mob damage from player damage.
      * This is the mob version. */
-    @SuppressWarnings("deprecation") public void mobDamage(EntityDamageByEntityEvent event, LivingEntity damager, LivingEntity e, double evtdmg) {
+    public void mobDamage(EntityDamageByEntityEvent event, LivingEntity damager, LivingEntity e, double evtdmg) {
         ZAMob zam = data.getZAMob(e);
         if (damager instanceof Fireball) {
             Fireball f = (Fireball) damager;
@@ -75,8 +80,13 @@ public class EntityDamageByEntity implements Listener {
             Player p = (Player) damager;
             if (data.isZAPlayer(p)) {
                 ZAPlayer zap = data.getZAPlayer(p);
-                if (Pathfinder.calculate(e.getLocation(), p.getLocation()).getTotalHeuristic() >= e.getLocation().distance(p.getLocation()) * 3) {
-                    zam.getTargetter().panic(120);
+                List<PathNode> nodes = new Pathfinder(e.getLocation(), p.getLocation(), AblockalypseUtility.getGoals(p.getWorld(), .891D, 1.031D, 2D, 0)).calculate((Integer) Setting.MAX_PATHFINDER_NODES.getSetting()).getNodes();
+                if (nodes.get(nodes.size() - 1).H > 10) {
+                    if (RAND.nextInt(99) + 1 < 5) {
+                        zam.getTargetter().panic(120);
+                    } else if (!zap.isTargettedBy(zam)) {
+                        zam.retarget();
+                    }
                 }
                 if (zap.hasInstaKill()) {
                     event.setDamage(zam.getEntity().getHealth() * 5);
@@ -119,8 +129,8 @@ public class EntityDamageByEntity implements Listener {
                 } else {
                     event.setCancelled(true);
                 }
-            } else if (p.getHealth() <= (Integer) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting() && !zap.isInLastStand() && !zap.isInLimbo()) {
-                p.setHealth((Integer) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting());
+            } else if (p.getHealth() <= (Double) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting() && !zap.isInLastStand() && !zap.isInLimbo()) {
+                p.setHealth((Double) Setting.LAST_STAND_HEALTH_THRESHOLD.getSetting());
                 zap.toggleLastStand();
             } else if (zap.isInLastStand()) {
                 event.setCancelled(true);

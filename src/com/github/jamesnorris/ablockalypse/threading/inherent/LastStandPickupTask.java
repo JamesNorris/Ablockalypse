@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 import com.github.jamesnorris.ablockalypse.threading.RepeatingTask;
 
@@ -21,7 +21,8 @@ public class LastStandPickupTask extends RepeatingTask {
 
     public LastStandPickupTask(ZAPlayer pickup, ZAPlayer downed, int interval, int requirement, boolean autorun) {
         super(interval, autorun);
-        if (pickingUp.contains(downed.getPlayer().getName())) {
+        if (pickup.equals(downed) || pickingUp.contains(downed.getPlayer().getName())) {
+            super.cancel();
             return;
         }
         pickingUp.add(downed.getPlayer().getName());
@@ -43,8 +44,8 @@ public class LastStandPickupTask extends RepeatingTask {
 
     @Override public void run() {
         ++ranThrough;
-        if (downed.isInLastStand() && pickupPlayer.getLocation().distanceSquared(downedPlayer.getLocation()) <= 4 /* 4 = 2 squared */&& ranThrough < requirement
-                && pickupPlayer.isSneaking()) {
+        if (downed.isInLastStand() && pickupPlayer.getLocation().distanceSquared(downedPlayer.getLocation()) <= 4 /* 4 = 2 squared */
+                && ranThrough < requirement && pickupPlayer.isSneaking()) {
             pickupPlayer.setExp(starting + perRequirement * ranThrough);
         } else if (ranThrough >= requirement && downed.isInLastStand()) {
             downed.toggleLastStand();

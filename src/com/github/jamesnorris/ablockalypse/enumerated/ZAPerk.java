@@ -5,7 +5,7 @@ import java.util.Map;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.google.common.collect.Maps;
 
 public enum ZAPerk {

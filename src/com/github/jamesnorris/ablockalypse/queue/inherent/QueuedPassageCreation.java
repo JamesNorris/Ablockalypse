@@ -11,8 +11,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Passage;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Passage;
 import com.github.jamesnorris.ablockalypse.queue.QueuedPlayerInteractData;
 
 public class QueuedPassageCreation extends QueuedPlayerInteractData {
@@ -37,6 +37,7 @@ public class QueuedPassageCreation extends QueuedPlayerInteractData {
 
     @Override public void run() {
         if (!hasImportedPIE()) {
+            shouldRemove = true;
             return;
         }
         PlayerInteractEvent event = getPIE();
@@ -46,11 +47,13 @@ public class QueuedPassageCreation extends QueuedPlayerInteractData {
         event.setUseItemInHand(Result.DENY);
         if (data.isPassage(block.getLocation())) {
             player.sendMessage(ChatColor.RED + "That is already a passage!");
+            shouldRemove = true;
             return;
         }
         Game game = data.getGame(gameName, false);
         if (game == null) {
             player.sendMessage(ChatColor.RED + "That game does not exist!");
+            shouldRemove = true;
             return;
         }
         if (loc1 == null) {

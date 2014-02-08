@@ -11,8 +11,8 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.Zombie;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.Zombie;
 
 public class EntityDamage implements Listener {
     private DataContainer data = Ablockalypse.getData();

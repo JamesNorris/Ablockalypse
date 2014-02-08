@@ -14,8 +14,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAMob;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAMob;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.PowerupType;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 
@@ -35,7 +35,7 @@ public class EntityDeath implements Listener {
             killer.setFoodLevel(20);
         }
         int chance = rand.nextInt(100) + 1;
-        if (chance <= (Integer) Setting.POWERUP_CHANCE.getSetting()) {
+        if (chance <= (Double) Setting.POWERUP_CHANCE.getSetting()) {
             zap.givePowerup(PowerupType.getById(rand.nextInt(5) + 1), killer);
         }
     }

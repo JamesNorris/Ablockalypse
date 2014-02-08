@@ -23,6 +23,7 @@ public class BlinkerTask extends RepeatingTask {
     private List<BlockState> blockStates = new ArrayList<BlockState>();
     private DyeColor color;
     private boolean colored = false;
+    private boolean paused;
     private static DataContainer data = Ablockalypse.getData();
 
     /**
@@ -49,6 +50,14 @@ public class BlinkerTask extends RepeatingTask {
         data.objects.remove(this);
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
+    public void pause(boolean pause) {
+        paused = pause;
+    }
+
     public void restart() {
         setCount(0);
     }
@@ -67,7 +76,7 @@ public class BlinkerTask extends RepeatingTask {
      * Makes the blinker blink in an alternating way.
      */
     @Override public void run() {
-        if ((Boolean) Setting.BLINKERS.getSetting()) {
+        if ((Boolean) Setting.BLINKERS.getSetting() && !paused) {
             if (colored) {
                 revertBlocks();
             } else {

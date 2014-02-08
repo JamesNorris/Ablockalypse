@@ -3,7 +3,7 @@ package com.github.jamesnorris.ablockalypse.event;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
 
 public class GameEndEvent extends AblockalypseEvent implements Cancellable {
     private static HandlerList handlers = new HandlerList();

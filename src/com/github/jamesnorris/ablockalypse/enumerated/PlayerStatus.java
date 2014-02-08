@@ -2,8 +2,8 @@ package com.github.jamesnorris.ablockalypse.enumerated;
 
 import java.util.Map;
 
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZACharacter;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZACharacter;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.google.common.collect.Maps;
 
 public enum PlayerStatus {

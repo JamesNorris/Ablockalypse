@@ -9,14 +9,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Barrier;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAMob;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.ItemManager;
+import com.github.jamesnorris.ablockalypse.aspect.Barrier;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.ZAMob;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.event.bukkit.PlayerInteract;
 import com.github.jamesnorris.ablockalypse.threading.DelayedTask;
 import com.github.jamesnorris.ablockalypse.utility.BukkitUtility;
+import com.github.jamesnorris.ablockalypse.utility.BuyableItemData;
 import com.google.common.collect.Maps;
 
 public enum PowerupType {
@@ -59,7 +62,7 @@ public enum PowerupType {
             game.broadcast(ChatColor.GRAY + "DOUBLE POINTS! - You gain 2x the amount of points.");
             for (ZAPlayer zap : game.getPlayers()) {
                 zap.setPointGainModifier(2);
-                timedReverse(this, game, player, cause, data, 450);
+                timedReverse(this, game, player, cause, data, 200);
             }
         }
 
@@ -71,9 +74,9 @@ public enum PowerupType {
     },
     FIRESALE(6) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "FIRESALE! - Weapons only cost 10 points.");
+            game.broadcast(ChatColor.GRAY + "FIRESALE! - Items only cost 10 points.");
             PlayerInteract.fireSale.add(game);
-            timedReverse(this, game, player, cause, data, 450);
+            timedReverse(this, game, player, cause, data, 300);
         }
 
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
@@ -85,7 +88,7 @@ public enum PowerupType {
             game.broadcast(ChatColor.GRAY + "INSTA KILL! - It only takes one hit to kill.");
             for (ZAPlayer zap : game.getPlayers()) {
                 zap.setInstaKill(true);
-                timedReverse(this, game, player, cause, data, 450);
+                timedReverse(this, game, player, cause, data, 200);
             }
         }
 
@@ -97,23 +100,31 @@ public enum PowerupType {
     },
     MAX_AMMO(3) {
         @Override public void play(Game game, Player player, Entity cause, DataContainer data) {
-            game.broadcast(ChatColor.GRAY + "MAX AMMO! - All weapons are being fixed.");
+            game.broadcast(ChatColor.GRAY + "MAX AMMO! - Weapons fixed and ammo replenished.");
             for (ZAPlayer zap : game.getPlayers()) {
                 Player p = zap.getPlayer();
-                Inventory i = p.getInventory();
-                for (ItemStack it : i.getContents()) {
-                    if (it != null) {
-                        if (BukkitUtility.isEnchantableLikeSwords(it)) {
-                            it.setDurability((short) 0);
-                            ZAEffect.EXTINGUISH.play(p.getLocation());
-                        }
-                    }
+                fixWeapons(p);
+                ItemManager manager = Ablockalypse.getExternal().getItemFileManager();
+                for (BuyableItemData item : manager.getAmmoItemMap().values()) {
+                    manager.giveItem(p, item);
                 }
             }
         }
 
         @Override public void reverse(Game game, Player player, Entity cause, DataContainer data) {
             // nothing
+        }
+
+        private void fixWeapons(Player player) {
+            Inventory inventory = player.getInventory();
+            for (ItemStack it : inventory.getContents()) {
+                if (it != null) {
+                    if (BukkitUtility.isEnchantableLikeSwords(it)) {
+                        it.setDurability((short) 0);
+                        ZAEffect.EXTINGUISH.play(player.getLocation());
+                    }
+                }
+            }
         }
     };
     private final static Map<Integer, PowerupType> BY_ID = Maps.newHashMap();

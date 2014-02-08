@@ -12,9 +12,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.PlayerState;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.PlayerState;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.event.PlayerLeaveGameEvent;
 
 public class PlayerQuit implements Listener {

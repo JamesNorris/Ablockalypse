@@ -1,11 +1,14 @@
 package com.github.jamesnorris.ablockalypse.threading.inherent;
 
+import java.util.ArrayList;
+import java.util.UUID;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.threading.RepeatingTask;
 import com.github.jamesnorris.ablockalypse.threading.Task;
 import com.github.jamesnorris.ablockalypse.utility.AblockalypseUtility;
@@ -30,7 +33,7 @@ public class LastStandFallenTask extends RepeatingTask {
         player = zap.getPlayer();
     }
 
-    @Override public void run() {
+    @SuppressWarnings("serial") @Override public void run() {
         if (!zap.isInLastStand() || player.isDead()) {
             cancel();
             return;
@@ -38,8 +41,11 @@ public class LastStandFallenTask extends RepeatingTask {
         if (warning != null) {
             data.objects.remove(warning);
         }
-        warning = AblockalypseUtility.scheduleNearbyWarning(player.getLocation(), ChatColor.GRAY + "Hold " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up "
-                + player.getName() + ".", 2, 3.5, 2, 10000);
+        warning = AblockalypseUtility.scheduleNearbyWarning(player.getLocation(), ChatColor.GRAY + "Hold " + ChatColor.AQUA + "SHIFT" + ChatColor.GRAY + " to pick up " + player.getName() + ".", new ArrayList<UUID>() {
+            {
+                add(player.getUniqueId());
+            }
+        }, 2, 3.5, 2, 10000);
         player.damage(.25);
     }
 }

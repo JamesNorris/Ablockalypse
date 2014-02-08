@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import com.google.common.collect.Maps;
 
 public enum ZAEffect {
-    //@formatter:off
 	EXTINGUISH(4, Effect.EXTINGUISH, 1), 
 	FLAMES(2, Effect.MOBSPAWNER_FLAMES, 1), 
 	IRON_BREAK(6, Effect.ZOMBIE_CHEW_IRON_DOOR, 1), 
@@ -16,8 +15,6 @@ public enum ZAEffect {
 	SMOKE(1, Effect.SMOKE, 1), 
 	TELEPORTATION(7, Effect.ENDER_SIGNAL, 1), 
 	WOOD_BREAK(5, Effect.ZOMBIE_CHEW_WOODEN_DOOR, 1);
-	//@formatter:on
-    //
     private final static Map<Integer, ZAEffect> BY_ID = Maps.newHashMap();
     static {
         for (ZAEffect setting : values()) {

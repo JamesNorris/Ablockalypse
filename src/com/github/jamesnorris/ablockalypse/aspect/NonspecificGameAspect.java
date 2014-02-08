@@ -9,7 +9,6 @@ import org.bukkit.block.Block;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
 import com.github.jamesnorris.ablockalypse.behavior.Blinkable;
 import com.github.jamesnorris.ablockalypse.behavior.GameAspect;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
@@ -20,21 +19,21 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
     private List<Location> locations;
     private DyeColor correctSetupColor = DyeColor.BLUE, incorrectSetupColor = DyeColor.RED;
     private BlinkerTask blinkerTask;
-    private boolean respondToPower = true, correctlySetup = true;
+    private boolean respondToPower = true, correctlySetup = true, shouldBlink;
     private int power, powerThreshold = 1;
-    
+
     public NonspecificGameAspect(List<Location> locations) {
         this(locations, false);
-    }
-    
-    public NonspecificGameAspect(Location location) {
-        this(location, false);
     }
 
     public NonspecificGameAspect(List<Location> locations, boolean shouldBlink) {
         this.locations = locations;
         data.objects.add(this);
-        refreshBlinker(shouldBlink);
+        this.shouldBlink = shouldBlink;
+    }
+
+    public NonspecificGameAspect(Location location) {
+        this(location, false);
     }
 
     @SuppressWarnings("serial") public NonspecificGameAspect(final Location location, boolean shouldBlink) {
@@ -62,6 +61,10 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
         }
     }
 
+    public List<Block> getBlinkerBlocks() {
+        return getDefiningBlocks();
+    }
+
     @Override public BlinkerTask getBlinkerTask() {
         return blinkerTask;
     }
@@ -80,10 +83,6 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
             blocks.add(location.getBlock());
         }
         return blocks;
-    }
-    
-    public List<Block> getBlinkerBlocks() {
-        return getDefiningBlocks();
     }
 
     /**
@@ -137,6 +136,10 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
         return power >= powerThreshold;
     }
 
+    public void load() {
+        refreshBlinker(shouldBlink);
+    }
+
     @Override public void onGameEnd() {}
 
     @Override public void onGameStart() {}
@@ -152,7 +155,9 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
     }
 
     @Override public void setBlinking(boolean blinking) {
-        getBlinkerTask().setRunning(blinking);
+        if (getBlinkerTask() != null) {
+            getBlinkerTask().setRunning(blinking);
+        }
     }
 
     public void setCorrectSetupColor(DyeColor color) {
@@ -184,7 +189,7 @@ public class NonspecificGameAspect extends PermanentAspect implements GameAspect
     public boolean shouldRespondToPower() {
         return respondToPower;
     }
-    
+
     protected void refreshBlinker() {
         refreshBlinker(blinkerTask.isRunning());
     }

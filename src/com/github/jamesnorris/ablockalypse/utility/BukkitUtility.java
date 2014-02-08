@@ -6,7 +6,10 @@ import java.util.Random;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
@@ -40,6 +43,18 @@ public class BukkitUtility {
         return eyeLoc.clone().subtract(0, eyeLoc.getY() - floor.getY() - 2 * eyeHeight, 0);
     }
 
+    public static OfflinePlayer forceObtainPlayer(String name) {
+        OfflinePlayer player = Bukkit.getPlayer(name);
+        if (player == null) {
+            return Bukkit.getOfflinePlayer(name);
+        }
+        if (player == null || !player.hasPlayedBefore()) {
+            // npes will be thrown... player doesnt exist and never did (why was it saved?)
+            return null;
+        }
+        return player;
+    }
+
     public static Location fromString(String loc) {
         loc = loc.substring(loc.indexOf("{") + 1);
         loc = loc.substring(loc.indexOf("{") + 1);
@@ -70,27 +85,40 @@ public class BukkitUtility {
 
     public static List<Entity> getNearbyEntities(Location loc, double x, double y, double z) {
         List<Entity> entities = new ArrayList<Entity>();
-        for (Entity entity : loc.getWorld().getEntities()) {
-            Location entLoc = entity.getLocation();
-            boolean nearX = Math.abs(entLoc.getX() - loc.getX()) <= x;
-            boolean nearY = Math.abs(entLoc.getY() - loc.getY()) <= y;
-            boolean nearZ = Math.abs(entLoc.getZ() - loc.getZ()) <= z;
-            if (nearX && nearY && nearZ) {
-                entities.add(entity);
+        for (Chunk chunk : getRelativeChunks(loc.getChunk())) {
+            for (Entity entity : chunk.getEntities()) {
+                Location entLoc = entity.getLocation();
+                if (Math.abs(entLoc.getX() - loc.getX()) <= x && Math.abs(entLoc.getY() - loc.getY()) <= y && Math.abs(entLoc.getZ() - loc.getZ()) <= z && !entities.contains(entity)) {
+                    entities.add(entity);
+                }
             }
         }
         return entities;
     }
 
-    public static Location getNearbyLocation(Location loc, int minXdif, int maxXdif, int minYdif, int maxYdif, int minZdif, int maxZdif) {
-        int modX = difInRandDirection(maxXdif, minXdif);
-        int modY = difInRandDirection(maxXdif, minXdif);
-        int modZ = difInRandDirection(maxXdif, minXdif);
+    public static Location getNearbyLocation(Location loc, double minXdif, double maxXdif, double minYdif, double maxYdif, double minZdif, double maxZdif) {
+        double modX = difInRandDirection(maxXdif, minXdif);
+        double modY = difInRandDirection(maxXdif, minXdif);
+        double modZ = difInRandDirection(maxXdif, minXdif);
         return loc.clone().add(modX, modY, modZ);
     }
 
     public static String getNMSVersionSlug() {
         return nms_version;
+    }
+
+    /**
+     * Gets all nearby chunks
+     * @param chunk The chunk to find relatives
+     * @return All nearby chunks, including the one passed as a parameter
+     */
+    public static Chunk[] getRelativeChunks(Chunk chunk) {
+        World world = chunk.getWorld();
+        return new Chunk[] {chunk, world.getChunkAt(chunk.getX() - 16, chunk.getZ() - 16),
+                world.getChunkAt(chunk.getX() - 16, chunk.getZ()), world.getChunkAt(chunk.getX(), chunk.getZ() - 16),
+                world.getChunkAt(chunk.getX(), chunk.getZ()), world.getChunkAt(chunk.getX() + 16, chunk.getZ() - 16),
+                world.getChunkAt(chunk.getX() - 16, chunk.getZ() + 16),
+                world.getChunkAt(chunk.getX() + 16, chunk.getZ()), world.getChunkAt(chunk.getX(), chunk.getZ() + 16)};
     }
 
     public static Block getSecondChest(Block b) {
@@ -164,7 +192,7 @@ public class BukkitUtility {
         }
     }
 
-    private static int difInRandDirection(int max, int min) {
-        return (rand.nextBoolean() ? 1 : -1) * (rand.nextInt(Math.abs(max - min)) + min);
+    private static double difInRandDirection(double max, double min) {
+        return (rand.nextBoolean() ? 1 : -1) * (rand.nextDouble() * Math.abs(max - min) + Math.abs(min));
     }
 }

@@ -9,9 +9,9 @@ import org.bukkit.event.block.SignChangeEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
+import com.github.jamesnorris.ablockalypse.PermissionManager;
 import com.github.jamesnorris.ablockalypse.enumerated.Local;
 import com.github.jamesnorris.ablockalypse.enumerated.ZAEffect;
-import com.github.jamesnorris.ablockalypse.manager.PermissionManager;
 
 public class SignChange implements Listener {
     private DataContainer data = Ablockalypse.getData();

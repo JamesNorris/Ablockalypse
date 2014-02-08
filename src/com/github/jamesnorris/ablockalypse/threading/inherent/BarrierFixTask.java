@@ -8,8 +8,8 @@ import org.bukkit.entity.Player;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Barrier;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.Barrier;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 import com.github.jamesnorris.ablockalypse.enumerated.ZAEffect;
 import com.github.jamesnorris.ablockalypse.enumerated.ZASound;
@@ -45,7 +45,7 @@ public class BarrierFixTask extends RepeatingTask {
     }
 
     @Override public void run() {
-        if (player == null || !player.isSneaking() || player.isDead() || !(barrier.getCenter().distanceSquared(player.getLocation()) < 4) || !(barrier.getHP() < 5)) {
+        if (player == null || !player.isSneaking() || player.isDead() || barrier.getCenter().distanceSquared(player.getLocation()) > 4 || barrier.getHP() >= 5) {
             cancel();
             return;
         }

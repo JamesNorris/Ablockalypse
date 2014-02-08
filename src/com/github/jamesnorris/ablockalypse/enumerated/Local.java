@@ -9,7 +9,6 @@ import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.google.common.collect.Maps;
 
 public enum Local {
-    //@formatter:off
     BASE_ENCHANTMENT_STRING("enchantmentString"), 
     BASE_JOIN_STRING("joinString"), 
     BASE_PASSAGE_STRING("passageString"), 
@@ -23,13 +22,11 @@ public enum Local {
     PERK_PHD_FLOPPER_STRING("perkPHDFlopperString"),
     PERK_STAMINUP_STRING("perkStaminupString"),
     WRONG_VERSION("wrongVersion");
-	//@formatter:on
-    //
     private final static Map<Integer, Local> BY_ID = Maps.newHashMap();
     static {
         FileConfiguration local = YamlConfiguration.loadConfiguration(Ablockalypse.getExternal().getLocalizationFile());
         if (local == null) {
-            Ablockalypse.getErrorTracker().crash("The localization (local.yml) file cound not be reached.", 80);
+            Ablockalypse.getTracker().error("The localization (local.yml) file cound not be reached.", 80);
         }
         int id = 0;
         for (Local setting : values()) {

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.jamesnorris</groupId>
 	<artifactId>Ablockalypse</artifactId>
-	<version>1.3.1</version>
+	<version>1.3.3</version>
 	<repositories>
 		<repository>
 			<id>Bukkit Repo</id>
@@ -14,14 +14,31 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>1.6.4-R0.1-SNAPSHOT</version>
+			<version>1.7.2-R0.3-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jamesnorris.mcshot</groupId>
 			<artifactId>mcshot</artifactId>
-			<version>1.1.0</version>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jamesnorris.mcpath</groupId>
+			<artifactId>mcpath</artifactId>
+			<version>1.0.0</version>
 		</dependency>
 	</dependencies>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9.1</version>
+				<configuration>
+					<overview>${basedir}/overview.html</overview>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 	<build>
 		<resources>
 			<resource>
@@ -34,6 +51,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.2</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -47,6 +65,7 @@
 									<includes>
 										<include>com/github/jamesnorris/**</include>
 										<include>*.yml</include>
+										<include>*.background</include>
 										<include>lib</include>
 									</includes>
 								</filter>

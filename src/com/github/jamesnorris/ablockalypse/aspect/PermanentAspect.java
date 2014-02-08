@@ -10,14 +10,18 @@ import java.util.UUID;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.External;
-import com.github.jamesnorris.ablockalypse.utility.serial.SavedVersion;
 
 public class PermanentAspect {
-    public static final String[][] replacement = new String[][] { {"\\", ""}, {"/", ""}, {":", "="}, {"*", ""}, {"?", ""}, {"\"", ""}, {"<", "("}, {">", ")"}, {"|", ""}};
+    public static final String[][] replacement = new String[][] { {"\\", ""}, {"/", ""}, {":", "="}, {"*", ""},
+            {"?", ""}, {"\"", ""}, {"<", "("}, {">", ")"}, {"|", ""}};
 
-    public static Object load(Class<?> cast, SavedVersion version) {
+    public static Object load(Class<?> cast, Map<String, Object> version) {
         try {
-            Constructor<?> constr = cast.getConstructor(SavedVersion.class);
+            Constructor<?> constr = cast.getConstructor(Map.class);
+            if (constr == null) {
+                Ablockalypse.getTracker().error("The PermanentAspect load constructor (" + cast.getSimpleName() + "(Map<String, Object> save)) was not found.", 10);
+                return null;
+            }
             if (!constr.isAccessible()) {
                 constr.setAccessible(true);
             }
@@ -48,13 +52,9 @@ public class PermanentAspect {
         }
         BufferedWriter writer = new BufferedWriter(new FileWriter(file));
         try {
-            Map<String, Object> save = aspect.getSave().getRawMap();
+            Map<String, Object> save = aspect.getSave();
             for (String key : save.keySet()) {
                 Object value = save.get(key);
-                if (value instanceof SavedVersion) {
-                    SavedVersion saved = (SavedVersion) value;
-                    value = saved.getRawMap();
-                }
                 writer.write(key + ": " + value + "\n");
             }
         } catch (IOException e) {
@@ -68,9 +68,10 @@ public class PermanentAspect {
         return file;
     }
 
-    public static SavedVersion save(PermanentAspect aspect, File file) {
+    public static Map<String, Object> save(PermanentAspect aspect, File file) {
         try {
-            SavedVersion save = aspect.getSave();
+            Map<String, Object> save = aspect.getSave();
+            save.put("saved_class_type", aspect.getClass().getName());
             External.save(save, file);
             return save;
         } catch (IOException e) {
@@ -85,7 +86,7 @@ public class PermanentAspect {
         return this.getClass().getSimpleName() + " <UUID: " + getUUID().toString() + ">";
     }
 
-    public SavedVersion getSave() {
+    public Map<String, Object> getSave() {
         return null;
     }
 

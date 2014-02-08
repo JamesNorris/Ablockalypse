@@ -8,16 +8,19 @@ import org.bukkit.Sound;
 import com.google.common.collect.Maps;
 
 public enum ZASound {
-    //@formatter:off
-	ACHIEVEMENT(1, new Sound[] {Sound.LEVEL_UP}, 1), AREA_BUY(11, new Sound[] {Sound.DOOR_OPEN}, 3), 
-	AREA_REPLACE(12, new Sound[] {Sound.DOOR_CLOSE}, 3), BARRIER_BREAK(9, new Sound[] {Sound.ZOMBIE_WOODBREAK}, 2), 
-	BARRIER_REPAIR(10, new Sound[] {Sound.PISTON_EXTEND, Sound.ITEM_BREAK}, 1), DEATH(2, new Sound[] {Sound.GHAST_DEATH}, 1), 
-	END(3, new Sound[] {Sound.AMBIENCE_CAVE}, 7), EXPLOSION(13, new Sound[] {Sound.EXPLODE}, 5), 
-	LAST_STAND(4, new Sound[] {Sound.GHAST_SCREAM}, 3), NEXT_LEVEL(5, new Sound[] {Sound.AMBIENCE_THUNDER}, 7), 
-	PREV_LEVEL(6, new Sound[] {Sound.AMBIENCE_RAIN}, 7), START(7, new Sound[] {Sound.AMBIENCE_CAVE}, 7), 
-	TELEPORT(8, new Sound[] {Sound.PORTAL_TRIGGER}, 1);
-	//@formatter:on
-    //
+    ACHIEVEMENT(1, new Sound[] {Sound.LEVEL_UP}, 1),
+    AREA_BUY(11, new Sound[] {Sound.DOOR_OPEN}, 3),
+    AREA_REPLACE(12, new Sound[] {Sound.DOOR_CLOSE}, 3),
+    BARRIER_BREAK(9, new Sound[] {Sound.ZOMBIE_WOODBREAK}, 2),
+    BARRIER_REPAIR(10, new Sound[] {Sound.PISTON_EXTEND, Sound.ITEM_BREAK}, 1),
+    DEATH(2, new Sound[] {Sound.GHAST_DEATH}, 1),
+    END(3, new Sound[] {Sound.AMBIENCE_CAVE}, 7),
+    EXPLOSION(13, new Sound[] {Sound.EXPLODE}, 5),
+    LAST_STAND(4, new Sound[] {Sound.GHAST_SCREAM}, 3),
+    NEXT_LEVEL(5, new Sound[] {Sound.AMBIENCE_THUNDER}, 7),
+    PREV_LEVEL(6, new Sound[] {Sound.AMBIENCE_RAIN}, 7),
+    START(7, new Sound[] {Sound.AMBIENCE_CAVE}, 7),
+    TELEPORT(8, new Sound[] {Sound.PORTAL_TRIGGER}, 1);
     private final static Map<Integer, ZASound> BY_ID = Maps.newHashMap();
     static {
         for (ZASound setting : values()) {

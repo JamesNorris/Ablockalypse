@@ -10,7 +10,7 @@ import org.bukkit.event.entity.EntityTargetEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 
 public class EntityTarget implements Listener {
     private DataContainer data = Ablockalypse.getData();

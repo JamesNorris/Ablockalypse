@@ -9,8 +9,8 @@ import org.bukkit.event.player.PlayerKickEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.event.PlayerLeaveGameEvent;
 
 public class PlayerKick implements Listener {
@@ -19,14 +19,14 @@ public class PlayerKick implements Listener {
     /* Called when a player is kicked from the game.
      * Used mostly to prevent multiple level gains after a player is kicked. */
     @EventHandler(priority = EventPriority.HIGHEST) public void PKE(PlayerKickEvent event) {
-        Player p = event.getPlayer();
-        if (data.isZAPlayer(p)) {
-            ZAPlayer zap = data.getZAPlayer(p);
+        Player player = event.getPlayer();
+        if (data.isZAPlayer(player)) {
+            ZAPlayer zap = data.getZAPlayer(player);
             Game zag = zap.getGame();
             PlayerLeaveGameEvent GPLE = new PlayerLeaveGameEvent(zap, zag);
             Bukkit.getPluginManager().callEvent(GPLE);
             if (!GPLE.isCancelled()) {
-                zag.removePlayer(p);
+                zag.removePlayer(player);
                 zap.remove();
             }
         }

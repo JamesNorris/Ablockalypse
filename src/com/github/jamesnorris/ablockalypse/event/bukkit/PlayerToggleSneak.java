@@ -11,11 +11,12 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Barrier;
-import com.github.jamesnorris.ablockalypse.aspect.block.Claymore;
-import com.github.jamesnorris.ablockalypse.aspect.block.Teleporter;
-import com.github.jamesnorris.ablockalypse.aspect.entity.Grenade;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.Barrier;
+import com.github.jamesnorris.ablockalypse.aspect.Claymore;
+import com.github.jamesnorris.ablockalypse.aspect.Grenade;
+import com.github.jamesnorris.ablockalypse.aspect.MysteryBox;
+import com.github.jamesnorris.ablockalypse.aspect.Teleporter;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.threading.inherent.LastStandPickupTask;
 import com.github.jamesnorris.ablockalypse.threading.inherent.TeleportTask;
 
@@ -29,12 +30,10 @@ public class PlayerToggleSneak implements Listener {
         Location loc = player.getLocation();
         if (data.isZAPlayer(player)) {
             ZAPlayer zap = data.getZAPlayer(player);
-            if (zap.isInLastStand()) {
-                event.setCancelled(true);
-            } else {
+            {
                 Grenade closestGrenade = data.getClosest(Grenade.class, loc, 2, 3.5, 2);
                 if (closestGrenade != null && closestGrenade.getGrenadeEntity() != null) {
-                    Ablockalypse.getExternal().getItemFileManager().giveItem(player, new ItemStack(Material.ENDER_PEARL, 1));
+                    zap.giveItem(new ItemStack(Material.ENDER_PEARL, 1));
                     closestGrenade.setLive(false);
                     closestGrenade.remove();
                     return;
@@ -52,13 +51,19 @@ public class PlayerToggleSneak implements Listener {
                 }
                 Claymore closestClaymore = data.getClosest(Claymore.class, loc, 2, 2, 2);
                 if (closestClaymore != null) {
-                    Ablockalypse.getExternal().getItemFileManager().giveItem(player, new ItemStack(closestClaymore.getDefiningBlock().getType(), 1));
+                    Ablockalypse.getExternal().getItemFileManager().giveItem(player, new ItemStack(Material.FLOWER_POT_ITEM, 1));
                     closestClaymore.remove();
                     return;
                 }
                 Barrier closestBarrier = data.getClosest(Barrier.class, loc, 2, 3, 2);
                 if (closestBarrier != null && closestBarrier.getHP() < 5) {
                     closestBarrier.fixBarrier(zap);
+                    return;
+                }
+                MysteryBox closestBox = data.getClosest(MysteryBox.class, loc, 2, 3.5, 2);
+                if (closestBox != null && closestBox.isShowingItem()) {
+                    closestBox.getLastShownZAPlayer().giveItem(closestBox.getLastShownItem());
+                    closestBox.stopShowing();
                     return;
                 }
             }

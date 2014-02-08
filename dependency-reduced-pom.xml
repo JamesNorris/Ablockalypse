@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.jamesnorris</groupId>
+  <artifactId>Ablockalypse</artifactId>
+  <version>1.3.3</version>
+  <build>
+    <resources>
+      <resource>
+        <targetPath>.</targetPath>
+        <directory>${basedir}/resources</directory>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <filters>
+                <filter>
+                  <artifact>*.*</artifact>
+                  <includes>
+                    <include>com/github/jamesnorris/**</include>
+                    <include>*.yml</include>
+                    <include>*.background</include>
+                    <include>lib</include>
+                  </includes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <repositories>
+    <repository>
+      <id>Bukkit Repo</id>
+      <url>http://repo.bukkit.org/content/repositories/public/</url>
+    </repository>
+  </repositories>
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.9.1</version>
+        <configuration>
+          <overview>${basedir}/overview.html</overview>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>
+

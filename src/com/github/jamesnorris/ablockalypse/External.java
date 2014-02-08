@@ -14,8 +14,6 @@ import java.net.URLConnection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import com.github.jamesnorris.ablockalypse.manager.ItemFileManager;
-
 public class External {
     public static boolean download(InputStream in, OutputStream out) {
         if (in == null || out == null) {
@@ -79,7 +77,7 @@ public class External {
     }
 
     private File configuration, localization, items, savedData, savedPlayerData, mapData, printedSettings;
-    private ItemFileManager itemsManager;
+    private ItemManager itemsManager;
 
     public External(Plugin instance) {
         File dataFolder = instance.getDataFolder();
@@ -97,14 +95,14 @@ public class External {
         ensureDirectory(mapData);
         printedSettings = new File(dataFolder, "printed_settings");
         ensureDirectory(printedSettings);
-        itemsManager = new ItemFileManager(items);
+        itemsManager = new ItemManager(items);
     }
 
     public File getConfigurationFile() {
         return configuration;
     }
 
-    public ItemFileManager getItemFileManager() {
+    public ItemManager getItemFileManager() {
         return itemsManager;
     }
 
@@ -118,19 +116,19 @@ public class External {
 
     public File getMapDataFile(String mapname, boolean force) {
         try {
-            String path = "mapdata" + File.separatorChar + mapname + ".map";
+            String path = "map_data" + File.separatorChar + mapname + ".map";
             File saveFile = new File(Ablockalypse.getInstance().getDataFolder(), path);
             if (force) {
                 if (!saveFile.getParentFile().exists()) {
                     saveFile.getParentFile().mkdirs();
                 }
-                if (!saveFile.exists()) {// new file given the game name with the suffix ".dat"
+                if (!saveFile.exists()) {// new file given the map name with the suffix ".map"
                     saveFile.createNewFile();
                 }
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.getErrorTracker().crash("The block mapdata file: <mapdata" + File.separatorChar + mapname + ".map> could not be found or created.", 5);
+            Ablockalypse.getTracker().error("The block mapdata file: <map_data" + File.separatorChar + mapname + ".map> could not be found or created.", 5);
         }
         return null;
     }
@@ -141,19 +139,19 @@ public class External {
 
     public File getMapGameObjectDataFile(String mapname, boolean force) {
         try {
-            String path = "mapdata" + File.separatorChar + mapname + ".objects";
+            String path = "map_data" + File.separatorChar + mapname + ".objects";
             File saveFile = new File(Ablockalypse.getInstance().getDataFolder(), path);
             if (force) {
                 if (!saveFile.getParentFile().exists()) {
                     saveFile.getParentFile().mkdirs();
                 }
-                if (!saveFile.exists()) {// new file given the game name with the suffix ".dat"
+                if (!saveFile.exists()) {// new file given the map name with the suffix ".objects"
                     saveFile.createNewFile();
                 }
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.getErrorTracker().crash("The game object mapdata file: <mapdata" + File.separatorChar + mapname + ".objects> could not be found or created.", 5);
+            Ablockalypse.getTracker().error("The game object mapdata file: <map_data" + File.separatorChar + mapname + ".objects> could not be found or created.", 5);
         }
         return null;
     }
@@ -176,7 +174,7 @@ public class External {
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.getErrorTracker().crash("The save file: <saved_data" + File.separatorChar + gamename + ".bin> could not be found or created.", 5);
+            Ablockalypse.getTracker().error("The save file: <saved_data" + File.separatorChar + gamename + ".bin> could not be found or created.", 5);
         }
         return null;
     }
@@ -199,8 +197,7 @@ public class External {
             }
             return saveFile;
         } catch (IOException e) {
-            Ablockalypse.getErrorTracker().crash("The save file: <saved_data" + File.separatorChar + "player_data" + File.separatorChar + player.getName()
-                    + ".bin> could not be found or created.", 5);
+            Ablockalypse.getTracker().error("The save file: <saved_data" + File.separatorChar + "player_data" + File.separatorChar + player.getName() + ".bin> could not be found or created.", 5);
         }
         return null;
     }
@@ -226,7 +223,7 @@ public class External {
                 download(resource, new FileOutputStream(file));
             }
         } catch (IOException e) {
-            Ablockalypse.getErrorTracker().crash("Existence could not be ensured for file: <" + file.getAbsolutePath() + ">. This is probably due to an InputStream issue.", 5);
+            Ablockalypse.getTracker().error("Existence could not be ensured for file: <" + file.getAbsolutePath() + ">. This is probably due to an InputStream issue.", 5);
         }
     }
 }

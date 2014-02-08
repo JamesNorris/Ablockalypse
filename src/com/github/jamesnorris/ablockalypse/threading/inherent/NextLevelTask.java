@@ -4,12 +4,12 @@ import org.bukkit.ChatColor;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
 import com.github.jamesnorris.ablockalypse.behavior.GameAspect;
 import com.github.jamesnorris.ablockalypse.enumerated.Setting;
 import com.github.jamesnorris.ablockalypse.enumerated.ZASound;
-import com.github.jamesnorris.ablockalypse.manager.SpawnManager;
 import com.github.jamesnorris.ablockalypse.threading.RepeatingTask;
+import com.github.jamesnorris.ablockalypse.utility.SpawnUtility;
 
 public class NextLevelTask extends RepeatingTask {
     private static final int INTERVAL = 20;
@@ -35,7 +35,7 @@ public class NextLevelTask extends RepeatingTask {
             cancel();
             return;
         }
-        if (data.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && SpawnManager.allSpawnedIn(game)) {
+        if (data.gameExists(name) && game.hasStarted() && game.getMobCount() <= 0 && SpawnUtility.allSpawnedIn(game)) {
             if (!played) {
                 played = true;
                 if (game.getLevel() != 0) {

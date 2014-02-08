@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.bukkit.block.Block;
 
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
 import com.github.jamesnorris.ablockalypse.event.GameEndEvent;
 
 public interface GameAspect {

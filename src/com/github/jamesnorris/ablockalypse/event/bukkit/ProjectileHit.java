@@ -19,9 +19,9 @@ import org.bukkit.util.Vector;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.Grenade;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAMob;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.Grenade;
+import com.github.jamesnorris.ablockalypse.aspect.ZAMob;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.ZAEffect;
 
 public class ProjectileHit implements Listener {

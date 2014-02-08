@@ -11,7 +11,7 @@ import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
 import com.github.jamesnorris.ablockalypse.aspect.NonspecificGameAspect;
 import com.github.jamesnorris.ablockalypse.behavior.GameAspect;
-import com.github.jamesnorris.ablockalypse.utility.selection.Cube;
+import com.github.jamesnorris.ablockalypse.utility.Cube;
 
 public class BlockRedstone implements Listener {
     private DataContainer data = Ablockalypse.getData();

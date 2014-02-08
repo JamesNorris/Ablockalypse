@@ -11,8 +11,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.MysteryBox;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
+import com.github.jamesnorris.ablockalypse.aspect.MysteryBox;
 import com.github.jamesnorris.ablockalypse.queue.QueuedPlayerInteractData;
 
 public class QueuedMysteryBoxCreation extends QueuedPlayerInteractData {
@@ -26,8 +26,7 @@ public class QueuedMysteryBoxCreation extends QueuedPlayerInteractData {
     }
 
     @Override public boolean isCompatible(PlayerInteractEvent event) {
-        return event.getClickedBlock() != null && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && event.getClickedBlock().getType() == Material.CHEST;
+        return event.getClickedBlock() != null && !data.isZAPlayer(event.getPlayer()) && event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.CHEST;
     }
 
     @Override public void run() {
@@ -48,7 +47,7 @@ public class QueuedMysteryBoxCreation extends QueuedPlayerInteractData {
             player.sendMessage(ChatColor.RED + "That is already a mystery box!");
             return;
         }
-        game.addObject(new MysteryBox(game, block.getLocation(), game.getActiveMysteryChest() == null));
+        game.addObject(new MysteryBox(game, block.getLocation()));
         player.sendMessage(ChatColor.GRAY + "Mystery box created successfully!");
     }
 }

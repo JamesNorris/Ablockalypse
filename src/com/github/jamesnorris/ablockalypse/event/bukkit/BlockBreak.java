@@ -13,7 +13,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Claymore;
+import com.github.jamesnorris.ablockalypse.aspect.Claymore;
 
 public class BlockBreak implements Listener {
     private static DataContainer data = Ablockalypse.getData();

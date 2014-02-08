@@ -9,8 +9,7 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.Seat;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 
 public class PlayerTeleport implements Listener {
     private DataContainer data = Ablockalypse.getData();
@@ -24,7 +23,7 @@ public class PlayerTeleport implements Listener {
             if (event.getCause() == TeleportCause.ENDER_PEARL) {
                 event.setCancelled(true);
             } else if (zap.isInLastStand()) {
-                new Seat(event.getFrom()).sit(player);
+                zap.getSeat().sit(player);
                 event.setCancelled(true);
             }
         }

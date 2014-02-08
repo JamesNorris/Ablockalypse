@@ -10,8 +10,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.block.Barrier;
-import com.github.jamesnorris.ablockalypse.aspect.intelligent.Game;
+import com.github.jamesnorris.ablockalypse.aspect.Barrier;
+import com.github.jamesnorris.ablockalypse.aspect.Game;
 import com.github.jamesnorris.ablockalypse.queue.QueuedPlayerInteractData;
 
 public class QueuedBarrierCreation extends QueuedPlayerInteractData {

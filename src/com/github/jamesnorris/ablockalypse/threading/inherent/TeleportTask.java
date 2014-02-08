@@ -10,7 +10,7 @@ import org.bukkit.entity.Player;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.DataContainer;
-import com.github.jamesnorris.ablockalypse.aspect.entity.ZAPlayer;
+import com.github.jamesnorris.ablockalypse.aspect.ZAPlayer;
 import com.github.jamesnorris.ablockalypse.enumerated.PlayerStatus;
 import com.github.jamesnorris.ablockalypse.enumerated.ZAEffect;
 import com.github.jamesnorris.ablockalypse.threading.RepeatingTask;
