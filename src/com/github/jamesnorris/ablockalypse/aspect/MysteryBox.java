@@ -192,7 +192,7 @@ public class MysteryBox extends SpecificGameAspect implements MapDatable {
             return;
         }
         final Location topView = locs[1] != null ? new Region(locs[0], locs[1]).getCenter().clone().add(0, 1, 0) : locs[0].clone().add(0, 1, 0);
-        final Item dropped = showItem(new ItemStack(Material.SKULL_ITEM, 1, (short) 4), 140);
+        final Item dropped = showItem(new ItemStack(Material.SKELETON_SKULL, 1, (short) 4), 140);
         lastShownItem = map.toItemStack();
         lastShownZAPlayer = zap;
         if ((Boolean) Setting.EXTRA_EFFECTS.getSetting()) {

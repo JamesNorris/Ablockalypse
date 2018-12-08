@@ -1,68 +1,146 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.github.jamesnorris</groupId>
+
+	<properties>
+		<!--<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>-->
+		<bukkitVersion>1.13.1-R0.1-SNAPSHOT</bukkitVersion>
+		<mainClass>com.github.jamesnorris.ablockalypse.Ablockalypse</mainClass>
+		<api.version>1.7</api.version>
+	</properties>
+
+	<groupId>com.github.jamesnorris.ablockalypse</groupId>
 	<artifactId>Ablockalypse</artifactId>
 	<version>1.3.3</version>
+	<name>Ablockalypse</name>
+	<description></description>
+
 	<repositories>
-		<repository>
-			<id>Bukkit Repo</id>
-			<url>http://repo.bukkit.org/content/groups/public/</url>
+
+        <repository>
+			<id>spigot-repo</id>
+			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
 		</repository>
-	</repositories>
+
+    </repositories>
+
 	<dependencies>
+	    <dependency>
+           <groupId>org.bukkit</groupId>
+           <artifactId>bukkit</artifactId>
+           <version>1.13.1-R0.1-SNAPSHOT</version>
+        </dependency>
 		<dependency>
-			<groupId>org.spigotmc</groupId>
-			<artifactId>spigot-api</artifactId>
-			<version>1.13.2-R0.1-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>provided</scope>
+			<groupId>com.github.jamesnorris.mcpath</groupId>
+			<artifactId>MCPath</artifactId>
+			<version>1.0.0</version>
+			<optional>false</optional>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/resources/lib/MCPath-1.0.0.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jamesnorris.mcshot</groupId>
+			<artifactId>MCPath</artifactId>
+			<version>1.1.1</version>
+			<optional>false</optional>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/resources/lib/MCShot-1.1.1.jar</systemPath>
 		</dependency>
 	</dependencies>
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.9.1</version>
-				<configuration>
-					<overview>${basedir}/overview.html</overview>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
+
 	<build>
+	    <defaultGoal>clean install</defaultGoal>
+		<sourceDirectory>${project.basedir}</sourceDirectory>
+
 		<resources>
 			<resource>
-				<targetPath>.</targetPath>
-				<filtering>false</filtering>
-				<directory>${basedir}/resources</directory>
+				<directory>${project.basedir}</directory>
+				<filtering>true</filtering>
+
+				<includes>
+					<include>resources/lib/plugin.yml</include>
+				</includes>
+
 			</resource>
 		</resources>
+
 		<plugins>
+
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-compiler-plugin</artifactId>
+			  <version>3.8.0</version>
+              <configuration>
+                  <source>1.8</source>
+                  <target>1.8</target>
+              </configuration>
+            </plugin>
+
+			<!--<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>2.5.2</version>
+
+				<executions>
+					<execution>
+						<id>install-mcpath</id>
+						<phase>clean</phase>
+						<configuration>
+							<file>${project.basedir}/resources/lib/MCPath-1.0.0.jar</file>
+							<repositoryLayout>default</repositoryLayout>
+							<groupId>com.github.jamesnorris.mcpath</groupId>
+							<artifactId>MCPath</artifactId>
+							<version>1.0.0</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+
+					</execution>
+
+					<execution>
+						<id>install-mcshot</id>
+						<phase>clean</phase>
+						<configuration>
+							<file>${project.basedir}/resources/lib/MCShot-1.1.1.jar</file>
+							<repositoryLayout>default</repositoryLayout>
+							<groupId>com.github.jamesnorris.mcshot</groupId>
+							<artifactId>MCShot</artifactId>
+							<version>1.1.1</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+						</configuration>
+
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+
+					</execution>
+				</executions>
+
+			</plugin>-->
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.2</version>
+				<version>3.1.0</version>
+				<configuration>
+					<createDependencyReducedPom>false</createDependencyReducedPom>
+					<artifactSet>
+						<includes>
+							<include>com.github.jamesnorris.ablockalypse:Ablockalypse</include>
+						</includes>
+					</artifactSet>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
 							<goal>shade</goal>
 						</goals>
-						<configuration>
-							<filters>
-								<filter>
-									<artifact>*.*</artifact>
-									<includes>
-										<include>com/github/jamesnorris/**</include>
-										<include>*.yml</include>
-										<include>*.background</include>
-										<include>lib</include>
-									</includes>
-								</filter>
-							</filters>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

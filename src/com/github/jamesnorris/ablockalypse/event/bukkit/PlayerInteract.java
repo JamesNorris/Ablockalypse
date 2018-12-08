@@ -115,7 +115,7 @@ public class PlayerInteract implements Listener {
                 player.sendMessage(ChatColor.GRAY + "Mapdata loaded " + successful + ".");
             } else if (!data.isZAPlayer(player) && data.isGameObject(loc)) {
                 event.setCancelled(true);
-            } else if ((block.getType() == Material.SIGN || block.getType() == Material.SIGN_POST || block.getType() == Material.WALL_SIGN) && action == Action.RIGHT_CLICK_BLOCK) {
+            } else if ((block.getType() == Material.SIGN || block.getType() == Material.WALL_SIGN) && action == Action.RIGHT_CLICK_BLOCK) {
                 Sign s = (Sign) block.getState();
                 if (s.getLine(0).equalsIgnoreCase(Local.BASE_STRING.getSetting())) {
                     event.setUseInteractedBlock(Result.DENY);

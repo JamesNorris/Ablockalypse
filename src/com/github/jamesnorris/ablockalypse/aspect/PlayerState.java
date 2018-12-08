@@ -38,6 +38,7 @@ public class PlayerState extends PermanentAspect {
     private Vector velocity;
     private GameMode gameMode;
 
+    // TODO just serialize player and load?
     @SuppressWarnings("unchecked") public PlayerState(Map<String, Object> save) {
         level = (Integer) save.get("level");
         foodLevel = (Integer) save.get("food_level");

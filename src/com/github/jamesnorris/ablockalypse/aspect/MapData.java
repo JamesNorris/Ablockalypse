@@ -15,7 +15,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CommandBlock;
-import org.bukkit.block.ContainerBlock;
+import org.bukkit.block.Container;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Jukebox;
 import org.bukkit.block.NoteBlock;
@@ -189,10 +189,10 @@ import com.github.jamesnorris.ablockalypse.utility.SerialLocation;
                 }
                 thisSerialBlock.putAll(serialStack);
             }
-        } else if (state instanceof ContainerBlock && ((ContainerBlock) state).getInventory() != null) {
+        } else if (state instanceof Container && ((Container) state).getInventory() != null) {
             thisSerialBlock.put("CONTAINER_BLOCK", "NULL");
             int i = 1;
-            for (ItemStack stack : ((ContainerBlock) state).getInventory().getContents()) {
+            for (ItemStack stack : ((Container) state).getInventory().getContents()) {
                 if (stack == null) {
                     continue;
                 }
@@ -239,7 +239,7 @@ import com.github.jamesnorris.ablockalypse.utility.SerialLocation;
         if (thisSerialBlock.containsKey("INVENTORY_HOLDER")) {
             ((InventoryHolder) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
         } else if (thisSerialBlock.containsKey("CONTAINER_BLOCK")) {
-            ((ContainerBlock) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
+            ((Container) state).getInventory().setContents(getItemsFromSerialization(thisSerialBlock));
         }
         if (thisSerialBlock.containsKey("command")) {
             ((CommandBlock) state).setCommand((String) thisSerialBlock.get("command"));

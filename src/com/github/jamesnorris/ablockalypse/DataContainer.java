@@ -45,7 +45,7 @@ public class DataContainer {
         return null;
     }
 
-    public Material[] modifiableMaterials = new Material[] {Material.FLOWER_POT, Material.FLOWER_POT_ITEM};// default materials
+    public Material[] modifiableMaterials = new Material[] {Material.FLOWER_POT};// default materials
     public CopyOnWriteArrayList<Object> objects = new CopyOnWriteArrayList<Object>();
 
     public boolean gameExists(String gamename) {

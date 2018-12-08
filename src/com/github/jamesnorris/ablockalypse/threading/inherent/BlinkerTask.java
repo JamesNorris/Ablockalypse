@@ -80,8 +80,7 @@ public class BlinkerTask extends RepeatingTask {
             if (colored) {
                 revertBlocks();
             } else {
-                setBlocks(Material.WOOL);
-                setBlocksData(color.getWoolData());
+                setBlocks(BukkitUtility.getWoolByColor(color));
             }
         }
     }
@@ -96,20 +95,6 @@ public class BlinkerTask extends RepeatingTask {
             for (BlockState state : blockStates) {
                 colored = true;
                 state.getBlock().setType(m);
-            }
-        }
-    }
-
-    /**
-     * Sets the data of all blocks.
-     * 
-     * @param by The data of the blocks
-     */
-    public void setBlocksData(byte by) {
-        if ((Boolean) Setting.BLINKERS.getSetting()) {
-            for (BlockState state : blockStates) {
-                colored = true;
-                state.getBlock().setData(by);
             }
         }
     }

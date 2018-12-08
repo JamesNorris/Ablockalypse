@@ -10,6 +10,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.block.data.Lightable;
 
 import com.github.jamesnorris.ablockalypse.Ablockalypse;
 import com.github.jamesnorris.ablockalypse.event.bukkit.EntityExplode;
@@ -49,11 +50,15 @@ public class Claymore extends SpecificGameAspect {
     public void attemptBeamPlacement(Location attempt, Player player) {
         if (!attempt.getBlock().isEmpty()) {
             player.sendMessage(ChatColor.RED + "You cannot place a claymore there!");
-            Ablockalypse.getExternal().getItemFileManager().giveItem(player, new ItemStack(Material.FLOWER_POT_ITEM, 1));
+            Ablockalypse.getExternal().getItemFileManager().giveItem(player, new ItemStack(Material.FLOWER_POT, 1));
             remove();
         } else {
             beamLoc = attempt;
-            beamLoc.getBlock().setType(Material.REDSTONE_TORCH_ON);
+
+            Material torch = Material.REDSTONE_TORCH;
+            ((Lightable) torch).setLit(true);
+
+            beamLoc.getBlock().setType(torch);
             if (trigger != null) {
                 trigger.cancel();
             }
